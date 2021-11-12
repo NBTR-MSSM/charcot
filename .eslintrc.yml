@@ -1,0 +1,5 @@
+extends:
+  - 'serverless-stack'
+  - standard
+rules:
+  space-before-function-paren: off
