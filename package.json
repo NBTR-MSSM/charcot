@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@aws-cdk/core": "1.126.0",
+    "@exsoinn/aws-sdk-wrappers": "^1.2.1",
     "@serverless-stack/cli": "0.50.2",
     "@serverless-stack/resources": "0.50.2"
   }

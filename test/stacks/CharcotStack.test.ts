@@ -1,6 +1,6 @@
 import { expect, haveResource } from '@aws-cdk/assert'
 import * as sst from '@serverless-stack/resources'
-import CharcotStack from '../stacks/CharcotStack'
+import CharcotStack from '../../stacks/CharcotStack'
 
 test('Charcot Stack', () => {
   const app = new sst.App()
