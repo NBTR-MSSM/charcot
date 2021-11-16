@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test": "sst test",
+    "test": "npm run lint:fix && sst test",
     "start": "sst start",
     "build": "sst build",
     "deploy": "sst deploy",
+    "lint": "eslint -c .eslintrc.yml --no-eslintrc ./",
+    "lint:fix": "eslint -c .eslintrc.yml --no-eslintrc --fix ./",
     "remove": "sst remove"
   },
   "devDependencies": {
