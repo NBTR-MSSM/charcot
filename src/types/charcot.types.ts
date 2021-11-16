@@ -1,4 +1,4 @@
-export interface CerebellumImageMetaData {
+export interface CerebrumImageMetaData {
   fileName: string
   regionName: 'Orbital Frontal Cortex' | 'Orbital Frontal Cortex'
   stain: 'H&E' | 'Modified Beilschowski'
@@ -8,8 +8,8 @@ export interface CerebellumImageMetaData {
   uploadDate: string
 }
 
-export interface CerebellumImageMetaDataCreateResult {
-  image: CerebellumImageMetaData,
+export interface CerebrumImageMetaDataCreateResult {
+  image: CerebrumImageMetaData,
   success: boolean,
   message: string
 }
