@@ -12,7 +12,7 @@
 
 
 ### Set Up
-In addition to [the requirements outlined in the project README](), install the following:
+In addition to [the requirements outlined in the project README](../../README.md#install), install the following:
 1. [IntelliJ WebStorm](https://www.jetbrains.com/webstorm/)
 2. ESLint, `npm -g eslint`
 
