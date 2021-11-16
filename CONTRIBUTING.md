@@ -20,7 +20,7 @@ _Must_ follow [Angular commit message format](https://github.com/angular/angular
 Must write unit tests that meet the minimum required code coverage.
 
 ### Linting
-Code must be linted. Refer to developer guide for information on how to do this.
+Code must be linted. Refer to [developer guide](./doc/developer/README.md) for information on how to do this.
 
 ### PR
 PR's must describe the changes and mention the issue they address. Once opened the maintainer(s) will review it, provide feedback, and once any issues have been addressed it will be marged into `main` branch.
