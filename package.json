@@ -2,8 +2,25 @@
   "name": "charcot",
   "version": "0.1.0",
   "private": true,
+  "jest": {
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
+    },
+    "setupFilesAfterEnv": [
+      "./test/jest-test-setup.ts"
+    ],
+    "testPathIgnorePatterns": [
+      ".js",
+      "stacks/"
+    ]
+  },
   "scripts": {
-    "test": "npm run lint:fix && sst test",
+    "test": "sst test --coverage --transform '{}' --preset 'ts-jest' --coveragePathIgnorePatterns 'coverage' --coveragePathIgnorePatterns '.build' --coveragePathIgnorePatterns 'test' --coveragePathIgnorePatterns 'd.ts' --coveragePathIgnorePatterns 'stacks/'",
     "start": "sst start",
     "build": "sst build",
     "deploy": "sst deploy",
@@ -12,20 +29,24 @@
     "remove": "sst remove"
   },
   "devDependencies": {
-    "@aws-cdk/assert": "1.126.0",
+    "@aws-cdk/assert": "1.132.0",
     "@tsconfig/node14": "^1.0.1",
     "@types/aws-lambda": "^8.10.70",
+    "@types/jest": "^27.0.3",
+    "@types/lodash.merge": "^4.6.6",
     "@typescript-eslint/eslint-plugin": "^5.3.1",
     "@typescript-eslint/parser": "^5.3.1",
     "eslint-config-standard": "^16.0.3",
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^5.1.1"
+    "eslint-plugin-promise": "^5.1.1",
+    "ts-jest": "^27.1.0"
   },
   "dependencies": {
-    "@aws-cdk/core": "1.126.0",
-    "@exsoinn/aws-sdk-wrappers": "^1.2.1",
-    "@serverless-stack/cli": "0.50.2",
-    "@serverless-stack/resources": "0.50.2"
+    "@aws-cdk/core": "1.132.0",
+    "@exsoinn/aws-sdk-wrappers": "^1.4.0",
+    "@serverless-stack/cli": "0.53.0",
+    "@serverless-stack/resources": "0.53.0",
+    "lodash.merge": "^4.6.2"
   }
 }

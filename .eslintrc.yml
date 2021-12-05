@@ -3,3 +3,9 @@ extends:
   - standard
 rules:
   space-before-function-paren: off
+overrides:
+  - files:
+      - 'test/**/*.test.ts'
+    rules:
+      '@typescript-eslint/ban-ts-comment': 'off'
+

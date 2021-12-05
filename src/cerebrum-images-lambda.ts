@@ -2,38 +2,57 @@ import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { CerebrumImageMetaData, CerebrumImageMetaDataCreateResult } from './types/charcot.types'
 import { dynamoDbClient, HttpResponse, lambdaWrapper } from '@exsoinn/aws-sdk-wrappers'
 
+/**
+ * Accepts requests to insert image metadata into table. Once the last image is received, in A/B switch
+ * fashion copies the data to the currently active table
+ */
 export const create: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIGatewayProxyEventV2) => {
   /*
    * TODO: Parse the request parameters and insert the record into CerebrumImageMetaData DynamoDB table
    */
+  // Identify table that is ready next for receiving this data
   const payload: CerebrumImageMetaData[] = JSON.parse(event.body as string)
   const promises: Promise<CerebrumImageMetaDataCreateResult>[] = []
-  for (const img of payload) {
+  let endOfSnapshot = false
+  for (const img of sortByImageNumber(payload)) {
+    if (img.imageNumber === img.total) {
+      // When the current image number matches the total,
+      // it means we reached the end of the snapshot
+      // being sent by the client
+      endOfSnapshot = true
+    }
+
     const params = {
-      TableName: process.env.TABLE_NAME,
+      TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME,
       Item: img
     }
-    // Fail-safe, will report on what failed and what was successful, but as a whole
-    // the HTTP response will always be a successful one
-    const res: CerebrumImageMetaDataCreateResult = {
-      image: img,
-      success: true,
-      message: 'Successfully created'
-    }
 
-    promises.push(dynamoDbClient.put(params).then(() => res).catch((e) => {
-      res.message = e.message
-      res.success = false
-      return res
-    }))
+    promises.push(dynamoDbClient.put(params))
   }
 
-  let results: CerebrumImageMetaDataCreateResult[] = []
-  await Promise.all(promises).then((val) => {
-    results = val
+  const response = new HttpResponse(200, 'Request processed successfully')
+  await Promise.all(promises).catch(e => {
+    response.statusCode = 400
+    response.message = `Problem processing image data: ${e}`
   })
 
-  return new HttpResponse(200, 'Request processed, failures if any are indicated', {
-    results: results
-  })
+  if (endOfSnapshot) {
+    // TODO: Since Joshua will be sending a full snapshot
+    //       every time, see which records were not seen in
+    //       this snapshot, and mark them as "inactive". This
+    //       is the same approach I followed with TM's inventory
+    //       updates from POS.
+  }
+
+  return response
 })
+
+/**
+ * Helper method to ensure that images are handled sorted by imageNumber. Why? Because
+ * Joshua will send a snapshot split into chunks, and we want to handle things sequentially
+ * so that Joshua can pick up from where he left off in case of failure (I.e. no need to
+ * redo the full snapshot from scratch).
+ */
+const sortByImageNumber = (imageMetadata: CerebrumImageMetaData[]): CerebrumImageMetaData[] => {
+  return imageMetadata.sort((a: CerebrumImageMetaData, b: CerebrumImageMetaData): number => a.imageNumber - b.imageNumber)
+}

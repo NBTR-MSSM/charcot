@@ -5,7 +5,9 @@ export interface CerebrumImageMetaData {
   age: string
   race: string
   sex: 'Male' | 'Female'
-  uploadDate: string
+  uploadDate: string,
+  imageNumber: number,
+  total: number
 }
 
 export interface CerebrumImageMetaDataCreateResult {
