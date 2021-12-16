@@ -1,11 +1,11 @@
 import { dynamoDbClient } from '@exsoinn/aws-sdk-wrappers'
-import images from '../fixture/cerebrum-image-metadata.fixture'
-import * as lambda from '../../src/cerebrum-images-lambda'
+import images from '../../fixture/cerebrum-image-metadata.fixture'
+import * as lambda from '../../../src/lambda/cerebrum-image-metadata'
 import { APIGatewayProxyEventV2, Context } from 'aws-lambda'
 import merge from 'lodash.merge'
 
 const jestGlobal = global as any
-describe('cerebrum-images-lambda', () => {
+describe('cerebrum-image-metadata', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })

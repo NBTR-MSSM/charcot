@@ -6,6 +6,7 @@ rules:
 overrides:
   - files:
       - 'test/**/*.test.ts'
+      - 'jest-test-setup.ts'
     rules:
       '@typescript-eslint/ban-ts-comment': 'off'
 

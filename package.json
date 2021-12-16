@@ -21,9 +21,9 @@
   },
   "scripts": {
     "test": "sst test --coverage --transform '{}' --preset 'ts-jest' --coveragePathIgnorePatterns 'coverage' --coveragePathIgnorePatterns '.build' --coveragePathIgnorePatterns 'test' --coveragePathIgnorePatterns 'd.ts' --coveragePathIgnorePatterns 'stacks/'",
-    "start": "sst start",
+    "start": "AWS_PROFILE=default sst start",
     "build": "sst build",
-    "deploy": "sst deploy",
+    "deploy": "AWS_PROFILE=default sst deploy",
     "lint": "eslint -c .eslintrc.yml --no-eslintrc ./",
     "lint:fix": "eslint -c .eslintrc.yml --no-eslintrc --fix ./",
     "remove": "sst remove"
@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@aws-cdk/core": "1.132.0",
-    "@exsoinn/aws-sdk-wrappers": "^1.4.0",
+    "@exsoinn/aws-sdk-wrappers": "^1.5.3",
     "@serverless-stack/cli": "0.53.0",
     "@serverless-stack/resources": "0.53.0",
     "lodash.merge": "^4.6.2"

@@ -1,5 +1,5 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2 } from 'aws-lambda'
-import { CerebrumImageMetaData, CerebrumImageMetaDataCreateResult } from './types/charcot.types'
+import { CerebrumImageMetaData, CerebrumImageMetaDataCreateResult } from '../types/charcot.types'
 import { dynamoDbClient, HttpResponse, lambdaWrapper } from '@exsoinn/aws-sdk-wrappers'
 
 /**
