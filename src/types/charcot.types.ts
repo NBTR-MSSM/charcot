@@ -18,8 +18,9 @@ export interface CerebrumImageMetaDataCreateResult {
   message: string
 }
 
-export interface CerebrumImageRequest {
+export interface CerebrumImageOrder {
+  orderId: string
   created: string
   fileNames: CharcotFileName[]
-  requestorEmail: string
+  email: string
 }

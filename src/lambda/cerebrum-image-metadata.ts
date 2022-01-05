@@ -1,6 +1,9 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2 } from 'aws-lambda'
-import { CerebrumImageMetaData, CerebrumImageMetaDataCreateResult } from '../types/charcot.types'
+import { CerebrumImageMetaData } from '../types/charcot.types'
 import { dynamoDbClient, HttpResponse, lambdaWrapper } from '@exsoinn/aws-sdk-wrappers'
+import { PromiseResult } from 'aws-sdk/lib/request'
+import { AWSError } from 'aws-sdk/lib/core'
+import { DynamoDB } from 'aws-sdk/clients/all'
 
 /**
  * Accepts requests to insert image metadata into table. Once the last image is received, in A/B switch
@@ -12,7 +15,7 @@ export const create: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIG
    */
   // Identify table that is ready next for receiving this data
   const payload: CerebrumImageMetaData[] = JSON.parse(event.body as string)
-  const promises: Promise<CerebrumImageMetaDataCreateResult>[] = []
+  const promises: Promise<PromiseResult<DynamoDB.DocumentClient.PutItemOutput, AWSError>>[] = []
   let endOfSnapshot = false
   for (const img of sortByImageNumber(payload)) {
     if (img.imageNumber === img.total) {

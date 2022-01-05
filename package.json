@@ -34,6 +34,8 @@
     "@types/aws-lambda": "^8.10.70",
     "@types/jest": "^27.0.3",
     "@types/lodash.merge": "^4.6.6",
+    "@types/nodemailer": "^6.4.4",
+    "@types/uuid": "^8.3.3",
     "@typescript-eslint/eslint-plugin": "^5.3.1",
     "@typescript-eslint/parser": "^5.3.1",
     "eslint-config-standard": "^16.0.3",
@@ -44,9 +46,11 @@
   },
   "dependencies": {
     "@aws-cdk/core": "1.132.0",
-    "@exsoinn/aws-sdk-wrappers": "^1.5.3",
+    "@exsoinn/aws-sdk-wrappers": "^1.7.0",
     "@serverless-stack/cli": "0.53.0",
     "@serverless-stack/resources": "0.53.0",
-    "lodash.merge": "^4.6.2"
+    "lodash.merge": "^4.6.2",
+    "nodemailer": "^6.7.2",
+    "uuid": "^8.3.2"
   }
 }
