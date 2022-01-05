@@ -30,8 +30,10 @@ export const create: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIG
         TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME,
         Item: order
       })
-      const lambdaRes = await lambdaClient.invokeLambda(lambdaName, 'Event', order.orderId, lambdaName)
-      return new HttpResponse(lambdaRes.StatusCode as number, 'Your order is being processed, you will get an email soon')
+      const lambdaRes = await (lambdaClient as any).invokeLambda(lambdaName, 'Event', JSON.stringify({ orderId: order.orderId }), lambdaName)
+      return new HttpResponse(lambdaRes.StatusCode as number, 'Your order is being processed, you will get an email soon', {
+        body: order
+      })
     } else {
       return new HttpResponse(401, 'Request is either empty or invalid')
     }

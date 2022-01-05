@@ -18,7 +18,7 @@ describe('cerebrum-image-fulfillment', () => {
     const currentTime = new Date(mockTime)
     // @ts-ignore
     const dateSpy = jest.spyOn(global, 'Date').mockImplementation(() => currentTime)
-    const res = await lambda.handle(jestGlobal.dummyOrderId, {} as Context)
+    const res = await lambda.handle({ orderId: jestGlobal.dummyOrderId }, {} as Context)
     expect(res).toBeDefined()
     expect(dynamoDbClient.get).toHaveBeenLastCalledWith({
       TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME,
@@ -26,7 +26,7 @@ describe('cerebrum-image-fulfillment', () => {
         orderId: jestGlobal.dummyOrderId
       }
     })
-    expect(s3Client.zipObjectsToBucket).toHaveBeenCalledWith(process.env.CEREBRUM_IMAGE_BUCKET_NAME, 'image/', order.fileNames, process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME, `zip/${buildZipName(order)}`)
+    expect((s3Client as any).zipObjectsToBucket).toHaveBeenCalledWith(process.env.CEREBRUM_IMAGE_BUCKET_NAME, 'image/', order.fileNames, process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME, `zip/${buildZipName(order)}`)
     // @ts-ignore
     expect(sesClient.sendEmail).toHaveBeenCalledWith({
       Destination: {
@@ -52,9 +52,9 @@ describe('cerebrum-image-fulfillment', () => {
     // @ts-ignore
     s3Client.zipObjectsToBucket.mockRejectedValueOnce(mockError)
     const consoleErrorSpy = jest.spyOn(console, 'error')
-    const res = await lambda.handle(order, {} as Context)
+    const res = await lambda.handle({ orderId: jestGlobal.dummyOrderId }, {} as Context)
     expect(res).toBeDefined()
-    expect(consoleErrorSpy).toHaveBeenCalledWith(`Problem processing request ${JSON.stringify(order)}`, mockError)
+    expect(consoleErrorSpy).toHaveBeenCalledWith(`Problem processing order ${JSON.stringify(order)}`, mockError)
   })
 })
 

@@ -1,6 +1,5 @@
 import images from './fixture/cerebrum-image-metadata.fixture'
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
-import { s3Client } from '@exsoinn/aws-sdk-wrappers'
 
 const jestGlobal = global as any
 jestGlobal.dummyOrderId = 'abc123'

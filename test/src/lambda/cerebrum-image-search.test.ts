@@ -35,7 +35,7 @@ describe('cerebrum-image-search', () => {
     const res = await lambda.handle(event, {} as Context, jest.fn())
     expect(res).toEqual({
       statusCode: 200,
-      body: items
+      body: JSON.stringify(items, null, ' ')
     })
     expect(dynamoDbClient.query).toHaveBeenCalledWith({
       ExpressionAttributeValues: {

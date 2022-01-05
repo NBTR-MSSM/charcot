@@ -32,7 +32,7 @@ export default class CharcotStack extends sst.Stack {
         email: sst.TableFieldType.STRING,
         created: sst.TableFieldType.STRING
       },
-      primaryIndex: { partitionKey: 'fileName' }
+      primaryIndex: { partitionKey: 'orderId' }
     }
 
     const
@@ -59,7 +59,7 @@ export default class CharcotStack extends sst.Stack {
           new iam.PolicyStatement({
             effect: iam.Effect.ALLOW,
             actions: ['dynamodb:GetItem'],
-            resources: [cerebrumImageMetaDataTable.tableArn]
+            resources: [cerebrumImageOrderTable.tableArn]
           }),
           new iam.PolicyStatement({
             effect: iam.Effect.ALLOW,
@@ -68,7 +68,7 @@ export default class CharcotStack extends sst.Stack {
           }),
           new iam.PolicyStatement({
             effect: iam.Effect.ALLOW,
-            actions: ['s3:PutObject'],
+            actions: ['s3:PutObject', 's3:GetObject'],
             resources: [`${cerebrumImageZipBucket.bucketArn}/*`]
           }),
           new iam.PolicyStatement({
@@ -114,8 +114,7 @@ export default class CharcotStack extends sst.Stack {
                   resources: [cerebrumImageMetaDataTable.tableArn, `${cerebrumImageMetaDataTable.tableArn}/index/*`]
                 })],
               environment: {
-                CEREBRUM_IMAGE_METADATA_TABLE_NAME: cerebrumImageMetaDataTable.tableName,
-                HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME: process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME as string
+                CEREBRUM_IMAGE_METADATA_TABLE_NAME: cerebrumImageMetaDataTable.tableName
               }
             }
           },
@@ -135,7 +134,8 @@ export default class CharcotStack extends sst.Stack {
                   resources: [cerebrumImageOrderTable.tableArn]
                 })],
               environment: {
-                CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName
+                CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName,
+                HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME: process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME as string
               }
             }
           }

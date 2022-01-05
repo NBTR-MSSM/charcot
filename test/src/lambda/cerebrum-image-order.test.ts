@@ -1,5 +1,5 @@
 import * as lambda from '../../../src/lambda/cerebrum-image-order'
-import { APIGatewayProxyEventV2, Context } from 'aws-lambda'
+import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda'
 import merge from 'lodash.merge'
 import { dynamoDbClient, lambdaClient } from '@exsoinn/aws-sdk-wrappers'
 
@@ -25,12 +25,12 @@ describe('cerebrum-image-order', () => {
     const event = {} as APIGatewayProxyEventV2
     merge(event, jestGlobal.BASE_REQUEST)
     event.body = JSON.stringify(mockOrderEventBody)
-    const res = await lambda.create(event, {} as Context, jest.fn())
-    expect(res).toEqual({
-      statusCode: 202,
-      body: JSON.stringify({
-        message: 'Your order is being processed, you will get an email soon'
-      }, null, ' ')
+    const res = await lambda.create(event, {} as Context, jest.fn()) as APIGatewayProxyStructuredResultV2
+    expect(res.statusCode).toEqual(202)
+    expect(JSON.parse(res.body as string)).toEqual({
+      orderId: jestGlobal.dummyOrderId,
+      ...mockOrderEventBody,
+      created: currentTime.toISOString()
     })
 
     expect(dynamoDbClient.put).toHaveBeenLastCalledWith({
@@ -47,7 +47,7 @@ describe('cerebrum-image-order', () => {
     // @ts-ignore
     expect(lambdaClient.invokeLambda.mock.calls[0][1]).toEqual('Event')
     // @ts-ignore
-    expect(lambdaClient.invokeLambda.mock.calls[0][2]).toEqual(jestGlobal.dummyOrderId)
+    expect(lambdaClient.invokeLambda.mock.calls[0][2]).toEqual(JSON.stringify({ orderId: jestGlobal.dummyOrderId }))
     // @ts-ignore
     expect(lambdaClient.invokeLambda.mock.calls[0][3]).toEqual(imageFulfillmentLambdaName)
     dateSpy.mockRestore()
@@ -67,7 +67,7 @@ describe('cerebrum-image-order', () => {
         message: `Something went wrong, ${mockError}`
       }, null, ' ')
     })
-    expect(lambdaClient.invokeLambda).toHaveBeenCalledTimes(0)
+    expect((lambdaClient as any).invokeLambda).toHaveBeenCalledTimes(0)
   })
 
   it('returns error when email is missing', async () => {
@@ -84,7 +84,7 @@ describe('cerebrum-image-order', () => {
         message: 'Request is either empty or invalid'
       }, null, ' ')
     })
-    expect(lambdaClient.invokeLambda).toHaveBeenCalledTimes(0)
+    expect((lambdaClient as any).invokeLambda).toHaveBeenCalledTimes(0)
   })
 
   it('returns error when order contains no files', async () => {
@@ -101,7 +101,7 @@ describe('cerebrum-image-order', () => {
         message: 'Request is either empty or invalid'
       }, null, ' ')
     })
-    expect(lambdaClient.invokeLambda).toHaveBeenCalledTimes(0)
+    expect((lambdaClient as any).invokeLambda).toHaveBeenCalledTimes(0)
   })
 
   it('returns error when order is empty', async () => {
@@ -115,6 +115,6 @@ describe('cerebrum-image-order', () => {
         message: 'Request is either empty or invalid'
       }, null, ' ')
     })
-    expect(lambdaClient.invokeLambda).toHaveBeenCalledTimes(0)
+    expect((lambdaClient as any).invokeLambda).toHaveBeenCalledTimes(0)
   })
 })

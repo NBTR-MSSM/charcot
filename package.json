@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "@aws-cdk/core": "1.132.0",
-    "@exsoinn/aws-sdk-wrappers": "^1.7.0",
+    "@exsoinn/aws-sdk-wrappers": "^1.7.2",
     "@serverless-stack/cli": "0.53.0",
     "@serverless-stack/resources": "0.53.0",
     "lodash.merge": "^4.6.2",
