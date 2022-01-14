@@ -10,9 +10,12 @@ const mockOrderEventBody: Readonly<Record<string, any>> = {
   email: 'john.smith@acme.com'
 }
 const jestGlobal = global as any
+let event: APIGatewayProxyEventV2
 describe('cerebrum-image-order', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    event = {} as APIGatewayProxyEventV2
+    merge(event, jestGlobal.BASE_REQUEST)
   })
   it('submits image order for fulfillment', async () => {
     const currentTime = new Date('2021-12-27 00:00:00 UTC')
@@ -22,8 +25,6 @@ describe('cerebrum-image-order', () => {
     lambdaClient.invokeLambda.mockResolvedValueOnce({
       StatusCode: 202
     })
-    const event = {} as APIGatewayProxyEventV2
-    merge(event, jestGlobal.BASE_REQUEST)
     event.body = JSON.stringify(mockOrderEventBody)
     const res = await lambda.create(event, {} as Context, jest.fn()) as APIGatewayProxyStructuredResultV2
     expect(res.statusCode).toEqual(202)
@@ -57,8 +58,6 @@ describe('cerebrum-image-order', () => {
     const mockError = 'THIS IS A TEST: Problem creating image Zip'
     // @ts-ignore
     dynamoDbClient.put.mockRejectedValueOnce(mockError)
-    const event = {} as APIGatewayProxyEventV2
-    merge(event, jestGlobal.BASE_REQUEST)
     event.body = JSON.stringify(mockOrderEventBody)
     const res = await lambda.create(event, {} as Context, jest.fn())
     expect(res).toEqual({
@@ -74,8 +73,6 @@ describe('cerebrum-image-order', () => {
     const order: Record<string, any> = {}
     merge(order, mockOrderEventBody)
     order.email = ''
-    const event = {} as APIGatewayProxyEventV2
-    merge(event, jestGlobal.BASE_REQUEST)
     event.body = JSON.stringify(order)
     const res = await lambda.create(event, {} as Context, jest.fn())
     expect(res).toEqual({
@@ -91,8 +88,6 @@ describe('cerebrum-image-order', () => {
     const order: Record<string, any> = {}
     merge(order, mockOrderEventBody)
     order.fileNames = undefined
-    const event = {} as APIGatewayProxyEventV2
-    merge(event, jestGlobal.BASE_REQUEST)
     event.body = JSON.stringify(order)
     const res = await lambda.create(event, {} as Context, jest.fn())
     expect(res).toEqual({
@@ -105,8 +100,6 @@ describe('cerebrum-image-order', () => {
   })
 
   it('returns error when order is empty', async () => {
-    const event = {} as APIGatewayProxyEventV2
-    merge(event, jestGlobal.BASE_REQUEST)
     event.body = ''
     const res = await lambda.create(event, {} as Context, jest.fn())
     expect(res).toEqual({

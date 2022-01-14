@@ -3,6 +3,7 @@ import { CerebrumImageOrder } from '../types/charcot.types'
 import { SES } from 'aws-sdk'
 import { PromiseResult } from 'aws-sdk/lib/request'
 import { AWSError } from 'aws-sdk/lib/core'
+import { Handler } from 'aws-lambda'
 
 const buildZipName = (orderId: string): string => {
   return `${orderId}.zip`
@@ -27,6 +28,7 @@ const sendMail = async (email: string, zipPath: string): Promise<PromiseResult<S
     },
     Source: 'joquijada2010@gmail.com'
   }
+  console.info(`Sending Zip to '${email}'`)
   return sesClient.sendEmail(emailParams).promise()
 }
 
@@ -34,7 +36,7 @@ const generateSignedZipLink = ({ bucket, path, expires }: Record<string, any>): 
   return s3Client.getSignedUrlPromise('getObject', { Bucket: bucket, Key: path, Expires: expires })
 }
 
-export const handle = lambdaWrapper(async ({ orderId }: Record<string, any>) => {
+export const handle: Handler = lambdaWrapper(async ({ orderId }: Record<string, any>) => {
   /*
   * Alg:
   * The orderId will already contain the file names, so:
@@ -57,12 +59,13 @@ export const handle = lambdaWrapper(async ({ orderId }: Record<string, any>) => 
     })
     order = dbResult.Item as unknown as CerebrumImageOrder
     const zipPath = `zip/${zipName}`
-    await (s3Client as any).zipObjectsToBucket(process.env.CEREBRUM_IMAGE_BUCKET_NAME, 'image/',
-      order.fileNames, zipBucket, zipPath)
-    console.log(`Successfully created Zip for request ${JSON.stringify(orderId)}`)
-    // TODO: Must include the folder also of the mrsx image data
+    const s3Objects = order.fileNames.map(e => [e, e.replace(/\..+$/, '/')]).flat()
+    console.info(`The following assets will be zipped up, ${JSON.stringify(s3Objects)}`)
+    await (s3Client as any).zipObjectsToBucket(process.env.CEREBRUM_IMAGE_BUCKET_NAME, 'image', s3Objects, zipBucket, zipPath)
+    console.info(`Successfully created Zip for request ${JSON.stringify(orderId)}`)
+    // DONE: Must include the folder also of the mrsx image data
     // DONE: Send email that Zip is ready, with the link download
-    // TODO: Write transaction record to table (who, when it was requested, when it was fulfilled)
+    // TODO: Update order with fulfillment date, time it took to process, etc.
     await sendMail(order.email, zipPath)
   } catch (e) {
     console.error(`Problem processing order ${JSON.stringify(order)}`, e)

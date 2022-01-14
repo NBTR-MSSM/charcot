@@ -1,10 +1,13 @@
 import * as sst from '@serverless-stack/resources'
 import { Bucket } from '@serverless-stack/resources'
 import * as iam from '@aws-cdk/aws-iam'
+import { EventType } from '@aws-cdk/aws-s3'
 
 export default class CharcotStack extends sst.Stack {
   constructor(scope: sst.App, id: string, props?: sst.StackProps) {
     super(scope, id, props)
+
+    // DynamoDB Tables
     const cerebrumImageMetaDataTableProps = {
       fields: {
         fileName: sst.TableFieldType.STRING,
@@ -35,54 +38,94 @@ export default class CharcotStack extends sst.Stack {
       primaryIndex: { partitionKey: 'orderId' }
     }
 
-    const
-      cerebrumImageOrderTable = new sst.Table(this, process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string, cerebrumImageOrderTableProps)
+    const cerebrumImageOrderTable = new sst.Table(this, process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string, cerebrumImageOrderTableProps)
 
-    const
-      cerebrumImageBucket = new Bucket(this, process.env.CEREBRUM_IMAGE_BUCKET_NAME as string, {
-        s3Bucket: {
-          bucketName: process.env.CEREBRUM_IMAGE_BUCKET_NAME
-        }
-      })
-    const
-      cerebrumImageZipBucket = new Bucket(this, process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME as string, {
-        s3Bucket: {
-          bucketName: process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME as string
-        }
-      })
+    // Buckets and notification target functions
+    const cerebrumImageZipBucketName = process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME as string
+    const cerebrumImageBucketName = process.env.CEREBRUM_IMAGE_BUCKET_NAME as string
+    const cerebrumImageOdpBucketName = process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME as string
+    const handleCerebrumImageTransfer = new sst.Function(this, 'HandleCerebrumImageTransfer', {
+      functionName: process.env.HANDLE_CEREBRUM_IMAGE_TRANSFER_FUNCTION_NAME,
+      handler: 'src/lambda/cerebrum-image-transfer.handle',
+      initialPolicy: [
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['sts:AssumeRole'],
+          resources: [process.env.CEREBRUM_IMAGE_ODP_ROLE_ARN as string]
+        }),
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['s3:GetObject'],
+          resources: [`arn:aws:s3:::${cerebrumImageBucketName}/*`]
+        }),
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['s3:PutObject'],
+          resources: [`arn:aws:s3:::${cerebrumImageOdpBucketName}/*`]
+        })
+      ],
+      environment: {
+        CEREBRUM_IMAGE_ODP_BUCKET_NAME: cerebrumImageOdpBucketName,
+        CEREBRUM_IMAGE_ODP_ROLE_ARN: process.env.CEREBRUM_IMAGE_ODP_ROLE_ARN as string
+      }
+    })
 
-    const
-      handleCerebrumImageFulfillment = new sst.Function(this, 'HandleCerebrumImageFulfillment', {
-        functionName: process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME,
-        handler: 'src/lambda/cerebrum-image-fulfillment.handle',
-        initialPolicy: [
-          new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
-            actions: ['dynamodb:GetItem'],
-            resources: [cerebrumImageOrderTable.tableArn]
-          }),
-          new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
-            actions: ['s3:GetObject'],
-            resources: [`${cerebrumImageBucket.bucketArn}/*`]
-          }),
-          new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
-            actions: ['s3:PutObject', 's3:GetObject'],
-            resources: [`${cerebrumImageZipBucket.bucketArn}/*`]
-          }),
-          new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
-            actions: ['ses:SendEmail'],
-            resources: ['*']
-          })],
-        environment: {
-          CEREBRUM_IMAGE_BUCKET_NAME: cerebrumImageBucket.bucketName,
-          CEREBRUM_IMAGE_ZIP_BUCKET_NAME: cerebrumImageZipBucket.bucketName,
-          CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName
-        },
-        timeout: 900
-      })
+    const cerebrumImageBucket = new Bucket(this, cerebrumImageBucketName, {
+      s3Bucket: {
+        bucketName: cerebrumImageBucketName
+      },
+      notifications: [
+        {
+          function: handleCerebrumImageTransfer,
+          notificationProps: {
+            events: [EventType.OBJECT_CREATED]
+          }
+        }
+      ]
+    })
+    cerebrumImageBucket.attachPermissions(['s3'])
+
+    // Functions
+    // TODO: See if Lambda memory size can be reduced by inspecting logs to see exactly how much memory used
+    //  Also might to to asynchronously invoke multiple times that Lambda to create Zips so that each running
+    //  instance stays below the memory limit
+    const handleCerebrumImageFulfillment = new sst.Function(this, 'HandleCerebrumImageFulfillment', {
+      functionName: process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME,
+      handler: 'src/lambda/cerebrum-image-fulfillment.handle',
+      memorySize: 10240,
+      initialPolicy: [
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['dynamodb:GetItem'],
+          resources: [cerebrumImageOrderTable.tableArn]
+        }),
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['s3:GetObject'],
+          resources: [`${cerebrumImageBucket.bucketArn}/*`]
+        }),
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['s3:ListBucket'],
+          resources: [`${cerebrumImageBucket.bucketArn}`]
+        }),
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['s3:PutObject', 's3:GetObject'],
+          resources: [`arn:aws:s3:::${cerebrumImageZipBucketName}/*`]
+        }),
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['ses:SendEmail'],
+          resources: ['*']
+        })],
+      environment: {
+        CEREBRUM_IMAGE_BUCKET_NAME: cerebrumImageBucket.bucketName,
+        CEREBRUM_IMAGE_ZIP_BUCKET_NAME: cerebrumImageZipBucketName,
+        CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName
+      },
+      timeout: 900
+    })
 
     // Create a HTTP API
     const
@@ -142,13 +185,13 @@ export default class CharcotStack extends sst.Stack {
         }
       })
 
-    charcotApi
-      .attachPermissions([cerebrumImageMetaDataTable])
+    charcotApi.attachPermissions([cerebrumImageMetaDataTable])
 
     // Show the endpoint in the output
-    this
-      .addOutputs({
-        ApiEndpoint: charcotApi.url
-      })
+    this.addOutputs({
+      ApiEndpoint: charcotApi.url,
+      HandleCerebrumImageFulfillmentRoleArn: handleCerebrumImageFulfillment.role?.roleArn as string,
+      HandleCerebrumImageTransferRoleArn: handleCerebrumImageTransfer.role?.roleArn as string
+    })
   }
 }
