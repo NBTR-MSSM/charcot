@@ -40,22 +40,31 @@ export default class CharcotStack extends sst.Stack {
 
     const cerebrumImageOrderTable = new sst.Table(this, process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string, cerebrumImageOrderTableProps)
 
+    const stage = this.stage
+
+    const handleCerebrumImageTransferFunctionName = `${process.env.HANDLE_CEREBRUM_IMAGE_TRANSFER_FUNCTION_NAME}-${stage}`
+    const handleCerebrumImageFulfillmentFunctionName = `${process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME}-${stage}`
+    const createCerebrumImageMetadataFunctionName = `${process.env.CREATE_CEREBRUM_IMAGE_METADATA_FUNCTION_NAME}-${stage}`
+    const handleCerebrumImageSearchFunctionName = `${process.env.HANDLE_CEREBRUM_IMAGE_SEARCH_FUNCTION_NAME}-${stage}`
+    const createCerebrumImageOrderFunctionName = `${process.env.CREATE_CEREBRUM_IMAGE_ORDER_FUNCTION_NAME}-${stage}`
+
+    // Mt Sinai had no concept of stages prior to Charcot, so need the below for backward compatibility
+    // with their stage-less S3 buckets which were in place already before Charcot. Renaming
+    // those existing buckets is not an option
+    const bucketStage = stage === 'prod' ? '' : `-${stage}`
+    const cerebrumImageBucketName = `${process.env.CEREBRUM_IMAGE_BUCKET_NAME}${bucketStage}`
+    const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketStage}`
+    const cerebrumImageZipBucketName = `${process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME}${bucketStage}`
+
     // Buckets and notification target functions
-    const cerebrumImageZipBucketName = process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME as string
-    const cerebrumImageBucketName = process.env.CEREBRUM_IMAGE_BUCKET_NAME as string
-    const cerebrumImageOdpBucketName = process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME as string
     const handleCerebrumImageTransfer = new sst.Function(this, 'HandleCerebrumImageTransfer', {
-      functionName: process.env.HANDLE_CEREBRUM_IMAGE_TRANSFER_FUNCTION_NAME,
+      functionName: handleCerebrumImageTransferFunctionName,
       handler: 'src/lambda/cerebrum-image-transfer.handle',
+      memorySize: 128,
       initialPolicy: [
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
-          actions: ['sts:AssumeRole'],
-          resources: [process.env.CEREBRUM_IMAGE_ODP_ROLE_ARN as string]
-        }),
-        new iam.PolicyStatement({
-          effect: iam.Effect.ALLOW,
-          actions: ['s3:GetObject'],
+          actions: ['s3:GetObject', 's3:DeleteObject'],
           resources: [`arn:aws:s3:::${cerebrumImageBucketName}/*`]
         }),
         new iam.PolicyStatement({
@@ -65,9 +74,9 @@ export default class CharcotStack extends sst.Stack {
         })
       ],
       environment: {
-        CEREBRUM_IMAGE_ODP_BUCKET_NAME: cerebrumImageOdpBucketName,
-        CEREBRUM_IMAGE_ODP_ROLE_ARN: process.env.CEREBRUM_IMAGE_ODP_ROLE_ARN as string
-      }
+        CEREBRUM_IMAGE_ODP_BUCKET_NAME: cerebrumImageOdpBucketName
+      },
+      timeout: 900
     })
 
     const cerebrumImageBucket = new Bucket(this, cerebrumImageBucketName, {
@@ -90,7 +99,7 @@ export default class CharcotStack extends sst.Stack {
     //  Also might to to asynchronously invoke multiple times that Lambda to create Zips so that each running
     //  instance stays below the memory limit
     const handleCerebrumImageFulfillment = new sst.Function(this, 'HandleCerebrumImageFulfillment', {
-      functionName: process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME,
+      functionName: handleCerebrumImageFulfillmentFunctionName,
       handler: 'src/lambda/cerebrum-image-fulfillment.handle',
       memorySize: 10240,
       initialPolicy: [
@@ -102,12 +111,12 @@ export default class CharcotStack extends sst.Stack {
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
           actions: ['s3:GetObject'],
-          resources: [`${cerebrumImageBucket.bucketArn}/*`]
+          resources: [`arn:aws:s3:::${cerebrumImageOdpBucketName}/*`]
         }),
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
           actions: ['s3:ListBucket'],
-          resources: [`${cerebrumImageBucket.bucketArn}`]
+          resources: [`arn:aws:s3:::${cerebrumImageOdpBucketName}`]
         }),
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
@@ -120,9 +129,10 @@ export default class CharcotStack extends sst.Stack {
           resources: ['*']
         })],
       environment: {
-        CEREBRUM_IMAGE_BUCKET_NAME: cerebrumImageBucket.bucketName,
+        CEREBRUM_IMAGE_ODP_BUCKET_NAME: cerebrumImageOdpBucketName,
         CEREBRUM_IMAGE_ZIP_BUCKET_NAME: cerebrumImageZipBucketName,
-        CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName
+        CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName,
+        FROM_EMAIL: process.env.FROM_EMAIL as string
       },
       timeout: 900
     })
@@ -133,7 +143,7 @@ export default class CharcotStack extends sst.Stack {
         routes: {
           'POST /cerebrum-images': {
             function: {
-              functionName: process.env.CREATE_CEREBRUM_IMAGE_METADATA_FUNCTION_NAME,
+              functionName: createCerebrumImageMetadataFunctionName,
               handler: 'src/lambda/cerebrum-image-metadata.create',
               initialPolicy: [
                 new iam.PolicyStatement({
@@ -148,7 +158,7 @@ export default class CharcotStack extends sst.Stack {
           },
           'GET /cerebrum-images': {
             function: {
-              functionName: process.env.HANDLE_CEREBRUM_IMAGE_SEARCH_FUNCTION_NAME,
+              functionName: handleCerebrumImageSearchFunctionName,
               handler: 'src/lambda/cerebrum-image-search.handle',
               initialPolicy: [
                 new iam.PolicyStatement({
@@ -163,7 +173,7 @@ export default class CharcotStack extends sst.Stack {
           },
           'POST /cerebrum-image-orders': {
             function: {
-              functionName: process.env.CREATE_CEREBRUM_IMAGE_ORDER_FUNCTION_NAME,
+              functionName: createCerebrumImageOrderFunctionName,
               handler: 'src/lambda/cerebrum-image-order.create',
               initialPolicy: [
                 new iam.PolicyStatement({
@@ -178,7 +188,7 @@ export default class CharcotStack extends sst.Stack {
                 })],
               environment: {
                 CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName,
-                HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME: process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME as string
+                HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME: handleCerebrumImageFulfillmentFunctionName
               }
             }
           }
@@ -187,11 +197,12 @@ export default class CharcotStack extends sst.Stack {
 
     charcotApi.attachPermissions([cerebrumImageMetaDataTable])
 
-    // Show the endpoint in the output
+    // Show the endpoint in the output. Have to "escape" underscores this way
+    // because SST eats anything that's not alphabetic
     this.addOutputs({
       ApiEndpoint: charcotApi.url,
-      HandleCerebrumImageFulfillmentRoleArn: handleCerebrumImageFulfillment.role?.roleArn as string,
-      HandleCerebrumImageTransferRoleArn: handleCerebrumImageTransfer.role?.roleArn as string
+      HANDLExUNDERxCEREBRUMxUNDERxIMAGExUNDERxFULFILLMENTxUNDERxROLExUNDERxARN: handleCerebrumImageFulfillment.role?.roleArn as string,
+      HANDLExUNDERxCEREBRUMxUNDERxIMAGExUNDERxTRANSFERxUNDERxROLExUNDERxARN: handleCerebrumImageTransfer.role?.roleArn as string
     })
   }
 }

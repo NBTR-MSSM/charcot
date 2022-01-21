@@ -9,10 +9,9 @@ const buildZipName = (orderId: string): string => {
   return `${orderId}.zip`
 }
 
-// TODO: Create new type for the email args?
 const sendMail = async (email: string, zipPath: string): Promise<PromiseResult<SES.SendEmailResponse, AWSError>> => {
   const zipLink = await generateSignedZipLink({
-    bucket: process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME as string,
+    bucket: process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME,
     path: zipPath,
     expires: process.env.ZIP_LINK_EXPIRY as string
   })
@@ -26,7 +25,7 @@ const sendMail = async (email: string, zipPath: string): Promise<PromiseResult<S
       },
       Subject: { Data: 'Charcot Image Request Ready' }
     },
-    Source: 'joquijada2010@gmail.com'
+    Source: process.env.FROM_EMAIL as string
   }
   console.info(`Sending Zip to '${email}'`)
   return sesClient.sendEmail(emailParams).promise()
@@ -59,9 +58,11 @@ export const handle: Handler = lambdaWrapper(async ({ orderId }: Record<string, 
     })
     order = dbResult.Item as unknown as CerebrumImageOrder
     const zipPath = `zip/${zipName}`
+    // Include the corresponding folder for the image also, E.g. fileName=[ '480654_1_Tau_1.mrxs' ], below
+    // produces [ '480654_1_Tau_1.mrxs', '480654_1_Tau_1/' ]
     const s3Objects = order.fileNames.map(e => [e, e.replace(/\..+$/, '/')]).flat()
     console.info(`The following assets will be zipped up, ${JSON.stringify(s3Objects)}`)
-    await (s3Client as any).zipObjectsToBucket(process.env.CEREBRUM_IMAGE_BUCKET_NAME, 'image', s3Objects, zipBucket, zipPath)
+    await (s3Client as any).zipObjectsToBucket(process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME, '', s3Objects, zipBucket, zipPath)
     console.info(`Successfully created Zip for request ${JSON.stringify(orderId)}`)
     // DONE: Must include the folder also of the mrsx image data
     // DONE: Send email that Zip is ready, with the link download

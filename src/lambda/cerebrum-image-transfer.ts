@@ -11,5 +11,9 @@ export const handle: S3Handler = lambdaWrapper(async (event: S3Event) => {
     const fromPath = rec.s3.object.key
     const toPath = fromPath
     await flexiS3Client.copy(fromBucket, fromPath, process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME as string, toPath)
+    await flexiS3Client.deleteObject({
+      Bucket: fromBucket,
+      Key: fromPath
+    }).promise()
   }
 })
