@@ -26,7 +26,7 @@ describe('cerebrum-image-fulfillment', () => {
         orderId: jestGlobal.dummyOrderId
       }
     })
-    expect((s3Client as any).zipObjectsToBucket).toHaveBeenCalledWith(process.env.CEREBRUM_IMAGE_BUCKET_NAME, 'image', [order.fileNames[0], 'XE13-009_2_HE_1/', order.fileNames[1], 'XE13-009_2_Sil_1/', order.fileNames[2], 'XE12-025_1_HE_1/'], process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME, `zip/${buildZipName(order)}`)
+    expect((s3Client as any).zipObjectsToBucket).toHaveBeenCalledWith(process.env.CEREBRUM_IMAGE_BUCKET_NAME, '', [order.fileNames[0], 'XE13-009_2_HE_1/', order.fileNames[1], 'XE13-009_2_Sil_1/', order.fileNames[2], 'XE12-025_1_HE_1/'], process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME, `zip/${buildZipName(order)}`)
     // @ts-ignore
     expect(sesClient.sendEmail).toHaveBeenCalledWith({
       Destination: {
