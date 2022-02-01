@@ -4,6 +4,9 @@ import * as iam from 'aws-cdk-lib/aws-iam'
 import { Bucket as S3Bucket, EventType } from 'aws-cdk-lib/aws-s3'
 import * as s3Notifications from 'aws-cdk-lib/aws-s3-notifications'
 
+/**
+ * This stack should be run on the AWS paid account of Mt Sinai only.
+ */
 export default class CharcotStack extends sst.Stack {
   constructor(scope: sst.App, id: string, props?: sst.StackProps) {
     super(scope, id, props)
@@ -55,7 +58,8 @@ export default class CharcotStack extends sst.Stack {
     const bucketStage = stage === 'prod' ? '' : `-${stage}`
     const cerebrumImageBucketName = `${process.env.CEREBRUM_IMAGE_BUCKET_NAME}${bucketStage}`
     const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketStage}`
-    const cerebrumImageZipBucketName = `${process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME}${bucketStage}`
+
+    const cerebrumImageZipBucketName = `${process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME}-${stage}`
 
     // Buckets and notification target functions
     const handleCerebrumImageTransfer = new sst.Function(this, 'HandleCerebrumImageTransfer', {
@@ -81,6 +85,11 @@ export default class CharcotStack extends sst.Stack {
     })
 
     if (stage === 'prod') {
+      /*
+       * In 'prod' stage bucket was already there before inception
+       * of Charcot, so have to work with what was there already (I.e.
+       * unable to drop and recreate it
+       */
       const loadedBucket = S3Bucket.fromBucketName(this, 'BucketLoadedByName', cerebrumImageBucketName)
       loadedBucket.addEventNotification(EventType.OBJECT_CREATED, new s3Notifications.LambdaDestination(handleCerebrumImageTransfer))
     } else {

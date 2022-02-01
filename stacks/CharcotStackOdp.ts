@@ -1,7 +1,16 @@
 import * as sst from '@serverless-stack/resources'
 import { Bucket } from '@serverless-stack/resources'
 import * as iam from 'aws-cdk-lib/aws-iam'
+import { Bucket as S3Bucket } from 'aws-cdk-lib/aws-s3'
 
+/**
+ * This stack should be run on the AWS ODP account of Mt Sinai only. In addition
+ * this should be run after the AWS paid account CharcotStack has been deployed. The
+ * reason is that this stack expects as inputs the outputs from CharcotStack, for example
+ * ARN's of Lambda's that should be granted permission to write to the ODP image bucket
+ * during the image transfer process. The script 'deploy.mjs' orchestrates all of this, see that
+ * for more details.
+ */
 export default class CharcotStackOdp extends sst.Stack {
   constructor(scope: sst.App, id: string, props?: sst.StackProps) {
     super(scope, id, props)
@@ -12,16 +21,22 @@ export default class CharcotStackOdp extends sst.Stack {
     // same applies here
     const bucketStage = stage === 'prod' ? '' : `-${stage}`
     const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketStage}`
-    const cerebrumImageZipBucketName = `${process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME}${bucketStage}`
+
+    const cerebrumImageZipBucketName = `${process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME}-${stage}`
 
     // Buckets
-    const cerebrumImageOdpBucket = new Bucket(this, cerebrumImageOdpBucketName, {
-      s3Bucket: {
-        bucketName: cerebrumImageOdpBucketName
-      }
-    })
+    let cerebrumImageOdpBucket
+    if (stage === 'prod') {
+      cerebrumImageOdpBucket = S3Bucket.fromBucketName(this, 'ODPBucketLoadedByName', cerebrumImageOdpBucketName)
+    } else {
+      cerebrumImageOdpBucket = new Bucket(this, cerebrumImageOdpBucketName, {
+        s3Bucket: {
+          bucketName: cerebrumImageOdpBucketName
+        }
+      }).s3Bucket
+    }
 
-    cerebrumImageOdpBucket.s3Bucket.addToResourcePolicy(
+    cerebrumImageOdpBucket.addToResourcePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         principals: [new iam.ArnPrincipal(process.env.HANDLE_CEREBRUM_IMAGE_TRANSFER_ROLE_ARN as string)],
@@ -45,7 +60,7 @@ export default class CharcotStackOdp extends sst.Stack {
         resources: [`${cerebrumImageZipBucket.bucketArn}/*`]
       }))
 
-    cerebrumImageOdpBucket.s3Bucket.addToResourcePolicy(
+    cerebrumImageOdpBucket.addToResourcePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         principals: [new iam.ArnPrincipal(process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_ROLE_ARN as string)],
@@ -55,12 +70,16 @@ export default class CharcotStackOdp extends sst.Stack {
 
     // The ListObject policy is needed because the Zip operation needs to list out
     // contents of folders in order to build final list of objects to Zip
-    cerebrumImageOdpBucket.s3Bucket.addToResourcePolicy(
+    cerebrumImageOdpBucket.addToResourcePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         principals: [new iam.ArnPrincipal(process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_ROLE_ARN as string)],
         actions: ['s3:ListBucket'],
         resources: [`${cerebrumImageOdpBucket.bucketArn}`]
       }))
+
+    this.addOutputs({
+      CerebrumImageOdpBucketName: cerebrumImageOdpBucketName
+    })
   }
 }
