@@ -1,7 +1,8 @@
 import * as sst from '@serverless-stack/resources'
 import { Bucket } from '@serverless-stack/resources'
-import * as iam from '@aws-cdk/aws-iam'
-import { EventType } from '@aws-cdk/aws-s3'
+import * as iam from 'aws-cdk-lib/aws-iam'
+import { Bucket as S3Bucket, EventType } from 'aws-cdk-lib/aws-s3'
+import * as s3Notifications from 'aws-cdk-lib/aws-s3-notifications'
 
 export default class CharcotStack extends sst.Stack {
   constructor(scope: sst.App, id: string, props?: sst.StackProps) {
@@ -79,24 +80,29 @@ export default class CharcotStack extends sst.Stack {
       timeout: 900
     })
 
-    const cerebrumImageBucket = new Bucket(this, cerebrumImageBucketName, {
-      s3Bucket: {
-        bucketName: cerebrumImageBucketName
-      },
-      notifications: [
-        {
-          function: handleCerebrumImageTransfer,
-          notificationProps: {
-            events: [EventType.OBJECT_CREATED]
+    if (stage === 'prod') {
+      const loadedBucket = S3Bucket.fromBucketName(this, 'BucketLoadedByName', cerebrumImageBucketName)
+      loadedBucket.addEventNotification(EventType.OBJECT_CREATED, new s3Notifications.LambdaDestination(handleCerebrumImageTransfer))
+    } else {
+      const cerebrumImageBucket = new Bucket(this, cerebrumImageBucketName, {
+        s3Bucket: {
+          bucketName: cerebrumImageBucketName
+        },
+        notifications: [
+          {
+            function: handleCerebrumImageTransfer,
+            notificationProps: {
+              events: [EventType.OBJECT_CREATED]
+            }
           }
-        }
-      ]
-    })
-    cerebrumImageBucket.attachPermissions(['s3'])
+        ]
+      })
+      cerebrumImageBucket.attachPermissions(['s3'])
+    }
 
     // Functions
     // TODO: See if Lambda memory size can be reduced by inspecting logs to see exactly how much memory used
-    //  Also might to to asynchronously invoke multiple times that Lambda to create Zips so that each running
+    //  Also might need to asynchronously invoke multiple times the Lambda to create smaller, Zips so that each running
     //  instance stays below the memory limit
     const handleCerebrumImageFulfillment = new sst.Function(this, 'HandleCerebrumImageFulfillment', {
       functionName: handleCerebrumImageFulfillmentFunctionName,

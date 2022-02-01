@@ -29,7 +29,6 @@
     "remove": "sst remove"
   },
   "devDependencies": {
-    "@aws-cdk/assert": "1.132.0",
     "@tsconfig/node14": "^1.0.1",
     "@types/aws-lambda": "^8.10.70",
     "@types/jest": "^27.0.3",
@@ -45,10 +44,10 @@
     "ts-jest": "^27.1.0"
   },
   "dependencies": {
-    "@aws-cdk/core": "1.132.0",
     "@exsoinn/aws-sdk-wrappers": "^1.9.1",
-    "@serverless-stack/cli": "0.53.0",
-    "@serverless-stack/resources": "0.53.0",
+    "@serverless-stack/cli": "0.60.11",
+    "@serverless-stack/resources": "0.60.11",
+    "aws-cdk-lib": "2.7.0",
     "lodash.merge": "^4.6.2",
     "nodemailer": "^6.7.2",
     "uuid": "^8.3.2"

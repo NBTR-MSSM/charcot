@@ -1,6 +1,6 @@
 import * as sst from '@serverless-stack/resources'
 import { Bucket } from '@serverless-stack/resources'
-import * as iam from '@aws-cdk/aws-iam'
+import * as iam from 'aws-cdk-lib/aws-iam'
 
 export default class CharcotStackOdp extends sst.Stack {
   constructor(scope: sst.App, id: string, props?: sst.StackProps) {
