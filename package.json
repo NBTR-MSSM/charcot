@@ -20,7 +20,7 @@
     ]
   },
   "scripts": {
-    "test": "sst test --coverage --transform '{}' --preset 'ts-jest' --coveragePathIgnorePatterns 'coverage' --coveragePathIgnorePatterns '.build' --coveragePathIgnorePatterns 'test' --coveragePathIgnorePatterns 'd.ts' --coveragePathIgnorePatterns 'stacks/'",
+    "test": "sst test --coverage --transform '{}' --preset 'ts-jest' --coveragePathIgnorePatterns 'coverage' --coveragePathIgnorePatterns '.build' --coveragePathIgnorePatterns '.sst' --coveragePathIgnorePatterns 'test' --coveragePathIgnorePatterns 'd.ts' --coveragePathIgnorePatterns 'stacks/'",
     "start": "AWS_PROFILE=default sst start",
     "build": "sst build",
     "deploy": "sst deploy",
