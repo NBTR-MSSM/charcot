@@ -10,6 +10,7 @@ const buildZipName = (orderId: string): string => {
 }
 
 const sendMail = async (email: string, zipPath: string): Promise<PromiseResult<SES.SendEmailResponse, AWSError>> => {
+  // TODO: Save Zip link for resend needs
   const zipLink = await generateSignedZipLink({
     bucket: process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME,
     path: zipPath,
@@ -43,7 +44,7 @@ export const handle: Handler = lambdaWrapper(async ({ orderId }: Record<string, 
   * 2. DONE Add the files to a Zip
   * 3. DONE Put the Zip in target S3 (can augment s3-client to support this op, 'retrieveObjectsAsZip')
   * 4. DONE Send email to requestor
-  * 5. TODO Write record to DynamoDB of what happened (who/what/when, etc.)
+  * 5. TODO Write record to DynamoDB of what happened (who/what/when, etc.), the zip dowload link generated (in case it needs to be resent), etc.
   */
   let order
   try {
