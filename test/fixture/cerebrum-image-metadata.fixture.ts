@@ -3,7 +3,7 @@ import { CerebrumImageMetaData } from '../../src/types/charcot.types'
 export default [
   {
     fileName: 'XE13-009_2_HE_1.mrxs',
-    regionName: 'Orbital Frontal Cortex',
+    region: 'Orbital Frontal Cortex',
     stain: 'H&E',
     age: '53',
     race: 'White (nonHispanic)',
@@ -14,7 +14,7 @@ export default [
   },
   {
     fileName: 'XE13-009_2_Sil_1.mrxs',
-    regionName: 'Orbital Frontal Cortex',
+    region: 'Orbital Frontal Cortex',
     stain: 'Modified Beilschowski',
     age: '53',
     race: 'White (nonHispanic)',
@@ -25,7 +25,7 @@ export default [
   },
   {
     fileName: 'XE12-025_1_HE_1.mrxs',
-    regionName: 'Middle Frontal Gyrus',
+    region: 'Middle Frontal Gyrus',
     stain: 'H&E',
     age: '91',
     race: 'White (nonHispanic)',

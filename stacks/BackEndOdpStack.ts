@@ -2,22 +2,29 @@ import * as sst from '@serverless-stack/resources'
 import { Bucket } from '@serverless-stack/resources'
 import * as iam from 'aws-cdk-lib/aws-iam'
 import { Bucket as S3Bucket } from 'aws-cdk-lib/aws-s3'
+import { StackArguments } from '../src/types/charcot.types'
 
 /**
- * This stack should be run on the AWS ODP account of Mt Sinai only. In addition
- * this should be run after the AWS paid account CharcotStack has been deployed. The
- * reason is that this stack expects as inputs the outputs from CharcotStack, for example
+ * /**
+ * This stack defines the Charcot backend portion of the AWS ODP account of Mt Sinai. This stack
+ * <strong>depends</strong> on the BackEndPaidAccountStack for AWS paid account ot have run first, therefore
+ * this should be run after the AWS paid account BackEndPaidAccountStack has been deployed. The
+ * reason is that this stack expects as inputs the outputs from BackEndPaidAccountStack, for example
  * ARN's of Lambda's that should be granted permission to write to the ODP image bucket
  * during the image transfer process. The script 'deploy.mjs' orchestrates all of this, see that
  * for more details.
  */
-export default class CharcotStackOdp extends sst.Stack {
-  constructor(scope: sst.App, id: string, props?: sst.StackProps) {
+export default class BackEndOdpStack extends sst.Stack {
+  constructor(scope: sst.App, id: string, props: sst.StackProps, args: StackArguments) {
     super(scope, id, props)
+
+    //
+    const fulfillmentRoleArn = args.handleCerebrumImageFulfillment?.role?.roleArn || process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_ROLE_ARN as string
+    const imgTransferRoleArn = args.handleCerebrumImageTransfer?.role?.roleArn || process.env.HANDLE_CEREBRUM_IMAGE_TRANSFER_ROLE_ARN as string
 
     const stage = this.stage
 
-    // See comment in CharcotStack.ts for the reason of this logic,
+    // See comment in BackEndPaidAccountStack.ts for the reason of this logic,
     // same applies here
     const bucketStage = stage === 'prod' ? '' : `-${stage}`
     const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketStage}`
@@ -27,6 +34,7 @@ export default class CharcotStackOdp extends sst.Stack {
     // Buckets
     let cerebrumImageOdpBucket
     if (stage === 'prod') {
+      // In PROD stage the bucket already exists
       cerebrumImageOdpBucket = S3Bucket.fromBucketName(this, 'ODPBucketLoadedByName', cerebrumImageOdpBucketName)
     } else {
       cerebrumImageOdpBucket = new Bucket(this, cerebrumImageOdpBucketName, {
@@ -39,7 +47,7 @@ export default class CharcotStackOdp extends sst.Stack {
     cerebrumImageOdpBucket.addToResourcePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        principals: [new iam.ArnPrincipal(process.env.HANDLE_CEREBRUM_IMAGE_TRANSFER_ROLE_ARN as string)],
+        principals: [new iam.ArnPrincipal(imgTransferRoleArn)],
         actions: ['s3:PutObject'],
         resources: [`${cerebrumImageOdpBucket.bucketArn}/*`]
       }))
@@ -55,7 +63,7 @@ export default class CharcotStackOdp extends sst.Stack {
     cerebrumImageZipBucket.s3Bucket.addToResourcePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        principals: [new iam.ArnPrincipal(process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_ROLE_ARN as string)],
+        principals: [new iam.ArnPrincipal(fulfillmentRoleArn)],
         actions: ['s3:GetObject', 's3:PutObject'],
         resources: [`${cerebrumImageZipBucket.bucketArn}/*`]
       }))
@@ -63,7 +71,7 @@ export default class CharcotStackOdp extends sst.Stack {
     cerebrumImageOdpBucket.addToResourcePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        principals: [new iam.ArnPrincipal(process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_ROLE_ARN as string)],
+        principals: [new iam.ArnPrincipal(fulfillmentRoleArn)],
         actions: ['s3:GetObject'],
         resources: [`${cerebrumImageOdpBucket.bucketArn}/*`]
       }))
@@ -73,7 +81,7 @@ export default class CharcotStackOdp extends sst.Stack {
     cerebrumImageOdpBucket.addToResourcePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        principals: [new iam.ArnPrincipal(process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_ROLE_ARN as string)],
+        principals: [new iam.ArnPrincipal(fulfillmentRoleArn)],
         actions: ['s3:ListBucket'],
         resources: [`${cerebrumImageOdpBucket.bucketArn}`]
       }))

@@ -5,17 +5,20 @@ import { Bucket as S3Bucket, EventType } from 'aws-cdk-lib/aws-s3'
 import * as s3Notifications from 'aws-cdk-lib/aws-s3-notifications'
 
 /**
- * This stack should be run on the AWS paid account of Mt Sinai only.
+ * This stack defines the Charcot backend porting on the AWS paid account of Mt Sinai.
  */
-export default class CharcotStack extends sst.Stack {
+export default class BackEndPaidAccountStack extends sst.Stack {
+  api: sst.Api
+  handleCerebrumImageFulfillment: sst.Function
+  handleCerebrumImageTransfer: sst.Function
+
   constructor(scope: sst.App, id: string, props?: sst.StackProps) {
     super(scope, id, props)
-
     // DynamoDB Tables
     const cerebrumImageMetaDataTableProps = {
       fields: {
         fileName: sst.TableFieldType.STRING,
-        regionName: sst.TableFieldType.STRING,
+        region: sst.TableFieldType.STRING,
         stain: sst.TableFieldType.STRING,
         age: sst.TableFieldType.NUMBER,
         race: sst.TableFieldType.STRING,
@@ -24,7 +27,7 @@ export default class CharcotStack extends sst.Stack {
       },
       primaryIndex: { partitionKey: 'fileName' },
       globalIndexes: {
-        regionNameIndex: { partitionKey: 'regionName' },
+        regionIndex: { partitionKey: 'region' },
         stainIndex: { partitionKey: 'stain' },
         ageIndex: { partitionKey: 'age' },
         raceIndex: { partitionKey: 'race' },
@@ -50,6 +53,7 @@ export default class CharcotStack extends sst.Stack {
     const handleCerebrumImageFulfillmentFunctionName = `${process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME}-${stage}`
     const createCerebrumImageMetadataFunctionName = `${process.env.CREATE_CEREBRUM_IMAGE_METADATA_FUNCTION_NAME}-${stage}`
     const handleCerebrumImageSearchFunctionName = `${process.env.HANDLE_CEREBRUM_IMAGE_SEARCH_FUNCTION_NAME}-${stage}`
+    const handleCerebrumImageDimensionFunctionName = `${process.env.HANDLE_CEREBRUM_IMAGE_DIMENSION_FUNCTION_NAME}-${stage}`
     const createCerebrumImageOrderFunctionName = `${process.env.CREATE_CEREBRUM_IMAGE_ORDER_FUNCTION_NAME}-${stage}`
 
     // Mt Sinai had no concept of stages prior to Charcot, so need the below for backward compatibility
@@ -62,7 +66,7 @@ export default class CharcotStack extends sst.Stack {
     const cerebrumImageZipBucketName = `${process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME}-${stage}`
 
     // Buckets and notification target functions
-    const handleCerebrumImageTransfer = new sst.Function(this, 'HandleCerebrumImageTransfer', {
+    this.handleCerebrumImageTransfer = new sst.Function(this, 'HandleCerebrumImageTransfer', {
       functionName: handleCerebrumImageTransferFunctionName,
       handler: 'src/lambda/cerebrum-image-transfer.handle',
       memorySize: 128,
@@ -91,7 +95,7 @@ export default class CharcotStack extends sst.Stack {
        * unable to drop and recreate it
        */
       const loadedBucket = S3Bucket.fromBucketName(this, 'BucketLoadedByName', cerebrumImageBucketName)
-      loadedBucket.addEventNotification(EventType.OBJECT_CREATED, new s3Notifications.LambdaDestination(handleCerebrumImageTransfer))
+      loadedBucket.addEventNotification(EventType.OBJECT_CREATED, new s3Notifications.LambdaDestination(this.handleCerebrumImageTransfer))
     } else {
       const cerebrumImageBucket = new Bucket(this, cerebrumImageBucketName, {
         s3Bucket: {
@@ -99,7 +103,7 @@ export default class CharcotStack extends sst.Stack {
         },
         notifications: [
           {
-            function: handleCerebrumImageTransfer,
+            function: this.handleCerebrumImageTransfer,
             notificationProps: {
               events: [EventType.OBJECT_CREATED]
             }
@@ -113,7 +117,7 @@ export default class CharcotStack extends sst.Stack {
     // TODO: See if Lambda memory size can be reduced by inspecting logs to see exactly how much memory used
     //  Also might need to asynchronously invoke multiple times the Lambda to create smaller, Zips so that each running
     //  instance stays below the memory limit
-    const handleCerebrumImageFulfillment = new sst.Function(this, 'HandleCerebrumImageFulfillment', {
+    this.handleCerebrumImageFulfillment = new sst.Function(this, 'HandleCerebrumImageFulfillment', {
       functionName: handleCerebrumImageFulfillmentFunctionName,
       handler: 'src/lambda/cerebrum-image-fulfillment.handle',
       memorySize: 10240,
@@ -153,71 +157,85 @@ export default class CharcotStack extends sst.Stack {
     })
 
     // Create a HTTP API
-    const
-      charcotApi = new sst.Api(this, 'Api', {
-        routes: {
-          'POST /cerebrum-images': {
-            function: {
-              functionName: createCerebrumImageMetadataFunctionName,
-              handler: 'src/lambda/cerebrum-image-metadata.create',
-              initialPolicy: [
-                new iam.PolicyStatement({
-                  effect: iam.Effect.ALLOW,
-                  actions: ['dynamodb:PutItem'],
-                  resources: [cerebrumImageMetaDataTable.tableArn]
-                })],
-              environment: {
-                CEREBRUM_IMAGE_METADATA_TABLE_NAME: cerebrumImageMetaDataTable.tableName
-              }
+    this.api = new sst.Api(this, 'Api', {
+      routes: {
+        'POST /cerebrum-images': {
+          function: {
+            functionName: createCerebrumImageMetadataFunctionName,
+            handler: 'src/lambda/cerebrum-image-metadata.create',
+            initialPolicy: [
+              new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['dynamodb:PutItem'],
+                resources: [cerebrumImageMetaDataTable.tableArn]
+              })],
+            environment: {
+              CEREBRUM_IMAGE_METADATA_TABLE_NAME: cerebrumImageMetaDataTable.tableName
             }
-          },
-          'GET /cerebrum-images': {
-            function: {
-              functionName: handleCerebrumImageSearchFunctionName,
-              handler: 'src/lambda/cerebrum-image-search.handle',
-              initialPolicy: [
-                new iam.PolicyStatement({
-                  effect: iam.Effect.ALLOW,
-                  actions: ['dynamodb:Query'],
-                  resources: [cerebrumImageMetaDataTable.tableArn, `${cerebrumImageMetaDataTable.tableArn}/index/*`]
-                })],
-              environment: {
-                CEREBRUM_IMAGE_METADATA_TABLE_NAME: cerebrumImageMetaDataTable.tableName
-              }
+          }
+        },
+        'GET /cerebrum-images': {
+          function: {
+            functionName: handleCerebrumImageSearchFunctionName,
+            handler: 'src/lambda/cerebrum-image-search.search',
+            initialPolicy: [
+              new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['dynamodb:Query'],
+                resources: [cerebrumImageMetaDataTable.tableArn, `${cerebrumImageMetaDataTable.tableArn}/index/*`]
+              })],
+            environment: {
+              CEREBRUM_IMAGE_METADATA_TABLE_NAME: cerebrumImageMetaDataTable.tableName
             }
-          },
-          'POST /cerebrum-image-orders': {
-            function: {
-              functionName: createCerebrumImageOrderFunctionName,
-              handler: 'src/lambda/cerebrum-image-order.create',
-              initialPolicy: [
-                new iam.PolicyStatement({
-                  effect: iam.Effect.ALLOW,
-                  actions: ['lambda:InvokeAsync', 'lambda:InvokeFunction'],
-                  resources: [handleCerebrumImageFulfillment.functionArn]
-                }),
-                new iam.PolicyStatement({
-                  effect: iam.Effect.ALLOW,
-                  actions: ['dynamodb:PutItem'],
-                  resources: [cerebrumImageOrderTable.tableArn]
-                })],
-              environment: {
-                CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName,
-                HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME: handleCerebrumImageFulfillmentFunctionName
-              }
+          }
+        },
+        'GET /cerebrum-images/{dimension}': {
+          function: {
+            functionName: handleCerebrumImageDimensionFunctionName,
+            handler: 'src/lambda/cerebrum-image-search.dimension',
+            initialPolicy: [
+              new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['dynamodb:Query'],
+                resources: [cerebrumImageMetaDataTable.tableArn, `${cerebrumImageMetaDataTable.tableArn}/index/*`]
+              })],
+            environment: {
+              CEREBRUM_IMAGE_METADATA_TABLE_NAME: cerebrumImageMetaDataTable.tableName
+            }
+          }
+        },
+        'POST /cerebrum-image-orders': {
+          function: {
+            functionName: createCerebrumImageOrderFunctionName,
+            handler: 'src/lambda/cerebrum-image-order.create',
+            initialPolicy: [
+              new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['lambda:InvokeAsync', 'lambda:InvokeFunction'],
+                resources: [this.handleCerebrumImageFulfillment.functionArn]
+              }),
+              new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['dynamodb:PutItem'],
+                resources: [cerebrumImageOrderTable.tableArn]
+              })],
+            environment: {
+              CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName,
+              HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME: handleCerebrumImageFulfillmentFunctionName
             }
           }
         }
-      })
+      }
+    })
 
-    charcotApi.attachPermissions([cerebrumImageMetaDataTable])
+    this.api.attachPermissions([cerebrumImageMetaDataTable])
 
     // Show the endpoint in the output. Have to "escape" underscores this way
     // because SST eats anything that's not alphabetic
     this.addOutputs({
-      ApiEndpoint: charcotApi.url,
-      HANDLExUNDERxCEREBRUMxUNDERxIMAGExUNDERxFULFILLMENTxUNDERxROLExUNDERxARN: handleCerebrumImageFulfillment.role?.roleArn as string,
-      HANDLExUNDERxCEREBRUMxUNDERxIMAGExUNDERxTRANSFERxUNDERxROLExUNDERxARN: handleCerebrumImageTransfer.role?.roleArn as string
+      ApiEndpoint: this.api.url,
+      HANDLExUNDERxCEREBRUMxUNDERxIMAGExUNDERxFULFILLMENTxUNDERxROLExUNDERxARN: this.handleCerebrumImageFulfillment.role?.roleArn as string,
+      HANDLExUNDERxCEREBRUMxUNDERxIMAGExUNDERxTRANSFERxUNDERxROLExUNDERxARN: this.handleCerebrumImageTransfer.role?.roleArn as string
     })
   }
 }

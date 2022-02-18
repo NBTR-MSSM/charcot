@@ -1,6 +1,8 @@
-import CharcotStack from './CharcotStack'
+import BackEndPaidAccountStack from './BackEndPaidAccountStack'
 import * as sst from '@serverless-stack/resources'
-import CharcotStackOdp from './CharcotStackOdp'
+import BackEndOdpStack from './BackEndOdpStack'
+import FrontendStack from './FrontEndStack'
+import { StackArguments } from '../src/types/charcot.types'
 
 export default function main(app: sst.App): void {
   // Set default runtime for all functions
@@ -8,8 +10,26 @@ export default function main(app: sst.App): void {
     runtime: 'nodejs14.x'
   })
 
+  const backEndPaidAccountStack = new BackEndPaidAccountStack(app, 'backend-paid-account')
+
+  let backEndOdpStackArgs: StackArguments = {
+    handleCerebrumImageTransfer: backEndPaidAccountStack.handleCerebrumImageTransfer,
+    handleCerebrumImageFulfillment: backEndPaidAccountStack.handleCerebrumImageFulfillment
+  }
+  if (process.env.IS_DEPLOY_SCRIPT) {
+    backEndOdpStackArgs = {}
+  }
+
   // eslint-disable-next-line no-new
-  new CharcotStack(app, 'charcot-stack')
+  new BackEndOdpStack(app, 'backend-odp', {}, backEndOdpStackArgs)
+
+  let frontEndStackArgs: StackArguments = {
+    api: backEndPaidAccountStack.api
+  }
+  if (process.env.IS_DEPLOY_SCRIPT) {
+    frontEndStackArgs = {}
+  }
+
   // eslint-disable-next-line no-new
-  new CharcotStackOdp(app, 'charcot-stack-odp')
+  new FrontendStack(app, 'frontend', {}, frontEndStackArgs)
 }

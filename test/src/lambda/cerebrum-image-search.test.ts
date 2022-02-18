@@ -13,7 +13,7 @@ describe('cerebrum-image-search', () => {
     const items = files.map(f => (
       {
         fileName: f,
-        regionName: 'foo',
+        region: 'foo',
         sex: 'Male',
         race: 'Black',
         stain: 'XYZ',

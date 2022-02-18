@@ -1,41 +1,95 @@
 #!/usr/bin/env zx
 
 const fs = require('fs')
+const yargs = require('yargs/yargs')
+const path = require('path')
 
+process.env.IS_DEPLOY_SCRIPT = 1
 /**
+ * Use this script and this script only to deploy. The reason is that the
+ * the stacks are split across two different AWS accounts (Paid and ODP). Not sure if it's
+ * possible to change destination AWS account mid flight if we use the traditional
+ * 'sst deploy...'  action.<br/>
+ * Must still use the 'sst start..' to start the debug environment. This way only one node process
+ * is spawned to handle requests for all the stacks, with the stacks getting deployed in the same account.
+ *
  * The inputs expected in this order are:
  * 1. The AWS_PROFILE of the Mt Sinai paid account
  * 2. The AWS_PROFILE of the Mt Sinai ODP account
  * 3. Stage name (dev, prod)
+ *
  */
-const args = process.argv.slice(3)
 
-if (args.length < 3) {
-  console.error('Expecting at least 2 parameters: <AWS profile of paid account>, <AWS profile of ODP account>, <stage>')
-  process.exit(-1)
-}
+const argv = yargs(process.argv.slice(2))
+  .usage('Usage: deploy.mjs <action> [options]')
+  .command('deploy', 'Deploy stacks to the cloud')
+  .command('remove', 'Remove the stacks from the cloud')
+  .example('deploy.mjs deploy -p <paid account profile> -o <ODP account profile> -s <stage>', 'Deploy the stacks to the AWS cloud')
+  .alias('p', 'paid-account-profile')
+  .alias('o', 'odp-account-profile')
+  .alias('s', 'stage')
+  .describe('p', 'Paid account AWS profile')
+  .describe('o', 'ODP account AWS profile')
+  .describe('s', 'Stage to deploy to')
+  .demandCommand(2, 2, 'Specify either start or deploy')
+  .demandOption(['p', 'o', 's'])
+  .help('h')
+  .alias('h', 'help')
+  .argv
 
-const [profilePaidAccount, profileOdpAccount, stage] = args
+const action = argv._[1]
+
+const { paidAccountProfile, odpAccountProfile, stage } = argv
+const commands = [
+  {
+    profile: paidAccountProfile,
+    stack: 'backend-paid-account',
+    command: `npx sst ${action} --stage=${stage}`
+  },
+  {
+    profile: odpAccountProfile,
+    stack: 'backend-odp',
+    command: `npx sst ${action} --stage=${stage}`
+  },
+  {
+    profile: paidAccountProfile,
+    stack: 'frontend',
+    command: `npx sst ${action} --stage=${stage}`
+  }
+]
+
+process.chdir(path.resolve(__dirname, '../'))
+console.log(process.cwd())
 
 try {
-  // First deploy paid account stack
-  const charcotStackDeployOutput = await $`AWS_PROFILE=${profilePaidAccount} npx sst deploy --stage=${stage} charcot-stack`
-  retrieveStackOutputsAndStoreInEnvironment(charcotStackDeployOutput)
+  if (action === 'remove') {
+    // We're in "remove" mode, execute in reverse so that dependencies are removed last, else
+    // AWS will crap out
+    const numOfStacks = commands.length
+    for (let i = 0; i < numOfStacks; i++) {
+      const obj = commands.pop()
+      process.env.AWS_PROFILE = obj.profile
+      await $`env npx sst ${action} --stage=${stage} ${obj.stack}`
+    }
+  } else {
+    // We're in "deploy" mode
+    // First deploy paid account stack
+    for (const obj of commands) {
+      process.env.AWS_PROFILE = obj.profile
+      const res = await $`env npx sst ${action} --stage=${stage} ${obj.stack}`
+      retrieveStackOutputsAndStoreInEnvironment(res)
+    }
 
-  // Now deploy ODP stack
-  process.env.AWS_PROFILE = profileOdpAccount
-  const charcotStackOdpDeployOutput = await $`env npx sst deploy --stage=${stage} charcot-stack-odp`
-
-  // Finally update ODB image bucket policy to allow access for image transfer. This
-  // step is needed in 'prod' stage only, read function doc above it.
-  if (stage === 'prod') {
-    retrieveStackOutputsAndStoreInEnvironment(charcotStackOdpDeployOutput)
-    await updateOdpCerebrumImageBucketPolicy({
-      awsProfile: profileOdpAccount,
-      bucket: process.env.CerebrumImageOdpBucketName,
-      imageTransferLambdaRoleArn: process.env.HANDLE_CEREBRUM_IMAGE_TRANSFER_ROLE_ARN,
-      fulfillmentLambdaRoleArn: process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_ROLE_ARN
-    })
+    // ...and update ODP image bucket policy to allow access for image transfer. This
+    // step is needed in 'prod' stage only, read function doc above it.
+    if (stage === 'prod') {
+      await updateOdpCerebrumImageBucketPolicy({
+        awsProfile: odpAccountProfile,
+        bucket: process.env.CerebrumImageOdpBucketName,
+        imageTransferLambdaRoleArn: process.env.HANDLE_CEREBRUM_IMAGE_TRANSFER_ROLE_ARN,
+        fulfillmentLambdaRoleArn: process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_ROLE_ARN
+      })
+    }
   }
 } catch (e) {
   console.error(`Something went wrong: ${e}`)
@@ -77,6 +131,12 @@ async function updateOdpCerebrumImageBucketPolicy ({
   console.log(`Updated bucket ${bucket} policy with ${JSON.stringify(newPolicy, null, ' ')}`)
 }
 
+/**
+ * Have to do this to then pass 'env' action output to the AWS commands. Prepending each environment
+ * var separately to the script like '${varAndVal}' where valAndVal=VAR=VAL does not cut it because zx
+ * automatically adds quotes, producing $'VAR=VAL', which doesn't pass the env values as expected. Read
+ * all about it at https://github.com/google/zx/blob/main/docs/quotes.md
+ */
 function retrieveStackOutputsAndStoreInEnvironment (stackOutput) {
   const matches = stackOutput.toString().matchAll(/\s{4}(\S+): (.+)/g)
   // Set up environment needed by ODP stack deploy

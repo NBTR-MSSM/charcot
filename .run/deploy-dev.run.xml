@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="deploy-dev" type="NodeJSConfigurationType" application-parameters="script/deploy.mjs default alt dev" path-to-js-file="$USER_HOME$/.nvm/versions/node/v14.18.2/bin/zx" working-dir="$PROJECT_DIR$/">
+  <configuration default="false" name="deploy-dev" type="NodeJSConfigurationType" application-parameters="script/deploy.mjs deploy  --paid-account-profile default --odp-account-profile alt --stage dev" path-to-js-file="$USER_HOME$/.nvm/versions/node/v14.18.2/bin/zx" working-dir="$PROJECT_DIR$/">
     <method v="2" />
   </configuration>
 </component>

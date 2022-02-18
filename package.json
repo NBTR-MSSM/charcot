@@ -24,9 +24,11 @@
     "start": "AWS_PROFILE=default sst start",
     "build": "sst build",
     "deploy": "sst deploy",
+    "deploy-dev": "./script/deploy.mjs deploy -p default -o alt -s dev",
     "lint": "eslint -c .eslintrc.yml --no-eslintrc ./",
     "lint:fix": "eslint -c .eslintrc.yml --no-eslintrc --fix ./",
-    "remove": "sst remove"
+    "remove": "sst remove",
+    "remove-dev": "./script/deploy.mjs remove -p default -o alt -s dev"
   },
   "devDependencies": {
     "@tsconfig/node14": "^1.0.1",
@@ -41,13 +43,15 @@
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^5.1.1",
-    "ts-jest": "^27.1.0"
+    "ts-jest": "^27.1.0",
+    "yargs": "^17.3.1"
   },
   "dependencies": {
     "@exsoinn/aws-sdk-wrappers": "^1.9.1",
     "@serverless-stack/cli": "0.60.11",
     "@serverless-stack/resources": "0.60.11",
     "aws-cdk-lib": "2.7.0",
+    "change-case": "^4.1.2",
     "lodash.merge": "^4.6.2",
     "nodemailer": "^6.7.2",
     "uuid": "^8.3.2"

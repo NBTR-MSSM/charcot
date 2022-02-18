@@ -6,14 +6,10 @@ import { AWSError } from 'aws-sdk/lib/core'
 import { DynamoDB } from 'aws-sdk/clients/all'
 
 /**
- * Accepts requests to insert image metadata into table. Once the last image is received, in A/B switch
- * fashion copies the data to the currently active table
+ * Accepts requests to insert image metadata into table. Once the last image is received, it scans
+ * the table for records not seen in this snapshot, and marks those as inactive.
  */
 export const create: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIGatewayProxyEventV2) => {
-  /*
-   * TODO: Parse the request parameters and insert the record into CerebrumImageMetaData DynamoDB table
-   */
-  // Identify table that is ready next for receiving this data
   const payload: CerebrumImageMetaData[] = JSON.parse(event.body as string)
   const promises: Promise<PromiseResult<DynamoDB.DocumentClient.PutItemOutput, AWSError>>[] = []
   let endOfSnapshot = false
