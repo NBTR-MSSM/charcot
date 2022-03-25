@@ -4,6 +4,7 @@ import Home from './containers/Home'
 import Cart from './containers/Cart'
 import Checkout from './containers/Checkout'
 import Search from './containers/Search'
+import Search2 from './containers/Search2'
 import NotFound from './containers/NotFound'
 
 export default class Routes extends Component {
@@ -14,8 +15,11 @@ export default class Routes extends Component {
           <Home/>
         </Route>
         <Route exact path="/search">
-          <Search images={this.props.images} onImageClick={this.props.onImageClick}
-                  onImageSearch={this.props.onImageSearch}/>
+          <Search/>
+        </Route>
+        <Route exact path="/search2">
+          <Search2 images={this.props.images} onImageClick={this.props.onImageClick}
+                   onImageSearch={this.props.onImageSearch}/>
         </Route>
         <Route exact path="/cart">
           <Cart selectedImages={this.props.images.filter(image => image.isSelected)}

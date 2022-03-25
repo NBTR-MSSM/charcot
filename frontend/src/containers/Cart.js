@@ -4,7 +4,7 @@ import ImageList from './ImageList'
 
 export default class Cart extends Component {
   render = () => (
-    <div className="Cart">
+    <div className='Cart'>
       <h3>Your Selections:</h3>
       <ImageList images={this.props.selectedImages} onImageClick={this.props.onImageClick} isCart={true}/>
     </div>

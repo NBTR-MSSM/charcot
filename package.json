@@ -21,14 +21,17 @@
   },
   "scripts": {
     "test": "sst test --coverage --transform '{}' --preset 'ts-jest' --coveragePathIgnorePatterns 'coverage' --coveragePathIgnorePatterns '.build' --coveragePathIgnorePatterns '.sst' --coveragePathIgnorePatterns 'test' --coveragePathIgnorePatterns 'd.ts' --coveragePathIgnorePatterns 'stacks/'",
-    "start": "AWS_PROFILE=default sst start",
+    "start": "AWS_PROFILE=default sst start --stage demo",
     "build": "sst build",
     "deploy": "sst deploy",
-    "deploy-dev": "./script/deploy.mjs deploy -p default -o alt -s dev",
+    "deploy-demo": "./script/deploy.mjs deploy -p default -o alt -s demo",
+    "deploy-dev": "./script/deploy.mjs deploy -p mssm -o mssm-odp -s dev",
+    "deploy-prod": "./script/deploy.mjs deploy -p mssm -o mssm-odp -s prod",
     "lint": "eslint -c .eslintrc.yml --no-eslintrc ./",
     "lint:fix": "eslint -c .eslintrc.yml --no-eslintrc --fix ./",
     "remove": "sst remove",
-    "remove-dev": "./script/deploy.mjs remove -p default -o alt -s dev"
+    "remove-demo": "./script/deploy.mjs remove -p default -o alt -s demo",
+    "remove-dev": "./script/deploy.mjs remove -p mssm -o mssm-odp -s dev"
   },
   "devDependencies": {
     "@tsconfig/node14": "^1.0.1",
@@ -43,11 +46,12 @@
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^5.1.1",
+    "json-array-streams": "^1.0.1",
     "ts-jest": "^27.1.0",
     "yargs": "^17.3.1"
   },
   "dependencies": {
-    "@exsoinn/aws-sdk-wrappers": "^1.9.1",
+    "@exsoinn/aws-sdk-wrappers": "^1.10.2",
     "@serverless-stack/cli": "0.60.11",
     "@serverless-stack/resources": "0.60.11",
     "aws-cdk-lib": "2.7.0",

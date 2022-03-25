@@ -59,9 +59,9 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     // Mt Sinai had no concept of stages prior to Charcot, so need the below for backward compatibility
     // with their stage-less S3 buckets which were in place already before Charcot. Renaming
     // those existing buckets is not an option
-    const bucketStage = stage === 'prod' ? '' : `-${stage}`
-    const cerebrumImageBucketName = `${process.env.CEREBRUM_IMAGE_BUCKET_NAME}${bucketStage}`
-    const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketStage}`
+    const bucketSuffix = stage === 'prod' ? '' : `-${stage}`
+    const cerebrumImageBucketName = `${process.env.CEREBRUM_IMAGE_BUCKET_NAME}${bucketSuffix}`
+    const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketSuffix}`
 
     const cerebrumImageZipBucketName = `${process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME}-${stage}`
 

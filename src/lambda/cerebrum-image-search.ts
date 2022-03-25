@@ -2,6 +2,8 @@ import { APIGatewayProxyEventQueryStringParameters, APIGatewayProxyEventV2, APIG
 import { dynamoDbClient, HttpResponse, lambdaWrapper } from '@exsoinn/aws-sdk-wrappers'
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
 import { paramCase } from 'change-case'
+import RangeMap from '../common/range-map'
+import { Range } from '../types/charcot.types'
 
 const indexedAttributes = ['region', 'sex', 'stain', 'age', 'race']
 
@@ -10,13 +12,52 @@ const validateRequest = (queryStringParameters: APIGatewayProxyEventQueryStringP
     return false
   }
 
-  // Validate thast at least one recognized search criterium was passed in query string
+  // Validate that at least one recognized search criteria was passed in query string
   for (const attr of indexedAttributes) {
     if (queryStringParameters[attr]) {
       return true
     }
   }
   return false
+}
+
+const addFilter = (event: APIGatewayProxyEventV2, params: DocumentClient.QueryInput) => {
+  const filter = event.queryStringParameters && event.queryStringParameters.filter
+  if (!filter) {
+    return
+  }
+
+  const exprAttrValues: Record<string, string | number> = {}
+  let dynamoFilter = filter
+
+  /*
+   * Deal with the numeric range categories (E.g. age)
+   */
+  // First deal with the lower and upper bounds
+  for (const m of filter.matchAll(/(\w+)\s=\s(?:'(\d+)\s<='|'<\s(\d+)')/g)) {
+    const num = m[2] || m[3]
+    const searchStr = m[2] ? `${num} <=` : `< ${num}`
+    const replaceStr = m[2] ? `${m[1]} > :${num}` : `${m[1]} <= :${num}`
+    exprAttrValues[`:${num}`] = Number.parseInt(num)
+    dynamoFilter = dynamoFilter.replace(searchStr, replaceStr)
+  }
+
+  // Now deal with the ranges in between
+  for (const m of filter.matchAll(/(\w+)\s=\s'(\d+)\s-\s(\d+)'/g)) {
+    exprAttrValues[`:${m[2]}`] = Number.parseInt(m[2])
+    exprAttrValues[`:${m[3]}`] = Number.parseInt(m[3])
+    dynamoFilter = dynamoFilter.replace(m[0], `${m[1]} BETWEEN :${m[2]} AND :${m[3]}`)
+  }
+
+  // Deal with the text categories (E.g. stain, region, sex, race)
+  for (const m of dynamoFilter.matchAll(/(\w+)\s=\s'(\w+)'/g)) {
+    exprAttrValues[`:${m[2]}`] = m[2]
+    dynamoFilter = dynamoFilter.replace(`'${m[2]}'`, `:${m[2]}`)
+  }
+
+  params.FilterExpression = dynamoFilter
+  params.ExpressionAttributeValues = exprAttrValues
+  console.log(`JMQ: adding filter ${event.queryStringParameters && event.queryStringParameters.filter}`)
 }
 
 export const search: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIGatewayProxyEventV2) => {
@@ -32,6 +73,8 @@ export const search: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIG
       return new HttpResponse(401, `Request is invalid: ${JSON.stringify(queryStringParams)}`)
     }
 
+    // Build the search criteria. The first dimension/facet specified in the query
+    // string will be the index we search.
     for (const attr of indexedAttributes) {
       let attrVal
       if (!(attrVal = queryStringParams[attr])) {
@@ -40,7 +83,6 @@ export const search: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIG
       if (!indexName) {
         indexName = attr
         indexVal = `${queryStringParams[attr]}`
-        continue
       } else {
         filterExpression.set(attr, attrVal)
       }
@@ -54,12 +96,12 @@ export const search: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIG
       IndexName: `${indexName}Index`
     }
 
-    // DynamoDB SDK requires exp attr name and values objects. This is
+    // DynamoDB SDK requires exp attr name and value objects. This is
     // nothing more than a "lookup table" for the attribute values.
-    const attrExpNames: Record<string, any> = {}
-    const attrExpValues: Record<string, any> = {}
-    attrExpNames[`#${indexName}`] = indexName
-    attrExpValues[`:${indexName}`] = indexVal
+    const attrExpNames: Record<string, string> = {}
+    const attrExpValues: Record<string, string> = {}
+    attrExpNames[`#${indexName}`] = indexName as string
+    attrExpValues[`:${indexName}`] = indexVal as string
 
     if (filterExpression.size > 0) {
       for (const [key, value] of filterExpression) {
@@ -85,29 +127,57 @@ export const search: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIG
 // TODO: Unit test me
 export const dimension: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIGatewayProxyEventV2) => {
   let dimension = event.pathParameters && event.pathParameters.dimension
-  const attrExpNames: Record<string, any> = {}
+  const attrExpNames: Record<string, string> = {}
 
   // Make dimension singular
   dimension = dimension?.substring(0, dimension?.length - 1)
 
-  attrExpNames[`#${dimension}`] = dimension
-  const res = await dynamoDbClient.scan({
+  attrExpNames['#dimension'] = dimension as string
+  const params: DocumentClient.QueryInput = {
     ExpressionAttributeNames: attrExpNames,
-    ProjectionExpression: `#${dimension}`,
-    TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string
-  })
+    ProjectionExpression: '#dimension',
+    TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string,
+    IndexName: `${dimension}Index`
+  }
+  addFilter(event, params)
+  console.log(`JMQ: params is ${JSON.stringify(params)}`)
+  const res = await dynamoDbClient.scan(params)
 
   let responseCode = 200
-  let ret: { value: string, title: string }[] = []
+  type Dimension = { value: string | number, title: string, count: number, range: Range | undefined, rangeIndex: number }
+  let ret: Dimension[] = []
   if (!res.Items) {
     responseCode = 404
   } else {
-    ret = Array.from(new Map(res.Items.map(e => [e[dimension as string], e[dimension as string]])).values()).map(e => {
-      return {
-        value: paramCase(e),
-        title: e
+    // Ranging only applies to dimensions that are numeric
+    // in nature only. Yet we do this here for all.
+    const interval = Number.parseInt((event.queryStringParameters && event.queryStringParameters.interval) || '10')
+    const max = Number.parseInt((event.queryStringParameters && event.queryStringParameters.max) || '90')
+    const start = Number.parseInt((event.queryStringParameters && event.queryStringParameters.start) || interval.toString())
+    const ranges: RangeMap = new RangeMap(interval, max, start)
+    ret = Array.from(res.Items.reduce((prev: Map<string, Dimension>, cur: DocumentClient.AttributeMap) => {
+      const val = Number.isInteger(cur[dimension as string]) ? cur[dimension as string] : paramCase(cur[dimension as string])
+      let obj: Dimension | undefined
+      if (!(obj = prev.get(val))) {
+        obj = {
+          count: 0,
+          title: cur[dimension as string],
+          value: val,
+          range: undefined,
+          rangeIndex: -1
+        }
+        prev.set(val, obj as Dimension)
+
+        // Ranging applies to dimensions numeric in nature only (E.g. Age)
+        if (Number.isInteger(val)) {
+          const rangeInfo = ranges.get(val)
+          obj.range = rangeInfo?.range
+          obj.rangeIndex = rangeInfo?.index as number
+        }
       }
-    })
+      ++obj.count
+      return prev
+    }, new Map<string, Dimension>()).values()).map(e => e).sort((a: Dimension, b: Dimension): number => b.rangeIndex - a.rangeIndex || (a.value as unknown as number) - (b.value as unknown as number))
   }
 
   return new HttpResponse(responseCode, '', {

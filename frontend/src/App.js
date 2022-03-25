@@ -5,6 +5,7 @@ import './App.css'
 import Routes from './Routes'
 import { LinkContainer } from 'react-router-bootstrap'
 import { API } from 'aws-amplify'
+import Footer from './containers/Footer'
 
 const savedState = {
   images: []
@@ -53,35 +54,41 @@ export default class App extends Component {
 
   render () {
     return (
-      <div className="App container py-3">
-        <Navbar collapseOnSelect bg="light" expand="md" className="mb-3">
-          <LinkContainer to="/">
-            <Navbar.Brand className="font-weight-bold text-muted">
-              Charcot
-            </Navbar.Brand>
-          </LinkContainer>
-          <Navbar.Toggle/>
-          <Navbar.Collapse className="justify-content-end">
-            <Nav activeKey={window.location.pathname}>
-              <LinkContainer to="/search">
-                <Nav.Link>Search</Nav.Link>
-              </LinkContainer>
-              <LinkContainer to="/cart">
-                <Nav.Link>Cart ({savedState.images.filter(e => e.isSelected).length})</Nav.Link>
-              </LinkContainer>
-              <LinkContainer to="/checkout">
-                <Nav.Link>Checkout</Nav.Link>
-              </LinkContainer>
-              <LinkContainer to="/signup">
-                <Nav.Link>Signup</Nav.Link>
-              </LinkContainer>
-              <LinkContainer to="/login">
-                <Nav.Link>Login</Nav.Link>
-              </LinkContainer>
-            </Nav>
-          </Navbar.Collapse>
-        </Navbar>
-        <Routes images={savedState.images} onImageClick={this.handleImageClick} onImageSearch={this.handleImageSearch}/>
-      </div>)
+      <div>
+        <div className="App container py-3">
+          <Navbar collapseOnSelect bg="light" expand="md" className="mb-3 fixed-top charcot-top-nav">
+            <LinkContainer to="/">
+              <Navbar.Brand className="font-weight-bold text-muted">
+                Charcot
+              </Navbar.Brand>
+            </LinkContainer>
+            <Navbar.Toggle/>
+            <Navbar.Collapse className="justify-content-end">
+              <Nav activeKey={window.location.pathname}>
+                <LinkContainer to="/search">
+                  <Nav.Link>Search</Nav.Link>
+                </LinkContainer>
+                <LinkContainer to="/search2">
+                  <Nav.Link>Search 2</Nav.Link>
+                </LinkContainer>
+                <LinkContainer to="/cart">
+                  <Nav.Link>Cart ({savedState.images.filter(e => e.isSelected).length})</Nav.Link>
+                </LinkContainer>
+                <LinkContainer to="/checkout">
+                  <Nav.Link>Checkout</Nav.Link>
+                </LinkContainer>
+                <LinkContainer to="/signup">
+                  <Nav.Link>Signup</Nav.Link>
+                </LinkContainer>
+                <LinkContainer to="/login">
+                  <Nav.Link>Login</Nav.Link>
+                </LinkContainer>
+              </Nav>
+            </Navbar.Collapse>
+          </Navbar>
+          <Routes images={savedState.images} onImageClick={this.handleImageClick}
+                  onImageSearch={this.handleImageSearch}/>
+        </div>
+        <Footer/></div>)
   }
 }

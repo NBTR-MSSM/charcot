@@ -39,3 +39,10 @@ export interface StackArguments {
   handleCerebrumImageFulfillment?: sst.Function
   handleCerebrumImageTransfer?: sst.Function
 }
+
+export type Range = string
+
+export type RangeInfo = {
+  range: Range | undefined,
+  index: number
+}

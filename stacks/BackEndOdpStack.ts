@@ -23,18 +23,17 @@ export default class BackEndOdpStack extends sst.Stack {
     const imgTransferRoleArn = args.handleCerebrumImageTransfer?.role?.roleArn || process.env.HANDLE_CEREBRUM_IMAGE_TRANSFER_ROLE_ARN as string
 
     const stage = this.stage
-
     // See comment in BackEndPaidAccountStack.ts for the reason of this logic,
     // same applies here
-    const bucketStage = stage === 'prod' ? '' : `-${stage}`
-    const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketStage}`
+    const bucketSuffix = stage === 'prod' ? '' : `-${stage}`
+    const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketSuffix}`
 
-    const cerebrumImageZipBucketName = `${process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME}-${stage}`
+    const cerebrumImageZipBucketName = `${process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME}${bucketSuffix}`
 
     // Buckets
     let cerebrumImageOdpBucket
     if (stage === 'prod') {
-      // In PROD stage the bucket already exists
+      // In PROD bucketSuffix the bucket already exists
       cerebrumImageOdpBucket = S3Bucket.fromBucketName(this, 'ODPBucketLoadedByName', cerebrumImageOdpBucketName)
     } else {
       cerebrumImageOdpBucket = new Bucket(this, cerebrumImageOdpBucketName, {

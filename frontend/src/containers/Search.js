@@ -1,128 +1,103 @@
-import React, { Component } from 'react'
-import { API } from 'aws-amplify'
-import { Query, Builder, Utils as QbUtils } from 'react-awesome-query-builder'
-import 'react-awesome-query-builder/lib/css/styles.css'
-import 'react-awesome-query-builder/lib/css/compact_styles.css' // optional, for more compact styles
-import ImageList from './ImageList'
-// import InitialConfig from 'react-awesome-query-builder/lib/config/bootstrap'
-import InitialConfig from 'react-awesome-query-builder/lib/config/mui'
-// import InitialConfig from 'react-awesome-query-builder/lib/config/material'
-// import InitialConfig from 'react-awesome-query-builder/lib/config/antd'
+import { Component } from 'react'
+import AgeChart from './AgeChart'
+import GenderChart from './GenderChart'
+import RegionChart from './RegionChart'
+import StainChart from './StainChart'
+import RaceChart from './RaceChart'
+import './Search.css'
 
-const config = {
-  ...InitialConfig,
-  fields: {
-    region: {
-      label: 'Region',
-      type: 'select',
-      valueSources: ['value'],
-      fieldSettings: {
-        asyncFetch: async (search, offset) => ({
-          values: await API.get('charcot', '/cerebrum-images/regions', {}),
-          hasMore: false
-        })
-      }
-    },
-    sex: {
-      label: 'Sex',
-      type: 'select',
-      valueSources: ['value'],
-      fieldSettings: {
-        asyncFetch: async (search, offset) => ({
-          values: await API.get('charcot', '/cerebrum-images/sexs', {}),
-          hasMore: false
-        })
-      }
-    },
-    stain: {
-      label: 'Stain',
-      type: 'select',
-      valueSources: ['value'],
-      fieldSettings: {
-        asyncFetch: async (search, offset) => ({
-          values: await API.get('charcot', '/cerebrum-images/stains', {}),
-          hasMore: false
-        })
-      }
-    },
-    age: {
-      label: 'Age',
-      type: 'number',
-      valueSources: ['value'],
-      fieldSettings: {
-        min: 1,
-        max: 130
-      },
-      preferWidgets: ['slider', 'rangeslider']
-    },
-    race: {
-      label: 'Race',
-      type: 'select',
-      valueSources: ['value'],
-      fieldSettings: {
-        asyncFetch: async (search, offset) => ({
-          values: await API.get('charcot', '/cerebrum-images/races', {}),
-          hasMore: false
-        })
-      }
-    }
-  }
-}
-
-// You can load query value from your backend storage (for saving see `Query.onChange()`)
-// const queryValue = savedQuery || { id: QbUtils.uuid(), type: 'group' }
-const savedState = {
-  query: { id: QbUtils.uuid(), type: 'group' }
-}
 export default class Search extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      tree: QbUtils.checkTree(QbUtils.loadTree(savedState.query), config),
-      config: config
+      filter: {}
     }
   }
 
-  async retrieveImages (query) {
-    return await API.get('charcot', '/cerebrum-images?region=Orbital Frontal Cortex', {})
+  filterClone = () => {
+    const clone = {}
+    for (const tup of Object.entries(this.state.filter)) {
+      const newSet = new Set()
+      tup[1].forEach((val) => newSet.add(val))
+      clone[tup[0]] = newSet
+    }
+    return clone
   }
 
-  render = () => (
-    <div>
-      <Query
-        {...config}
-        value={this.state.tree}
-        onChange={this.onChange}
-        renderBuilder={this.renderBuilder}
-      />
-      <h4>Click anywhere on a row to toggle select:</h4>
-      <ImageList images={this.props.images} onImageClick={this.props.onImageClick}/>
-      {this.renderResult(this.state)}
-    </div>
-  )
+  /**
+   * Adds the selected category/value to the filter and
+   * refreshes the state
+   */
+  handleSelect = ({ dimension, category }) => {
+    const filter = this.filterClone()
+    let values = filter[dimension]
+    if (!values) {
+      values = new Set()
+      filter[dimension] = values
+    }
+    values.add(category)
+    console.log(`JMQ: handleSelect filter is ${Object.entries(filter).map(tup => [tup[0], ...tup[1]])}`)
+    this.setState({
+      filter: filter,
+      updatedDimension: dimension
+    })
+  }
 
-  renderBuilder = (props) => (
-    <div className="query-builder-container" style={{ padding: '10px' }}>
-      <div className="query-builder qb-lite">
-        <Builder {...props} />
-      </div>
-    </div>
-  )
+  /**
+   * Does the opposite of 'Search.handleSelect'
+   * and refreshes the state.
+   */
+  handleUnselect = ({ dimension, category }) => {
+    const filter = this.filterClone()
+    filter[dimension].delete(category)
 
-  renderResult = ({ tree: immutableTree, config }) => (
-    <div className="query-builder-result">
-      <b><i>Debugging info (will be removed before release):</i></b>
-      <div>Query string: <pre>{JSON.stringify(QbUtils.queryString(immutableTree, config))}</pre></div>
-      <div>MongoDb query: <pre>{JSON.stringify(QbUtils.mongodbFormat(immutableTree, config))}</pre></div>
-      <div>SQL where: <pre>{JSON.stringify(QbUtils.sqlFormat(immutableTree, config))}</pre></div>
-      <div>JsonLogic: <pre>{JSON.stringify(QbUtils.jsonLogicFormat(immutableTree, config))}</pre></div>
-    </div>
-  )
+    // Delete this dimension from the object if
+    // the are no more categories selected
+    if (!filter[dimension].size) {
+      delete filter[dimension]
+    }
 
-  onChange = async (immutableTree, config) => {
-    // Tip: for better performance you can apply `throttle` - see `examples/demo`
-    this.setState({ tree: immutableTree, config: config })
-    savedState.query = QbUtils.getTree(immutableTree)
-    this.props.onImageSearch(await this.retrieveImages(savedState.query))
+    console.log(`JMQ: handleUnselect filter is ${Object.entries(filter).map(tup => [tup[0], ...tup[1]])}`)
+    this.setState({
+      filter: filter,
+      updatedDimension: dimension
+    })
+  }
+
+  render () {
+    console.log('JMQ: rendering Search')
+    return (
+      <div className='Search'>
+        <table>
+          <tbody>
+          <tr>
+            <td>
+              <AgeChart updatedDimension={this.state.updatedDimension} filter={this.state.filter}
+                        onSelect={this.handleSelect}
+                        onUnselect={this.handleUnselect}/>
+            </td>
+            <td>
+              <GenderChart updatedDimension={this.state.updatedDimension} filter={this.state.filter}
+                           onSelect={this.handleSelect} onUnselect={this.handleUnselect}/>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <RegionChart updatedDimension={this.state.updatedDimension} filter={this.state.filter}
+                           onSelect={this.handleSelect} onUnselect={this.handleUnselect}/>
+            </td>
+            <td>
+              <StainChart updatedDimension={this.state.updatedDimension} filter={this.state.filter}
+                          onSelect={this.handleSelect} onUnselect={this.handleUnselect}/>
+            </td>
+          </tr>
+          <tr>
+            <td><RaceChart updatedDimension={this.state.updatedDimension} filter={this.state.filter}
+                           onSelect={this.handleSelect} onUnselect={this.handleUnselect}/></td>
+            <td></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>)
   }
 }
