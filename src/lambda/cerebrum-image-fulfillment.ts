@@ -44,7 +44,7 @@ export const handle: Handler = lambdaWrapper(async ({ orderId }: Record<string, 
   * 2. DONE Add the files to a Zip
   * 3. DONE Put the Zip in target S3 (can augment s3-client to support this op, 'retrieveObjectsAsZip')
   * 4. DONE Send email to requestor
-  * 5. TODO Write record to DynamoDB of what happened (who/what/when, etc.), the zip dowload link generated (in case it needs to be resent), etc.
+  * 5. TODO Write record to DynamoDB of what happened (who/what/when, etc.), the zip download link generated (in case it needs to be resent), etc.
   */
   let order
   try {
