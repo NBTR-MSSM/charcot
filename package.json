@@ -24,14 +24,15 @@
     "start": "AWS_PROFILE=default sst start --stage demo",
     "build": "sst build",
     "deploy": "sst deploy",
-    "deploy-demo": "./script/deploy.mjs deploy -p default -o alt -s demo",
-    "deploy-dev": "./script/deploy.mjs deploy -p mssm -o mssm-odp -s dev",
-    "deploy-prod": "./script/deploy.mjs deploy -p mssm -o mssm-odp -s prod",
+    "deploy:demo": "./script/deploy.mjs deploy -p default -o alt -s demo",
+    "deploy:dev": "./script/deploy.mjs deploy -p mssm -o mssm-odp -s dev",
+    "deploy:prod": "./script/deploy.mjs deploy -p mssm -o mssm-odp -s prod",
     "lint": "eslint -c .eslintrc.yml --no-eslintrc ./",
     "lint:fix": "eslint -c .eslintrc.yml --no-eslintrc --fix ./",
     "remove": "sst remove",
-    "remove-demo": "./script/deploy.mjs remove -p default -o alt -s demo",
-    "remove-dev": "./script/deploy.mjs remove -p mssm -o mssm-odp -s dev"
+    "remove:demo": "./script/deploy.mjs remove -p default -o alt -s demo",
+    "remove:dev": "./script/deploy.mjs remove -p mssm -o mssm-odp -s dev",
+    "remove:prod": "./script/deploy.mjs remove -p mssm -o mssm-odp -s prod"
   },
   "devDependencies": {
     "@tsconfig/node14": "^1.0.1",
@@ -51,7 +52,7 @@
     "yargs": "^17.3.1"
   },
   "dependencies": {
-    "@exsoinn/aws-sdk-wrappers": "^1.10.2",
+    "@exsoinn/aws-sdk-wrappers": "^1.10.4",
     "@serverless-stack/cli": "0.60.11",
     "@serverless-stack/resources": "0.60.11",
     "aws-cdk-lib": "2.7.0",

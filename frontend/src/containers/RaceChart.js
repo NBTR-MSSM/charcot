@@ -1,9 +1,6 @@
 import BaseHighchartsComponent from './BaseHighchartsComponent'
 
 const chartOptions = {
-  chart: {
-    type: 'bar'
-  },
   title: {
     text: 'Race'
   }

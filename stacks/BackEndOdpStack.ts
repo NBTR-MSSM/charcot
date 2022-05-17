@@ -28,12 +28,12 @@ export default class BackEndOdpStack extends sst.Stack {
     const bucketSuffix = stage === 'prod' ? '' : `-${stage}`
     const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketSuffix}`
 
-    const cerebrumImageZipBucketName = `${process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME}${bucketSuffix}`
+    const cerebrumImageZipBucketName = args.zipBucketName!
 
     // Buckets
     let cerebrumImageOdpBucket
     if (stage === 'prod') {
-      // In PROD bucketSuffix the bucket already exists
+      // In PROD the brain image bucket already exists, so just load it
       cerebrumImageOdpBucket = S3Bucket.fromBucketName(this, 'ODPBucketLoadedByName', cerebrumImageOdpBucketName)
     } else {
       cerebrumImageOdpBucket = new Bucket(this, cerebrumImageOdpBucketName, {

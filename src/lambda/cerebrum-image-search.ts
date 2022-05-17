@@ -1,7 +1,7 @@
 import { APIGatewayProxyEventQueryStringParameters, APIGatewayProxyEventV2, APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { dynamoDbClient, HttpResponse, lambdaWrapper } from '@exsoinn/aws-sdk-wrappers'
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
-import imageQuery from '../service/image-search'
+import imageSearch from '../service/image-search'
 
 const indexedAttributes = ['region', 'sex', 'stain', 'age', 'race']
 
@@ -19,12 +19,17 @@ const validateRequest = (queryStringParameters: APIGatewayProxyEventQueryStringP
   return false
 }
 
+/**
+ * TODO: Either move this to ImageSearch or remove it entirely. It was implmented
+ *       early when it wasn't exactly clear how things would pan out.
+ */
 export const search: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIGatewayProxyEventV2) => {
   // DONE: Create GSI's (Global Indexes) as per these SO questions,
   //  [REF|https://stackoverflow.com/questions/47569793/how-do-i-query-dynamodb-with-non-primary-key-field|"AWS Console > DynamoDb > tab Indexes of your table > Create index >"],
   //  and [REF|https://stackoverflow.com/questions/43353852/query-on-non-key-attribute|"You'll need to set up a global secondary index (GSI)"]
 
   try {
+    console.log(`${JSON.stringify(event.headers)}`)
     let indexName, indexVal
     const filterExpression = new Map<string, string>()
     const queryStringParams = event.queryStringParameters
@@ -85,5 +90,5 @@ export const search: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIG
 
 // TODO: Unit test me
 export const dimension: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIGatewayProxyEventV2) => {
-  return imageQuery.dimension(event)
+  return imageSearch.dimension(event)
 })

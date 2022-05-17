@@ -3,6 +3,7 @@ import { Bucket } from '@serverless-stack/resources'
 import * as iam from 'aws-cdk-lib/aws-iam'
 import { Bucket as S3Bucket, EventType } from 'aws-cdk-lib/aws-s3'
 import * as s3Notifications from 'aws-cdk-lib/aws-s3-notifications'
+import { StackArguments } from '../src/types/charcot.types'
 
 /**
  * This stack defines the Charcot backend porting on the AWS paid account of Mt Sinai.
@@ -12,7 +13,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
   handleCerebrumImageFulfillment: sst.Function
   handleCerebrumImageTransfer: sst.Function
 
-  constructor(scope: sst.App, id: string, props?: sst.StackProps) {
+  constructor(scope: sst.App, id: string, props: sst.StackProps, args: StackArguments) {
     super(scope, id, props)
     // DynamoDB Tables
     const cerebrumImageMetaDataTableProps = {
@@ -23,6 +24,8 @@ export default class BackEndPaidAccountStack extends sst.Stack {
         age: sst.TableFieldType.NUMBER,
         race: sst.TableFieldType.STRING,
         sex: sst.TableFieldType.STRING,
+        disorder: sst.TableFieldType.STRING,
+        subjectNumber: sst.TableFieldType.NUMBER,
         uploadDate: sst.TableFieldType.STRING
       },
       primaryIndex: { partitionKey: 'fileName' },
@@ -31,7 +34,9 @@ export default class BackEndPaidAccountStack extends sst.Stack {
         stainIndex: { partitionKey: 'stain' },
         ageIndex: { partitionKey: 'age' },
         raceIndex: { partitionKey: 'race' },
-        sexIndex: { partitionKey: 'sex', sortKey: 'fileName' }
+        sexIndex: { partitionKey: 'sex' },
+        disorderIndex: { partitionKey: 'disorder' },
+        subjectNumberIndex: { partitionKey: 'subjectNumber' }
       }
     }
     const cerebrumImageMetaDataTable = new sst.Table(this, process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string, cerebrumImageMetaDataTableProps)
@@ -40,7 +45,8 @@ export default class BackEndPaidAccountStack extends sst.Stack {
       fields: {
         orderId: sst.TableFieldType.STRING,
         email: sst.TableFieldType.STRING,
-        created: sst.TableFieldType.STRING
+        created: sst.TableFieldType.STRING,
+        filter: sst.TableFieldType.STRING
       },
       primaryIndex: { partitionKey: 'orderId' }
     }
@@ -63,7 +69,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     const cerebrumImageBucketName = `${process.env.CEREBRUM_IMAGE_BUCKET_NAME}${bucketSuffix}`
     const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketSuffix}`
 
-    const cerebrumImageZipBucketName = `${process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME}-${stage}`
+    const cerebrumImageZipBucketName = args.zipBucketName!
 
     // Buckets and notification target functions
     this.handleCerebrumImageTransfer = new sst.Function(this, 'HandleCerebrumImageTransfer', {
@@ -218,10 +224,16 @@ export default class BackEndPaidAccountStack extends sst.Stack {
                 effect: iam.Effect.ALLOW,
                 actions: ['dynamodb:PutItem'],
                 resources: [cerebrumImageOrderTable.tableArn]
+              }),
+              new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['dynamodb:Query'],
+                resources: [cerebrumImageMetaDataTable.tableArn]
               })],
             environment: {
               CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName,
-              HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME: handleCerebrumImageFulfillmentFunctionName
+              HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME: handleCerebrumImageFulfillmentFunctionName,
+              CEREBRUM_IMAGE_METADATA_TABLE_NAME: cerebrumImageMetaDataTable.tableName
             }
           }
         }

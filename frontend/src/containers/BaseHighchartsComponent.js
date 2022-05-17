@@ -2,7 +2,7 @@ import { Component } from 'react'
 import HighchartsReact from 'highcharts-react-official'
 import Highcharts from 'highcharts'
 import merge from 'lodash.merge'
-import { API } from 'aws-amplify'
+import { categoryIsSelected, generateStats, serializeFilter } from '../util'
 
 /**
  * Calculated dynamically
@@ -19,7 +19,8 @@ export default class BaseHighchartsComponent extends Component {
     this.dimension = dimension
     this.baseChartOptions = {
       chart: {
-        height: '350px'
+        type: 'bar',
+        height: '200px'
       },
       legend: {
         enabled: false
@@ -32,18 +33,23 @@ export default class BaseHighchartsComponent extends Component {
       },
       plotOptions: {
         series: {
-          color: '#46d246',
+          allowPointSelect: true,
+          color: '#cccccc',
           point: {
             events: {
-              select: this.handleSelect,
-              unselect: this.handleUnselect
+              select: this.handleCategorySelect,
+              unselect: this.handleCategoryUnselect
             }
           },
-          allowPointSelect: true,
           cursor: 'pointer',
           pointWidth: 20,
           dataLabels: {
             enabled: true
+          },
+          states: {
+            select: {
+              color: '#46d246'
+            }
           }
         }
       }
@@ -58,70 +64,47 @@ export default class BaseHighchartsComponent extends Component {
     }
   }
 
-  handleSelect = (event) => {
+  handleCategorySelect = (event) => {
     const { category, y: value } = event.target
-    console.log(`Category: ${category}, value: ${value}`)
-    /* this.setState({
-      totalSelected: this.state.totalSelected + value
-    }) */
-    this.props.onSelect({ dimension: this.dimension, category })
+    console.log(`JMQ: Selected category: ${category}, value: ${value}`)
+    this.props.onCategorySelect({ dimension: this.dimension, category })
   }
 
-  handleUnselect = async (event) => {
+  handleCategoryUnselect = async (event) => {
     const { category, y: value } = event.target
-    console.log(`Category: ${category}, value: ${value}`)
-    /* this.setState({
-      totalSelected: this.state.totalSelected - value
-    }) */
-    this.props.onUnselect({ dimension: this.dimension, category })
-    // await this.updateChart()
+    console.log(`JMQ: Unselected category: ${category}, value: ${value}`)
+    this.props.onCategoryUnselect({ dimension: this.dimension, category })
   }
 
   /**
-   * Invokes endpoint to update the chart based in the filter.
+   * Invokes endpoint to update the chart based on the filter.
    */
   updateChart = async () => {
-    const filter = Object.entries(this.props.filter).filter((tup) => tup[0] !== this.dimension).map(tup => {
-      const cats = Array.from(tup[1].values()).map(val => `${tup[0]} = '${val}'`)
-      const catsStr = cats.join(' OR ')
-      return cats.length > 1 ? `(${catsStr})` : catsStr
-    })
-
-    const values = await API.get('charcot', this.endpoint, {
-      queryStringParameters: {
-        filter: filter.length > 0 ? `${filter.join(' AND ')}` : undefined
-      }
-    })
-
     /*
-     * Generate a Map of category-to-counts. Use the keys as X axis
-     * and values as Y axis.
+     * From the generated Map of category-to-counts, use the keys as X axis
+     * and values as Y axis in the chart.
      */
-    const categoryToTotal = values.reduce((prev, cur) => {
-      if (this.isNumeric) {
-        const key = cur.range
-        const cnt = cur.count
-        let total
-        if (!(total = prev.get(key))) {
-          prev.set(key, cnt)
-        } else {
-          prev.set(key, cnt + total)
-        }
-      } else {
-        prev.set(cur.title, cur.count)
-      }
+    const { totalPerCategory } = await generateStats({
+      endpoint: this.endpoint,
+      filter: this.props.filter,
+      dimension: this.dimension,
+      isNumeric: this.isNumeric
+    })
 
-      return prev
-    }, new Map())
-
+    // TODO: Mark as selected the points that correspond to the categories in the current filter
     this.setState({
       chartOptions: {
         xAxis: {
-          categories: Array.from(categoryToTotal.keys()).map(e => e),
+          categories: Array.from(totalPerCategory.keys()),
           tickInterval: 1
         },
         series: [
-          { data: Array.from(categoryToTotal.values()).map(e => e) }
+          {
+            data: Array.from(totalPerCategory.entries()).map(e => ({
+              y: e[1],
+              selected: categoryIsSelected({ category: e[0], filter: this.props.filter, dimension: this.dimension })
+            }))
+          }
         ]
       }
     })
@@ -132,18 +115,19 @@ export default class BaseHighchartsComponent extends Component {
   }
 
   /**
-   * If filter changed update the other charts other than the one
-   * on which the change was affected.
+   * If filter changed, update the charts except for the one
+   * that originated the change.
    */
   async componentDidUpdate (prevProps) {
     if (this.props.filter !== prevProps.filter && this.props.updatedDimension !== this.dimension) {
+      console.log(`JMQ: componentDidUpdate() filter changed ${serializeFilter(this.props.filter, '')}`)
       await this.updateChart()
     }
   }
 
   render () {
     const { chartOptions } = this.state
-    console.log(`JMQ: Rendering ${this.dimension}`)
+    // console.log(`JMQ: Rendering ${this.dimension}, current filter is ${serializeFilter(this.props.filter, this.dimension)}`)
     return (
       <div>
         <HighchartsReact

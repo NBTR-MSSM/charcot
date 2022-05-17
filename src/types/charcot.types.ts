@@ -24,6 +24,7 @@ export interface CerebrumImageOrder {
   orderId: string
   created: string
   fileNames: CharcotFileName[]
+  filter: string | undefined,
   email: string
 }
 
@@ -37,7 +38,8 @@ export interface CerebrumImageOrder {
 export interface StackArguments {
   api?: sst.Api
   handleCerebrumImageFulfillment?: sst.Function
-  handleCerebrumImageTransfer?: sst.Function
+  handleCerebrumImageTransfer?: sst.Function,
+  zipBucketName?: string
 }
 
 export type Range = string

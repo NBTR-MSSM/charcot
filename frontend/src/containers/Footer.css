@@ -2,15 +2,29 @@
     background-color: white;
     height: 50px;
     box-shadow: 0px 2px 4px -1px rgb(0 0 0 / 20%), 0px 4px 5px 0px rgb(0 0 0 / 14%), 0px 1px 10px 0px rgb(0 0 0 / 12%);
+    margin-top: 10px;
 }
 
-.Footer #next-btn {
+.Footer #next-btn, #submit-btn{
     float: right;
     margin-right: 50px;
     width: 175px;
-    margin-top: 10px;
     border: none;
     background-color: steelblue;
     color: white;
+    font-weight: bold;
+}
+
+.charcot-footer-hstack {
+    margin-top: 6px;
+}
+
+.charcot-footer-stat {
+    padding-left: 15px;
+    padding-right: 15px;
+    font-size: small;
+}
+
+.charcot-footer-stat span {
     font-weight: bold;
 }

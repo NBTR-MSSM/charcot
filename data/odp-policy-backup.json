@@ -1,0 +1,89 @@
+{
+  "Version": "2012-10-17",
+  "Id": "PolicyForDestinationBucket",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::950869325006:root",
+          "arn:aws:iam::950869325006:user/charcot"
+        ]
+      },
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::nbtr-production",
+        "arn:aws:s3:::nbtr-production/*"
+      ]
+    },
+    {
+      "Sid": "Permissions on objects",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::045387143127:role/service-role/s3crr_role_for_nbtr-odp-staging_1"
+      },
+      "Action": [
+        "s3:ReplicateObject",
+        "s3:GetObjectAcl"
+      ],
+      "Resource": "arn:aws:s3:::nbtr-production/*"
+    },
+    {
+      "Sid": "Permissions on bucket",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::045387143127:role/service-role/s3crr_role_for_nbtr-odp-staging_1"
+      },
+      "Action": [
+        "s3:List*",
+        "s3:GetBucketVersioning",
+        "s3:PutBucketVersioning"
+      ],
+      "Resource": "arn:aws:s3:::nbtr-production"
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "AROAQVEKI27L6OWL46HBF"
+      },
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::nbtr-production/*"
+    },
+    {
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::nbtr-production/*"
+    },
+    {
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::nbtr-production"
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::045387143127:role/prod-charcot-backend-paid-HandleCerebrumImageTrans-FH3HJMU8VSVM"
+      },
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::nbtr-production/*"
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::045387143127:role/prod-charcot-backend-paid-HandleCerebrumImageFulfi-1VX2IPP71LXOO"
+      },
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::nbtr-production/*"
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::045387143127:role/prod-charcot-backend-paid-HandleCerebrumImageFulfi-1VX2IPP71LXOO"
+      },
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::nbtr-production"
+    }
+  ]
+}

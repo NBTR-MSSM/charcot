@@ -2,17 +2,16 @@ import BaseHighchartsComponent from './BaseHighchartsComponent'
 
 const chartOptions = {
   chart: {
-    type: 'bar',
-    height: '750px'
+    // height: '750px'
   },
   title: {
     text: 'Region'
-  },
-  plotOptions: {
+  }
+  /* plotOptions: {
     series: {
       pointWidth: 8
     }
-  }
+  } */
 }
 
 export default class RegionChart extends BaseHighchartsComponent {
