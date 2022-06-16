@@ -7,6 +7,8 @@ import { LinkContainer } from 'react-router-bootstrap'
 import Footer from './containers/Footer'
 import { countNumberOfCategories, dimensionInfos, generateStats } from './util'
 import LeftNav from './containers/LeftNav'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import Stack from 'react-bootstrap/Stack'
 
 const savedState = {
   filter: {}
@@ -116,31 +118,35 @@ export default class App extends Component {
   render () {
     return (
       <div className='App container py-3'>
-        <LeftNav/>
-        <Navbar collapseOnSelect bg="light" expand="md" className="mb-3 fixed-top charcot-top-nav">
-          <LinkContainer to="/">
-            <Navbar.Brand className="font-weight-bold text-muted">
-              Charcot
-            </Navbar.Brand>
-          </LinkContainer>
-          <Navbar.Toggle/>
-          <Navbar.Collapse className="justify-content-end">
-            <Nav activeKey={window.location.pathname}>
-              <LinkContainer to="/search">
-                <Nav.Link>Search</Nav.Link>
+        <Stack direction="horizontal" gap={3}>
+          <div><LeftNav/></div>
+          <div>
+            <Navbar collapseOnSelect bg="light" expand="md" className="mb-3 fixed-top charcot-top-nav">
+              <LinkContainer to="/">
+                <Navbar.Brand className="font-weight-bold text-muted">
+                  Charcot
+                </Navbar.Brand>
               </LinkContainer>
-              <LinkContainer to="/checkout">
-                <Nav.Link>Checkout</Nav.Link>
-              </LinkContainer>
-              <LinkContainer to="/signup">
-                <Nav.Link>Signup</Nav.Link>
-              </LinkContainer>
-              <LinkContainer to="/login">
-                <Nav.Link>Login</Nav.Link>
-              </LinkContainer>
-            </Nav>
-          </Navbar.Collapse>
-        </Navbar>
+              <Navbar.Toggle/>
+              <Navbar.Collapse className="justify-content-end">
+                <Nav activeKey={window.location.pathname}>
+                  <LinkContainer to="/search">
+                    <Nav.Link>Search</Nav.Link>
+                  </LinkContainer>
+                  <LinkContainer to="/checkout">
+                    <Nav.Link>Checkout</Nav.Link>
+                  </LinkContainer>
+                  <LinkContainer to="/signup">
+                    <Nav.Link>Signup</Nav.Link>
+                  </LinkContainer>
+                  <LinkContainer to="/login">
+                    <Nav.Link>Login</Nav.Link>
+                  </LinkContainer>
+                </Nav>
+              </Navbar.Collapse>
+            </Navbar>
+          </div>
+        </Stack>
         <Routes onCategorySelect={this.handleCategorySelect}
                 onCategoryUnselect={this.handleCategoryUnselect}
                 onRouteLoad={this.handleRouteLoad} filter={this.cloneFilter(savedState.filter)}

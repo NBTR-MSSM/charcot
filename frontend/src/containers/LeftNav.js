@@ -1,11 +1,12 @@
 import { Component } from 'react'
 import Accordion from 'react-bootstrap/Accordion'
+import './LeftNav.css'
 
 export default class LeftNav extends Component {
   render () {
     return (
-      <Accordion>
-        <Accordion.Item eventKey="0">
+      <Accordion className='LeftNav'>
+        <Accordion.Item bsPrefix='charcot-leftnav-according-item' eventKey='0'>
           <Accordion.Header>Accordion Item #1</Accordion.Header>
           <Accordion.Body>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do

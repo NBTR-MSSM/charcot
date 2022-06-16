@@ -1,9 +1,10 @@
 .Search {
     margin-top: 50px;
+    margin-left: 130px;
 }
 
 .Search table {
-   margin-left: -50px;
+   /*margin-left: -50px;*/
 }
 
 .Search table, td {
