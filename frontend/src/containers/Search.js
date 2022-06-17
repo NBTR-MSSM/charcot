@@ -26,25 +26,27 @@ export default class Search extends Component {
                         onCategoryUnselect={this.props.onCategoryUnselect}/>
             </td>
             <td>
-              <GenderChart updatedDimension={this.props.updatedDimension} filter={this.props.filter}
-                           onCategorySelect={this.props.onCategorySelect} onCategoryUnselect={this.props.onCategoryUnselect}/>
+              <DisorderChart updatedDimension={this.props.updatedDimension} filter={this.props.filter}
+                             onCategorySelect={this.props.onCategorySelect} onCategoryUnselect={this.props.onCategoryUnselect}/>
             </td>
           </tr>
           <tr>
             <td>
-              <RegionChart updatedDimension={this.props.updatedDimension} filter={this.props.filter}
+              <GenderChart updatedDimension={this.props.updatedDimension} filter={this.props.filter}
                            onCategorySelect={this.props.onCategorySelect} onCategoryUnselect={this.props.onCategoryUnselect}/>
             </td>
             <td>
-              <StainChart updatedDimension={this.props.updatedDimension} filter={this.props.filter}
-                          onCategorySelect={this.props.onCategorySelect} onCategoryUnselect={this.props.onCategoryUnselect}/>
+              <RegionChart updatedDimension={this.props.updatedDimension} filter={this.props.filter}
+                           onCategorySelect={this.props.onCategorySelect} onCategoryUnselect={this.props.onCategoryUnselect}/>
             </td>
           </tr>
           <tr>
             <td><RaceChart updatedDimension={this.props.updatedDimension} filter={this.props.filter}
                            onCategorySelect={this.props.onCategorySelect} onCategoryUnselect={this.props.onCategoryUnselect}/></td>
-            <td><DisorderChart updatedDimension={this.props.updatedDimension} filter={this.props.filter}
-                               onCategorySelect={this.props.onCategorySelect} onCategoryUnselect={this.props.onCategoryUnselect}/></td>
+            <td>
+              <StainChart updatedDimension={this.props.updatedDimension} filter={this.props.filter}
+                          onCategorySelect={this.props.onCategorySelect} onCategoryUnselect={this.props.onCategoryUnselect}/>
+              </td>
           </tr>
           </tbody>
         </table>
