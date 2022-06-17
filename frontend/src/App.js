@@ -116,15 +116,24 @@ export default class App extends Component {
    * search for "when you go to do a comparison you are comparing the two exact same arrays ALWAYS"
    */
   render () {
+    let leftNav
+    if (this.state.routeState.active === 'search') {
+      leftNav = <div><LeftNav/></div>
+    }
+
+    let footer
+    if (this.state.routeState.active === 'search' || this.state.routeState.active === 'checkout') {
+      footer = <Footer isCheckout={this.state.routeState.active === 'checkout'} filter={this.cloneFilter(savedState.filter)} stats={this.state.stats}/>
+    }
     return (
       <div className='App container py-3'>
         <Stack direction="horizontal" gap={3}>
-          <div><LeftNav/></div>
+          {leftNav}
           <div>
             <Navbar collapseOnSelect bg="light" expand="md" className="mb-3 fixed-top charcot-top-nav">
               <LinkContainer to="/">
                 <Navbar.Brand className="font-weight-bold text-muted">
-                  Charcot
+                  Mount Sinai Brain Slide
                 </Navbar.Brand>
               </LinkContainer>
               <Navbar.Toggle/>
@@ -151,7 +160,7 @@ export default class App extends Component {
                 onCategoryUnselect={this.handleCategoryUnselect}
                 onRouteLoad={this.handleRouteLoad} filter={this.cloneFilter(savedState.filter)}
                 updatedDimension={this.state.updatedDimension}/>
-        <Footer isCheckout={this.state.routeState.active === 'checkout'} filter={this.cloneFilter(savedState.filter)}
-                stats={this.state.stats}/></div>)
+        {footer}
+      </div>)
   }
 }

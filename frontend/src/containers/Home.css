@@ -3,7 +3,28 @@
     text-align: center;
 }
 
-.Home .lander h1 {
+.Home .lander h1, h2 {
     font-family: "Open Sans", sans-serif;
-    font-weight: 600;
+    font-weight: 600 !important;
+    text-align: left;
+    /*margin-left: -750px !important;*/
+}
+
+.Home .text-muted {
+    /*color: white !important;*/
+    color: black !important;
+    font-weight: normal;
+    font-size: small;
+}
+
+.Home .section {
+    text-align: left;
+    width: 1000px;
+    /*margin-left: 50px;*/
+    margin-bottom: 50px;
+}
+
+.Home .lander .main {
+    /*text-align: center !important;*/
+    font-size: medium;
 }
