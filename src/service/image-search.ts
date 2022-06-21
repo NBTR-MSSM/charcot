@@ -4,6 +4,7 @@ import { Range } from '../types/charcot.types'
 import RangeMap from '../common/range-map'
 import { paramCase } from 'change-case'
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
+import { singular } from 'pluralize'
 
 class ImageSearch {
   async search(event: APIGatewayProxyEventV2): Promise<Record<string, any>> {
@@ -23,11 +24,12 @@ class ImageSearch {
 
   async dimension(event: APIGatewayProxyEventV2) {
     let dimension = (event.pathParameters && event.pathParameters.dimension) as string
-
+    const isNumeric = event.queryStringParameters && event.queryStringParameters.numeric === 'true'
     const attrExpNames: Record<string, string> = {}
 
-    // Make dimension singular
-    dimension = dimension.substring(0, dimension?.length - 1)
+    // Make dimension singular because that's how the
+    // DynamoDB tables are named
+    dimension = singular(dimension)
 
     attrExpNames['#dimension'] = dimension
     const params: DocumentClient.QueryInput = {
@@ -63,7 +65,7 @@ class ImageSearch {
         // console.log(`JMQ: LastEvaluatedKey is ${JSON.stringify(res.LastEvaluatedKey)}`)
         ret = Array.from(items.reduce((prev: Map<string | number, Dimension>, cur: DocumentClient.AttributeMap) => {
           // console.log(`JMQ: cur is ${JSON.stringify(cur)}`)
-          const val = Number.isInteger(cur[dimension]) ? cur[dimension] : paramCase(cur[dimension])
+          const val = Number.isInteger(cur[dimension]) && isNumeric ? cur[dimension] : paramCase(`${cur[dimension]}`)
           // console.log(`JMQ: val is ${cur[dimension]}`)
           let obj: Dimension | undefined
           if (!(obj = prev.get(val))) {
@@ -77,7 +79,7 @@ class ImageSearch {
             prev.set(val, obj as Dimension)
 
             // Ranging applies to dimensions numeric in nature only (E.g. Age)
-            if (Number.isInteger(val)) {
+            if (Number.isInteger(val) && isNumeric) {
               const rangeInfo = ranges.get(val)
               obj.range = rangeInfo?.range
               obj.rangeIndex = rangeInfo?.index as number

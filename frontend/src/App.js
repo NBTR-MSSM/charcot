@@ -5,10 +5,10 @@ import './App.css'
 import Routes from './Routes'
 import { LinkContainer } from 'react-router-bootstrap'
 import Footer from './containers/Footer'
-import { countNumberOfCategories, dimensionInfos, generateStats } from './util'
 import LeftNav from './containers/LeftNav'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import Stack from 'react-bootstrap/Stack'
+import { dataService } from './lib/DataService'
 
 const savedState = {
   filter: {}
@@ -20,7 +20,7 @@ export default class App extends Component {
     this.state = {
       routeState: {},
       filter: {},
-      stats: {},
+      dimensionData: [],
       updatedDimension: undefined
     }
   }
@@ -67,7 +67,7 @@ export default class App extends Component {
     filter[dimension].delete(category)
 
     // Delete this dimension from the object if
-    // the are no more categories selected
+    // this was the only selected category
     if (!filter[dimension].size) {
       delete filter[dimension]
     }
@@ -83,28 +83,16 @@ export default class App extends Component {
   }
 
   async updateState ({ filter, dimension }) {
-    const subjectNumberInfo = await generateStats({
-      endpoint: '/cerebrum-images/subjectNumbers',
-      filter,
-      dimension: 'subjectNumber'
+    const dimensionData = await dataService.fetchAll({
+      filter
     })
 
-    const stats = {
-      subjectNumber: subjectNumberInfo
-    }
-
-    dimensionInfos.filter(dim => dim.name !== 'subjectNumber').forEach(dim => {
-      stats[dim.name] = {
-        grandTotal: countNumberOfCategories({ filter, dimension: dim.name })
-      }
-    })
-
-    // console.log(`JMQ: stats is ${JSON.stringify(stats)}`)
+    // console.log(`JMQ: dimensionData is ${JSON.stringify(dimensionData)}`)
     savedState.filter = filter
     this.setState({
       filter: savedState.filter,
       updatedDimension: dimension,
-      stats
+      dimensionData
     })
   }
 
@@ -116,14 +104,19 @@ export default class App extends Component {
    * search for "when you go to do a comparison you are comparing the two exact same arrays ALWAYS"
    */
   render () {
+    console.log('JMQ: rendering App')
     let leftNav
     if (this.state.routeState.active === 'search') {
-      leftNav = <div><LeftNav/></div>
+      leftNav = <div><LeftNav dimensionData={this.state.dimensionData}
+                              onCategorySelect={this.handleCategorySelect}
+                              onCategoryUnselect={this.handleCategoryUnselect}/></div>
     }
 
     let footer
     if (this.state.routeState.active === 'search' || this.state.routeState.active === 'checkout') {
-      footer = <Footer isCheckout={this.state.routeState.active === 'checkout'} filter={this.cloneFilter(savedState.filter)} stats={this.state.stats}/>
+      footer =
+        <Footer isCheckout={this.state.routeState.active === 'checkout'} filter={this.cloneFilter(savedState.filter)}
+                dimensionData={this.state.dimensionData}/>
     }
     return (
       <div className='App container py-3'>
@@ -159,7 +152,7 @@ export default class App extends Component {
         <Routes onCategorySelect={this.handleCategorySelect}
                 onCategoryUnselect={this.handleCategoryUnselect}
                 onRouteLoad={this.handleRouteLoad} filter={this.cloneFilter(savedState.filter)}
-                updatedDimension={this.state.updatedDimension}/>
+                updatedDimension={this.state.updatedDimension} dimensionData={this.state.dimensionData}/>
         {footer}
       </div>)
   }

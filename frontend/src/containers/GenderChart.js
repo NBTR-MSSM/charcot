@@ -8,6 +8,6 @@ const chartOptions = {
 
 export default class GenderChart extends BaseHighchartsComponent {
   constructor (props) {
-    super(props, { chartOptions, endpoint: '/cerebrum-images/sexs', dimension: 'sex' })
+    super(props, { chartOptions, dimension: 'sex' })
   }
 }

@@ -45,7 +45,7 @@ stream.pipe(jsonArrayStreams.parse())
           age: chunk.Age,
           race: sanitize(chunk.Race || 'unknown'),
           sex: sanitize(chunk.Sex),
-          disorder: sanitize(chunk.Disorder),
+          diagnosis: sanitize(chunk.Disorder),
           subjectNumber: chunk.SubNum,
           uploadDate: '06/03/2022'
         })

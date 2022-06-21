@@ -24,6 +24,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
         age: sst.TableFieldType.NUMBER,
         race: sst.TableFieldType.STRING,
         sex: sst.TableFieldType.STRING,
+        diagnosis: sst.TableFieldType.STRING,
         disorder: sst.TableFieldType.STRING,
         subjectNumber: sst.TableFieldType.NUMBER,
         uploadDate: sst.TableFieldType.STRING
@@ -35,6 +36,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
         ageIndex: { partitionKey: 'age' },
         raceIndex: { partitionKey: 'race' },
         sexIndex: { partitionKey: 'sex' },
+        diagnosisIndex: { partitionKey: 'diagnosis' },
         disorderIndex: { partitionKey: 'disorder' },
         subjectNumberIndex: { partitionKey: 'subjectNumber' }
       }

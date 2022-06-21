@@ -40,6 +40,7 @@
     "@types/jest": "^27.0.3",
     "@types/lodash.merge": "^4.6.6",
     "@types/nodemailer": "^6.4.4",
+    "@types/pluralize": "0.0.29",
     "@types/uuid": "^8.3.3",
     "@typescript-eslint/eslint-plugin": "^5.3.1",
     "@typescript-eslint/parser": "^5.3.1",
@@ -59,6 +60,7 @@
     "change-case": "^4.1.2",
     "lodash.merge": "^4.6.2",
     "nodemailer": "^6.7.2",
+    "pluralize": "^8.0.0",
     "uuid": "^8.3.2"
   }
 }

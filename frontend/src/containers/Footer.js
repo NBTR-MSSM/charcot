@@ -3,7 +3,7 @@ import { LinkContainer } from 'react-router-bootstrap'
 import Button from 'react-bootstrap/Button'
 import './Footer.css'
 import { API } from 'aws-amplify'
-import { dimensionInfos, serializeFilter } from '../util'
+import { serializeFilter } from '../util'
 import Stack from 'react-bootstrap/Stack'
 import Stat from './Stat'
 
@@ -47,12 +47,12 @@ export default class Footer extends Component {
     }
 
     const isProcessing = this.state.isProcessing
-    // console.log(`JMQ: footer stats is ${JSON.stringify(this.props.stats)}`)
+    // console.log(`JMQ: footer dimensionData is ${JSON.stringify(this.props.dimensionData)}`)
     return (
       <footer className='Footer fixed-bottom'>
         <Stack bsPrefix={'charcot-footer-hstack'} direction='horizontal' gap={3}>
-          {dimensionInfos.map((e, index) => {
-            return <Stat key={index} info={this.props.stats[e.name]} displayName={e.displayName}/>
+          {Object.values(this.props.dimensionData).map((e, index) => {
+            return <Stat key={index} info={e}/>
           })}
           <LinkContainer to={buttonInfo.to}>
             <Button id={buttonInfo.id} onClick={isProcessing ? null : buttonInfo.function}

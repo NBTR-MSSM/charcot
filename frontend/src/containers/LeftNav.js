@@ -1,35 +1,22 @@
-import { Component } from 'react'
+import React, { Component } from 'react'
 import Accordion from 'react-bootstrap/Accordion'
 import './LeftNav.css'
+import LeftNavItem from './LeftNavItem'
 
 export default class LeftNav extends Component {
   render () {
     return (
       <Accordion className='LeftNav'>
-        <Accordion.Item bsPrefix='charcot-leftnav-according-item' eventKey='0'>
-          <Accordion.Header>Accordion Item #1</Accordion.Header>
-          <Accordion.Body>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-            minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-            aliquip ex ea commodo consequat. Duis aute irure dolor in
-            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-            culpa qui officia deserunt mollit anim id est laborum.
-          </Accordion.Body>
-        </Accordion.Item>
-        <Accordion.Item bsPrefix='charcot-leftnav-according-item' eventKey="1">
-          <Accordion.Header>Accordion Item #2</Accordion.Header>
-          <Accordion.Body>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-            minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-            aliquip ex ea commodo consequat. Duis aute irure dolor in
-            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-            culpa qui officia deserunt mollit anim id est laborum.
-          </Accordion.Body>
-        </Accordion.Item>
+        {Object.values(this.props.dimensionData).map((e, index) => {
+          if (e.hideInAccordion) {
+            return undefined
+          }
+          return <LeftNavItem key={index}
+                              eventKey={index}
+                              info={e}
+                              onCategorySelect={this.props.onCategorySelect}
+                              onCategoryUnselect={this.props.onCategoryUnselect}/>
+        })}
       </Accordion>
     )
   }
