@@ -20,6 +20,7 @@ export default class Search extends Component {
 
     return (
       <div className='Search'>
+        <h3>Data Search</h3>
         {filterComponent}
         <table>
           <tbody>

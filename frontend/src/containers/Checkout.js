@@ -15,11 +15,11 @@ export default class Checkout extends Component {
   render = () => {
     return (
       <div className='Checkout'>
+        <h3>Data Review</h3>
         <LinkContainer to='/search'>
           <Button id='back-to-search-btn'>{'< Back to Search'}</Button>
         </LinkContainer>
         <Container bsPrefix={'charcot-checkout-container'}>
-          <h3>The Data</h3>
           <DimensionAccordion dimensionData={this.props.dimensionData}
                               onCategorySelect={this.props.onCategorySelect}
                               onCategoryUnselect={this.props.onCategoryUnselect}/>
