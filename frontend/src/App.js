@@ -9,9 +9,10 @@ import LeftNav from './containers/LeftNav'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import Stack from 'react-bootstrap/Stack'
 import { dataService } from './lib/DataService'
+import Filter from './lib/Filter'
 
 const savedState = {
-  filter: {}
+  filter: new Filter()
 }
 
 export default class App extends Component {
@@ -19,25 +20,14 @@ export default class App extends Component {
     super(props)
     this.state = {
       routeState: {},
-      filter: {},
-      dimensionData: [],
-      updatedDimension: undefined
+      filter: new Filter(),
+      dimensionData: []
     }
   }
 
   async componentDidMount () {
     console.log('App mounted')
-    await this.updateState({ filter: this.state.filter, dimension: this.state.updatedDimension })
-  }
-
-  cloneFilter = () => {
-    const clone = {}
-    for (const tup of Object.entries(this.state.filter)) {
-      const newSet = new Set()
-      tup[1].forEach((val) => newSet.add(val))
-      clone[tup[0]] = newSet
-    }
-    return clone
+    await this.updateState({ filter: this.state.filter })
   }
 
   /**
@@ -46,15 +36,10 @@ export default class App extends Component {
    */
   handleCategorySelect = async ({ dimension, category }) => {
     const filter = this.state.filter
-    console.log(`JMQ: pre handleCategorySelect filter is ${Object.entries(filter).map(tup => [tup[0], ...tup[1]])}`)
-    let categories = filter[dimension]
-    if (!categories) {
-      categories = new Set()
-      filter[dimension] = categories
-    }
-    categories.add(category)
-    console.log(`JMQ: post handleCategorySelect filter is ${Object.entries(filter).map(tup => [tup[0], ...tup[1]])}`)
-    await this.updateState({ filter, dimension })
+    console.log(`JMQ: pre handleCategorySelect filter is ${filter.serialize()}`)
+    filter.add({ dimension, category })
+    console.log(`JMQ: post handleCategorySelect filter is ${filter.serialize()}`)
+    await this.updateState({ filter })
   }
 
   /**
@@ -63,17 +48,15 @@ export default class App extends Component {
    */
   handleCategoryUnselect = async ({ dimension, category }) => {
     const filter = this.state.filter
-    console.log(`JMQ: pre handleCategoryUnselect filter is ${Object.entries(filter).map(tup => [tup[0], ...tup[1]])}`)
-    filter[dimension].delete(category)
+    console.log(`JMQ: pre handleCategoryUnselect filter is ${filter.serialize()}`)
+    filter.remove({ dimension, category })
 
-    // Delete this dimension from the object if
-    // this was the only selected category
-    if (!filter[dimension].size) {
-      delete filter[dimension]
-    }
+    console.log(`JMQ: post handleCategoryUnselect filter is ${filter.serialize()}`)
+    await this.updateState({ filter })
+  }
 
-    console.log(`JMQ: post handleCategoryUnselect filter is ${Object.entries(filter).map(tup => [tup[0], ...tup[1]])}`)
-    await this.updateState({ filter, dimension })
+  handleClearFilter = async () => {
+    await this.updateState({ filter: this.state.filter.clear() })
   }
 
   handleRouteLoad = (routeState) => {
@@ -82,7 +65,7 @@ export default class App extends Component {
     })
   }
 
-  async updateState ({ filter, dimension }) {
+  async updateState ({ filter }) {
     const dimensionData = await dataService.fetchAll({
       filter
     })
@@ -91,13 +74,12 @@ export default class App extends Component {
     savedState.filter = filter
     this.setState({
       filter: savedState.filter,
-      updatedDimension: dimension,
       dimensionData
     })
   }
 
   /**
-   * We take care to send downstream a clone of the filter to avoid the pitfall
+   * We take care to send downstream a clone (I.e. a copy) of the filter to avoid the pitfall
    * that ensues in scenarios where child components compare previous and current
    * props to decide if the should update themselves, see
    * https://stackoverflow.com/questions/52393172/comparing-prevprops-in-componentdidupdate,
@@ -115,7 +97,7 @@ export default class App extends Component {
     let footer
     if (this.state.routeState.active === 'search' || this.state.routeState.active === 'checkout') {
       footer =
-        <Footer isCheckout={this.state.routeState.active === 'checkout'} filter={this.cloneFilter(savedState.filter)}
+        <Footer isCheckout={this.state.routeState.active === 'checkout'} filter={savedState.filter.clone()}
                 dimensionData={this.state.dimensionData}/>
     }
     return (
@@ -151,8 +133,9 @@ export default class App extends Component {
         </Stack>
         <Routes onCategorySelect={this.handleCategorySelect}
                 onCategoryUnselect={this.handleCategoryUnselect}
-                onRouteLoad={this.handleRouteLoad} filter={this.cloneFilter(savedState.filter)}
-                updatedDimension={this.state.updatedDimension} dimensionData={this.state.dimensionData}/>
+                onClearFilter={this.handleClearFilter}
+                onRouteLoad={this.handleRouteLoad} filter={savedState.filter.clone()}
+                dimensionData={this.state.dimensionData}/>
         {footer}
       </div>)
   }

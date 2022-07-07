@@ -2,7 +2,6 @@ import { Component } from 'react'
 import HighchartsReact from 'highcharts-react-official'
 import Highcharts from 'highcharts'
 import merge from 'lodash.merge'
-import { serializeFilter } from '../util'
 
 /**
  * TODO: Calculated dynamically
@@ -17,8 +16,7 @@ export default class BaseHighchartsComponent extends Component {
     this.dimension = dimension
     this.baseChartOptions = {
       chart: {
-        type: 'bar',
-        height: '200px'
+        type: 'bar'
       },
       legend: {
         enabled: false
@@ -26,8 +24,7 @@ export default class BaseHighchartsComponent extends Component {
       yAxis: {
         title: {
           text: null
-        },
-        tickInterval: 1000
+        }
       },
       plotOptions: {
         series: {
@@ -79,17 +76,25 @@ export default class BaseHighchartsComponent extends Component {
    * on the latest filter.
    */
   updateChart = () => {
+    console.log(`JMQ: updateChart ${JSON.stringify(this.props.dimensionData)}`)
+
     if (Object.keys(this.props.dimensionData).length < 1) {
       return
     }
 
-    const { categories } = this.props.dimensionData[this.dimension]
+    const { categories, chartHeight, tickInterval } = this.props.dimensionData[this.dimension]
 
     this.setState({
       chartOptions: {
+        chart: {
+          height: chartHeight
+        },
         xAxis: {
           categories: Array.from(categories.keys()),
           tickInterval: 1
+        },
+        yAxis: {
+          tickInterval
         },
         series: [
           {
@@ -113,8 +118,7 @@ export default class BaseHighchartsComponent extends Component {
    */
   componentDidUpdate (prevProps) {
     if (this.props.filter !== prevProps.filter) {
-      // if (this.props.filter !== prevProps.filter && this.props.updatedDimension !== this.dimension) {
-      console.log(`JMQ: ${this.dimension} componentDidUpdate() filter changed prev filter = ${serializeFilter(prevProps.filter, '')}, current filter = ${serializeFilter(this.props.filter, '')}, updatedDimension = ${this.props.updatedDimension}`)
+      console.log(`JMQ: ${this.dimension} componentDidUpdate() filter changed prev filter = ${prevProps.filter.serialize()}, current filter = ${this.props.filter.serialize()}`)
       this.updateChart()
     } else {
       console.log(`JMQ: ${this.dimension} componentDidUpdate() did NOT update`)
@@ -123,7 +127,7 @@ export default class BaseHighchartsComponent extends Component {
 
   render () {
     const { chartOptions } = this.state
-    // console.log(`JMQ: Rendering ${this.dimension}, current filter is ${serializeFilter(this.props.filter, this.dimension)}`)
+    // console.log(`JMQ: Rendering ${this.dimension}, current filter is ${this.props.filter.serialize()}`)
     return (
       <div>
         <HighchartsReact

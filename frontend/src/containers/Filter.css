@@ -1,0 +1,11 @@
+.Filter {
+    margin-bottom: 10px;
+}
+
+.Filter #clear-all-btn {
+    background-color: white;
+    color: #0d6efd;
+    height: 32px;
+    border-radius: 18px;
+    font-size: 10px;
+}

@@ -1,4 +1,4 @@
-.LeftNav {
+.LeftNav .DimensionAccordion {
     position: fixed;
     top: 0;
     bottom: 0;
@@ -10,6 +10,6 @@
     overflow: scroll;
 }
 
-.charcot-leftnav-according-item {
+.LeftNav .charcot-accordion-item {
     width: 191px;
 }

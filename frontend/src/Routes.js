@@ -13,13 +13,19 @@ export default class Routes extends Component {
           <Home/>
         </Route>
         <Route exact path="/search">
-          <Search onRouteLoad={this.props.onRouteLoad} onCategorySelect={this.props.onCategorySelect}
-                  onCategoryUnselect={this.props.onCategoryUnselect} filter={this.props.filter}
-                  updatedDimension={this.props.updatedDimension}
+          <Search onRouteLoad={this.props.onRouteLoad}
+                  onCategorySelect={this.props.onCategorySelect}
+                  onCategoryUnselect={this.props.onCategoryUnselect}
+                  onClearFilter={this.props.onClearFilter}
+                  filter={this.props.filter}
                   dimensionData={this.props.dimensionData}/>
         </Route>
         <Route exact path="/checkout">
-          <Checkout onRouteLoad={this.props.onRouteLoad} filter={this.props.filter} dimensionData={this.props.dimensionData}/>
+          <Checkout onRouteLoad={this.props.onRouteLoad}
+                    onCategorySelect={this.props.onCategorySelect}
+                    onCategoryUnselect={this.props.onCategoryUnselect}
+                    filter={this.props.filter}
+                    dimensionData={this.props.dimensionData}/>
         </Route>
         {/* Finally, catch all unmatched routes */}
         <Route>

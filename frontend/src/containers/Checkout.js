@@ -1,10 +1,9 @@
 import React, { Component } from 'react'
 import Container from 'react-bootstrap/Container'
-import Row from 'react-bootstrap/Row'
-import Col from 'react-bootstrap/Col'
 import './Checkout.css'
-
-const dimensions = ['age', 'sex', 'region', 'stain', 'race']
+import DimensionAccordion from './DimensionAccordion'
+import Button from 'react-bootstrap/Button'
+import { LinkContainer } from 'react-router-bootstrap'
 
 export default class Checkout extends Component {
   componentDidMount () {
@@ -15,13 +14,16 @@ export default class Checkout extends Component {
 
   render = () => {
     return (
-      <Container className='Checkout' bsPrefix={'charcot-checkout-container'}>
-        <h3>The Data</h3>
-        {dimensions.map((e, index) => {
-          return <Row key={index} className='row'
-                      bsPrefix={'charcot-checkout-container-row'}><Col>{e.substring(0, 1).toUpperCase() + e.substring(1)}</Col><Col>X
-            selections</Col></Row>
-        })}
-      </Container>)
+      <div className='Checkout'>
+        <LinkContainer to='/search'>
+          <Button id='back-to-search-btn'>{'< Back to Search'}</Button>
+        </LinkContainer>
+        <Container bsPrefix={'charcot-checkout-container'}>
+          <h3>The Data</h3>
+          <DimensionAccordion dimensionData={this.props.dimensionData}
+                              onCategorySelect={this.props.onCategorySelect}
+                              onCategoryUnselect={this.props.onCategoryUnselect}/>
+        </Container>
+      </div>)
   }
 }

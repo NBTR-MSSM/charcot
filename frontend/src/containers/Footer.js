@@ -3,7 +3,6 @@ import { LinkContainer } from 'react-router-bootstrap'
 import Button from 'react-bootstrap/Button'
 import './Footer.css'
 import { API } from 'aws-amplify'
-import { serializeFilter } from '../util'
 import Stack from 'react-bootstrap/Stack'
 import Stat from './Stat'
 
@@ -17,7 +16,7 @@ export default class Footer extends Component {
 
   handleSubmitButtonClick = async () => {
     this.setState({ isProcessing: true })
-    const filter = serializeFilter(this.props.filter)
+    const filter = this.props.filter.serialize()
     console.log(`JMQ: submit clicked, filter is ${filter}`)
     const res = await API.post('charcot', '/cerebrum-image-orders', {
       body: {

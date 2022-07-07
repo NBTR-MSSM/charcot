@@ -1,5 +1,4 @@
 import { API } from 'aws-amplify'
-import { serializeFilter } from '../util'
 
 /*
  * Every time a chart needs to me modified and/or a new one added, add the corresponding coonfig here
@@ -25,9 +24,19 @@ const DIMENSION_CONFIGS = {
   diagnosis: { name: 'diagnosis', displayName: 'Diagnosis', endpoint: '/cerebrum-images/diagnoses' }
 }
 
-const categoryIsSelected = ({ category, filter, dimension }) => {
-  const categories = filter[dimension]
-  return categories && categories.has(category)
+/**
+ * Calculate what the tick interval of the bars should
+ * by taking average of the counts, then seeing if it's
+ * imn the 10's, or the 100's, or the 1000's, etc.
+ * and coming up with a sensible interval. For example
+ * if average is 1100, then tick interval is 1000.
+ */
+const calculateTickInterval = (categories) => {
+  // Calculate average of counts
+  const counts = Array.from(categories.values())
+  const total = counts.reduce((prev, cur) => prev + cur.count, 0)
+  const avg = total / counts.length
+  return Math.pow(10, Math.trunc(Math.log10(avg)))
 }
 
 class DataService {
@@ -35,7 +44,7 @@ class DataService {
     const config = DIMENSION_CONFIGS[dimension]
     const values = await API.get('charcot', config.endpoint, {
       queryStringParameters: {
-        filter: serializeFilter(filter, dimension),
+        filter: filter.serialize(dimension),
         numeric: config.isNumeric
       }
     })
@@ -61,7 +70,7 @@ class DataService {
 
       prev.set(currentCategory.name, currentCategory)
 
-      if (categoryIsSelected({ category: currentCategory.name, filter, dimension })) {
+      if (filter.has({ dimension, category: currentCategory.name })) {
         selectedCategories.add(currentCategory.name)
         currentCategory.selected = true
       }
@@ -69,14 +78,18 @@ class DataService {
       return prev
     }, new Map())
 
+    const totalCategories = Array.from(categories.keys()).length
+    const chartHeight = totalCategories * 30
     return {
       dimension,
       displayName: config.displayName,
       categories,
       grandTotal,
       selectedCategories,
+      chartHeight: `${chartHeight < 200 ? 200 : (chartHeight > 600 ? 600 : chartHeight)}px`,
+      tickInterval: calculateTickInterval(categories),
       selectedCategoryCount: selectedCategories.size,
-      totalCategories: Array.from(categories.keys()).length,
+      totalCategories,
       statToDisplay: config.statToDisplay,
       hideInAccordion: config.hideInAccordion
     }
