@@ -16,7 +16,11 @@ export default class Search extends Component {
   }
 
   render () {
-    const filterComponent = this.props.filter.isEmpty() ? '' : <FilterComponent onClearFilter={this.props.onClearFilter}/>
+    let filterComponent = ''
+    if (!this.props.filter.isEmpty()) {
+      filterComponent = <FilterComponent onClearFilter={this.props.onClearFilter} filter={this.props.filter}
+                                         onCategoryUnselect={this.props.onCategoryUnselect}/>
+    }
 
     return (
       <div className='Search'>

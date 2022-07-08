@@ -2,7 +2,7 @@ import { API } from 'aws-amplify'
 import Filter from './Filter'
 
 /*
- * Every time a chart needs to me modified and/or a new one added, add the corresponding coonfig here
+ * Every time a chart needs to me modified and/or a new one added, add the corresponding config here
  */
 const DIMENSION_CONFIGS = {
   subjectNumber: {
@@ -40,6 +40,9 @@ const calculateTickInterval = (categories) => {
   return Math.pow(10, Math.trunc(Math.log10(avg)))
 }
 
+/**
+ * Contacts endpoint whidh returns array of dimension/category data.
+ */
 const retrieveData = async ({ config, dimension, filter }) => {
   return await API.get('charcot', config.endpoint, {
     queryStringParameters: {

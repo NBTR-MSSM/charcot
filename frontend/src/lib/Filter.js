@@ -1,3 +1,8 @@
+/**
+ * Internally the filter is maintained as an object where keys are dimension names and
+ * values are Set's, where each set is a list of categories the user has selected for
+ * that dimension.
+ */
 export default class Filter {
   constructor () {
     this.filter = {}
@@ -31,12 +36,19 @@ export default class Filter {
     return categories && categories.has(category)
   }
 
-  isEmpty() {
+  isEmpty () {
     return Object.keys(this.filter).length < 1
   }
 
-  jsx () {
-    return <div/>
+  jsx (context) {
+    return Object.entries(this.filter).map(tup => {
+      const dimension = tup[0]
+      const categories = tup[1]
+      return Array.from(categories.values()).map(category => ({
+        dimension,
+        category
+      }))
+    }).flat()
   }
 
   remove ({ dimension, category }) {
@@ -51,11 +63,11 @@ export default class Filter {
   }
 
   serialize (dimensionToIgnore) {
-    const filterStr = Object.entries(this.filter).filter((tup) => tup[0] !== dimensionToIgnore).map(tup => {
+    const dimensionsPredicates = Object.entries(this.filter).filter((tup) => tup[0] !== dimensionToIgnore).map(tup => {
       const predicates = Array.from(tup[1].values()).map(val => `${tup[0]} = '${val.replace(/'/g, '__QUOTE__')}'`)
       const predicatesAsString = predicates.join(' OR ')
       return predicates.length > 1 ? `(${predicatesAsString})` : predicatesAsString
     })
-    return filterStr.length > 0 ? `${filterStr.join(' AND ')}` : undefined
+    return dimensionsPredicates.length > 0 ? `${dimensionsPredicates.join(' AND ')}` : undefined
   }
 }
