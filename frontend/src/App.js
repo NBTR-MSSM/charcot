@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import Nav from 'react-bootstrap/Nav'
 import Navbar from 'react-bootstrap/Navbar'
 import './App.css'
-import Routes from './Routes'
+import CharcotRoutes from './CharcotRoutes'
 import { LinkContainer } from 'react-router-bootstrap'
 import Footer from './containers/Footer'
 import LeftNav from './containers/LeftNav'
@@ -10,24 +10,94 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import Stack from 'react-bootstrap/Stack'
 import { dataService } from './lib/DataService'
 import Filter from './lib/Filter'
+import { AppContext } from './lib/context'
+import { Auth } from 'aws-amplify'
+import { Redirect } from 'react-router-dom'
 
 const savedState = {
   filter: new Filter()
 }
 
+/**
+ * TODO: Move all the various handlers that are passed down the component hierarchy via props to AppContext,
+ *       and clean up all those unnecessary props.
+ * TODO: Methodology for redirect upon login/logout a bit convoluted. Each route sets the routeState, then upon
+ *       login/logout we redirect to the last known route. Is there a cleaner way of doing it?
+ */
 export default class App extends Component {
   constructor (props) {
     super(props)
     this.state = {
+      isAuthenticated: false,
+      isAuthenticating: true,
       routeState: {},
       filter: new Filter(),
-      dimensionData: []
+      dimensionData: [],
+      handleLogin: this.handleLogin,
+      handleLogout: this.handleLogout,
+      redirect: this.redirect,
+      handleRouteLoad: this.handleRouteLoad,
+      redirectTo: ''
     }
   }
 
   async componentDidMount () {
     console.log('App mounted')
-    await this.updateState({ filter: this.state.filter })
+    await this.onLoad()
+  }
+
+  componentDidUpdate () {
+    if (this.state.redirectTo) {
+      this.setState({
+        redirectTo: ''
+      })
+    }
+  }
+
+  onLoad = async () => {
+    // Load user session if any (I.e. if user is already logged in)
+    // console.log('JMQ: loading user session if any')
+    try {
+      await Auth.currentSession()
+      this.handleLogin()
+    } catch (e) {
+      if (e !== 'No current user') {
+        // eslint-disable-next-line no-undef
+        alert(e)
+      }
+    }
+
+    this.setState({
+      isAuthenticating: false
+    })
+    await this.updateChartDataState({ filter: this.state.filter })
+  }
+
+  handleLogin = () => {
+    savedState.isAuthenticated = true
+    this.setState(
+      {
+        isAuthenticated: savedState.isAuthenticated
+      }
+    )
+  }
+
+  redirect = ({ to }) => {
+    console.log(`JMQ: redirectTo ${to}`)
+    this.setState(
+      {
+        redirectTo: to
+      }
+    )
+  }
+
+  handleLogout = async () => {
+    await Auth.signOut()
+    this.setState(
+      {
+        isAuthenticated: false
+      }
+    )
   }
 
   /**
@@ -36,10 +106,10 @@ export default class App extends Component {
    */
   handleCategorySelect = async ({ dimension, category }) => {
     const filter = this.state.filter
-    console.log(`JMQ: pre handleCategorySelect filter is ${filter.serialize()}`)
+    // console.log(`JMQ: pre handleCategorySelect filter is ${filter.serialize()}`)
     filter.add({ dimension, category })
-    console.log(`JMQ: post handleCategorySelect filter is ${filter.serialize()}`)
-    await this.updateState({ filter })
+    // console.log(`JMQ: post handleCategorySelect filter is ${filter.serialize()}`)
+    await this.updateChartDataState({ filter })
   }
 
   /**
@@ -48,15 +118,15 @@ export default class App extends Component {
    */
   handleCategoryUnselect = async ({ dimension, category }) => {
     const filter = this.state.filter
-    console.log(`JMQ: pre handleCategoryUnselect filter is ${filter.serialize()}`)
+    // console.log(`JMQ: pre handleCategoryUnselect filter is ${filter.serialize()}`)
     filter.remove({ dimension, category })
 
-    console.log(`JMQ: post handleCategoryUnselect filter is ${filter.serialize()}`)
-    await this.updateState({ filter })
+    // console.log(`JMQ: post handleCategoryUnselect filter is ${filter.serialize()}`)
+    await this.updateChartDataState({ filter })
   }
 
   handleClearFilter = async () => {
-    await this.updateState({ filter: this.state.filter.clear() })
+    await this.updateChartDataState({ filter: this.state.filter.clear() })
   }
 
   handleRouteLoad = (routeState) => {
@@ -65,7 +135,11 @@ export default class App extends Component {
     })
   }
 
-  async updateState ({ filter }) {
+  /**
+   * Triggers state changes that effect the charts (I.e. cause chart components
+   * to re-render themselves)
+   */
+  async updateChartDataState ({ filter }) {
     const dimensionData = await dataService.fetchAll({
       filter
     })
@@ -86,7 +160,11 @@ export default class App extends Component {
    * search for "when you go to do a comparison you are comparing the two exact same arrays ALWAYS"
    */
   render () {
-    console.log('JMQ: rendering App')
+    console.log(`JMQ: rendering App, state is ${JSON.stringify(this.state, null, 2)}`)
+    if (this.state.redirectTo) {
+      console.log(`JMQ: redirect to ${this.state.redirectTo}`)
+      return <Redirect to={`/${this.state.redirectTo === 'home' ? '' : this.state.redirectTo}`}/>
+    }
     let leftNav
     if (this.state.routeState.active === 'search') {
       leftNav = <div><LeftNav dimensionData={this.state.dimensionData}
@@ -100,7 +178,19 @@ export default class App extends Component {
         <Footer isCheckout={this.state.routeState.active === 'checkout'} filter={savedState.filter.clone()}
                 dimensionData={this.state.dimensionData}/>
     }
-    return (
+
+    let authFragment = <><LinkContainer to="/signup">
+      <Nav.Link>Signup</Nav.Link>
+    </LinkContainer>
+      <LinkContainer to="/login">
+        <Nav.Link>Login</Nav.Link>
+      </LinkContainer>
+    </>
+    if (this.state.isAuthenticated) {
+      authFragment = <Nav.Link onClick={this.handleLogout}>Logout</Nav.Link>
+    }
+
+    return !this.state.isAuthenticating && (
       <div className='App container py-3'>
         <Stack direction="horizontal" gap={3}>
           {leftNav}
@@ -117,26 +207,20 @@ export default class App extends Component {
                   <LinkContainer to="/search">
                     <Nav.Link>Search</Nav.Link>
                   </LinkContainer>
-                  <LinkContainer to="/checkout">
-                    <Nav.Link>Checkout</Nav.Link>
-                  </LinkContainer>
-                  <LinkContainer to="/signup">
-                    <Nav.Link>Signup</Nav.Link>
-                  </LinkContainer>
-                  <LinkContainer to="/login">
-                    <Nav.Link>Login</Nav.Link>
-                  </LinkContainer>
+                  {authFragment}
                 </Nav>
               </Navbar.Collapse>
             </Navbar>
           </div>
         </Stack>
-        <Routes onCategorySelect={this.handleCategorySelect}
-                onCategoryUnselect={this.handleCategoryUnselect}
-                onClearFilter={this.handleClearFilter}
-                onRouteLoad={this.handleRouteLoad} filter={savedState.filter.clone()}
-                dimensionData={this.state.dimensionData}/>
-        {footer}
+        <AppContext.Provider value={this.state}>
+          <CharcotRoutes onCategorySelect={this.handleCategorySelect}
+                         onCategoryUnselect={this.handleCategoryUnselect}
+                         onClearFilter={this.handleClearFilter}
+                         onRouteLoad={this.handleRouteLoad} filter={savedState.filter.clone()}
+                         dimensionData={this.state.dimensionData}/>
+          {footer}
+        </AppContext.Provider>
       </div>)
   }
 }

@@ -41,7 +41,7 @@ const calculateTickInterval = (categories) => {
 }
 
 /**
- * Contacts endpoint whidh returns array of dimension/category data.
+ * Contacts endpoint which returns array of dimension/category data.
  */
 const retrieveData = async ({ config, dimension, filter }) => {
   return await API.get('charcot', config.endpoint, {

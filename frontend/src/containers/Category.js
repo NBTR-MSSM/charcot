@@ -42,7 +42,6 @@ export default class Category extends Component {
           <Form.Check
             checked={this.state.checked}
             type='checkbox'
-            id={category.name}
             label={category.name}
             onChange={this.handleCategoryChange}
             value={`${this.props.dimension}|${category.name}`}

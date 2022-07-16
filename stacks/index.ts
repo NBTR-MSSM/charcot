@@ -9,10 +9,13 @@ const calculateZipBucketName = (stage: string) => {
   return `${process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME}${bucketSuffix}`
 }
 
+/**
+ * We support two modes of deploying:
+ */
 export default function main(app: sst.App): void {
   // Set default runtime for all functions
   app.setDefaultFunctionProps({
-    runtime: 'nodejs16.x'
+    runtime: 'nodejs14.x'
   })
 
   const backEndPaidAccountStackArgs: StackArguments = {
@@ -34,7 +37,8 @@ export default function main(app: sst.App): void {
   new BackEndOdpStack(app, 'backend-odp', {}, backEndOdpStackArgs)
 
   let frontEndStackArgs: StackArguments = {
-    api: backEndPaidAccountStack.api
+    api: backEndPaidAccountStack.api,
+    auth: backEndPaidAccountStack.auth
   }
   if (process.env.IS_DEPLOY_SCRIPT) {
     frontEndStackArgs = {}

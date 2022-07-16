@@ -13,7 +13,7 @@ export default class FilterComponent extends Component {
     return (
       <div className='Filter'>
         <Button id='clear-all-btn' type='reset' onClick={this.props.onClearFilter}>{'CLEAR ALL'}</Button>
-        {this.props.filter.jsx(this).map(e => <Button id={e.category} name={`${e.dimension}|${e.category}`} className='clear-predicate-btn'
+        {this.props.filter.jsx().map(e => <Button name={`${e.dimension}|${e.category}`} className='clear-predicate-btn'
                                                       value={e.category}
                                                       onClick={this.handlePredicateRemove}>{`${e.dimension}=${e.category}`}
           <span className='remove'>X</span></Button>)}

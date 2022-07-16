@@ -7,6 +7,7 @@
 
 .Footer #next-btn, #submit-btn {
     float: right;
+    margin-top: 0px;
     margin-right: 50px;
     width: 175px;
     border: none;

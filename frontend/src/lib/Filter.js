@@ -40,7 +40,7 @@ export default class Filter {
     return Object.keys(this.filter).length < 1
   }
 
-  jsx (context) {
+  jsx () {
     return Object.entries(this.filter).map(tup => {
       const dimension = tup[0]
       const categories = tup[1]

@@ -13,13 +13,7 @@ process.env.IS_DEPLOY_SCRIPT = 1
  * Must still use the 'sst start..' to start the debug environment. This way only one node process
  * is spawned to handle requests for all the stacks, with the stacks getting deployed in the same account.
  *
- * The inputs expected in this order are:
- * 1. The AWS_PROFILE of the Mt Sinai paid account
- * 2. The AWS_PROFILE of the Mt Sinai ODP account
- * 3. Stage name (dev, prod)
- *
  */
-
 const argv = yargs(process.argv.slice(2))
   .usage('Usage: deploy.mjs <action> [options]')
   .command('deploy', 'Deploy stacks to the cloud')
@@ -133,7 +127,7 @@ async function updateOdpCerebrumImageBucketPolicy ({
 
 /**
  * Have to do this to then pass 'env' action output to the AWS commands. Prepending each environment
- * var separately to the script like '${varAndVal}' where valAndVal=VAR=VAL does not cut it because zx
+ * var separately to the script like '${varAndVal}' where valAndVal = VAR=VAL does not cut it because zx
  * automatically adds quotes, producing $'VAR=VAL', which doesn't pass the env values as expected. Read
  * all about it at https://github.com/google/zx/blob/main/docs/quotes.md
  */

@@ -1,12 +1,13 @@
 import React, { Component } from 'react'
 import { LinkContainer } from 'react-router-bootstrap'
-import Button from 'react-bootstrap/Button'
 import './Footer.css'
 import { API } from 'aws-amplify'
 import Stack from 'react-bootstrap/Stack'
 import Stat from './Stat'
+import LoaderButton from '../components/LoaderButton'
+import { AppContext } from '../lib/context'
 
-export default class Footer extends Component {
+class Footer extends Component {
   constructor (props) {
     super(props)
     this.state = {
@@ -15,18 +16,23 @@ export default class Footer extends Component {
   }
 
   handleSubmitButtonClick = async () => {
-    this.setState({ isProcessing: true })
-    const filter = this.props.filter.serialize()
-    console.log(`JMQ: submit clicked, filter is ${filter}`)
-    const res = await API.post('charcot', '/cerebrum-image-orders', {
-      body: {
-        filter,
-        email: 'joquijada2010@gmail.com'
-      }
-    })
-    console.log(`JMQ: res is ${JSON.stringify(res)}`)
-    this.setState({ isProcessing: false })
-    // TODO Trigger a popup with results
+    if (!this.context.isAuthenticated) {
+      console.log(`JMQ: not authed to login ${this.context.redirect}`)
+      this.context.redirect({ to: 'login' })
+    } else {
+      this.setState({ isProcessing: true })
+      const filter = this.props.filter.serialize()
+      console.log(`JMQ: submit clicked, filter is ${filter}`)
+      const res = await API.post('charcot', '/cerebrum-image-orders', {
+        body: {
+          filter,
+          email: 'joquijada2010@gmail.com'
+        }
+      })
+      console.log(`JMQ: res is ${JSON.stringify(res)}`)
+      this.setState({ isProcessing: false })
+      // TODO Redirect to submission confirmation page
+    }
   }
 
   render () {
@@ -54,10 +60,16 @@ export default class Footer extends Component {
             return <Stat key={index} info={e}/>
           })}
           <LinkContainer to={buttonInfo.to}>
-            <Button id={buttonInfo.id} onClick={isProcessing ? null : buttonInfo.function}
-                    disabled={isProcessing}>{isProcessing ? 'Processing...' : buttonInfo.text}</Button>
+            <LoaderButton id={buttonInfo.id} onClick={isProcessing ? null : buttonInfo.function}
+                          disabled={isProcessing}
+                          isLoading={isProcessing}>{isProcessing ? 'Processing...' : buttonInfo.text}
+            </LoaderButton>
           </LinkContainer>
         </Stack>
       </footer>)
   }
 }
+
+Footer.contextType = AppContext
+
+export default Footer

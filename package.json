@@ -43,14 +43,14 @@
     "@types/uuid": "^8.3.3",
     "@typescript-eslint/eslint-plugin": "^5.3.1",
     "@typescript-eslint/parser": "^5.3.1",
+    "eslint-config-serverless-stack": "^0.69.7",
     "eslint-config-standard": "^16.0.3",
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^5.1.1",
     "json-array-streams": "^1.0.1",
     "ts-jest": "^27.1.0",
-    "yargs": "^17.3.1",
-    "eslint-config-serverless-stack": "^0.69.7"
+    "yargs": "^17.3.1"
   },
   "dependencies": {
     "@exsoinn/aws-sdk-wrappers": "^1.10.4",
@@ -58,7 +58,6 @@
     "@serverless-stack/resources": "^1.4.0",
     "aws-cdk-lib": "2.24.0",
     "change-case": "^4.1.2",
-    "eslint-config-serverless-stack": "^0.69.7",
     "lodash.merge": "^4.6.2",
     "nodemailer": "^6.7.2",
     "pluralize": "^8.0.0",

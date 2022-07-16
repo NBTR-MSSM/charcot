@@ -60,14 +60,14 @@ export default class BaseHighchartsComponent extends Component {
   }
 
   handleCategorySelect = (event) => {
-    const { category, y: value } = event.target
-    console.log(`JMQ: Selected category: ${category}, value: ${value}`)
+    const { category } = event.target
+    // console.log(`JMQ: Selected category: ${category}, value: ${value}`)
     this.props.onCategorySelect({ dimension: this.dimension, category })
   }
 
   handleCategoryUnselect = (event) => {
-    const { category, y: value } = event.target
-    console.log(`JMQ: Unselected category: ${category}, value: ${value}`)
+    const { category } = event.target
+    // console.log(`JMQ: Unselected category: ${category}, value: ${value}`)
     this.props.onCategoryUnselect({ dimension: this.dimension, category })
   }
 
@@ -76,7 +76,7 @@ export default class BaseHighchartsComponent extends Component {
    * on the latest filter.
    */
   updateChart = () => {
-    console.log(`JMQ: updateChart ${JSON.stringify(this.props.dimensionData)}`)
+    // console.log(`JMQ: updateChart ${JSON.stringify(this.props.dimensionData)}`)
 
     if (Object.keys(this.props.dimensionData).length < 1) {
       return
@@ -109,19 +109,18 @@ export default class BaseHighchartsComponent extends Component {
   }
 
   componentDidMount () {
-    console.log(`JMQ: chart ${this.dimension} mounted`)
+    // console.log(`JMQ: chart ${this.dimension} mounted`)
   }
 
   /**
-   * If filter changed, update the charts except for the one
-   * that originated the change.
+   * If filter changed, update the charts.
    */
   componentDidUpdate (prevProps) {
     if (this.props.filter !== prevProps.filter) {
-      console.log(`JMQ: ${this.dimension} componentDidUpdate() filter changed prev filter = ${prevProps.filter.serialize()}, current filter = ${this.props.filter.serialize()}`)
+      // console.log(`JMQ: ${this.dimension} componentDidUpdate() filter changed prev filter = ${prevProps.filter.serialize()}, current filter = ${this.props.filter.serialize()}`)
       this.updateChart()
     } else {
-      console.log(`JMQ: ${this.dimension} componentDidUpdate() did NOT update`)
+      // console.log(`JMQ: ${this.dimension} componentDidUpdate() no change in filter`)
     }
   }
 
