@@ -22,17 +22,17 @@ export default class BackEndPaidAccountStack extends sst.Stack {
 
     // DynamoDB Tables
     const cerebrumImageMetaDataTable = new sst.Table(this, process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string, {
-        fields: {
-          fileName: 'string',
-          region: 'string',
-          stain: 'string',
-          age: 'number',
-          race: 'string',
-          sex: 'string',
-          diagnosis: 'string',
-          subjectNumber: 'number',
-          uploadDate: 'string',
-        },
+      fields: {
+        fileName: 'string',
+        region: 'string',
+        stain: 'string',
+        age: 'number',
+        race: 'string',
+        sex: 'string',
+        diagnosis: 'string',
+        subjectNumber: 'number',
+        uploadDate: 'string'
+      },
       primaryIndex: { partitionKey: 'fileName' },
       globalIndexes: {
         regionIndex: { partitionKey: 'region' },
