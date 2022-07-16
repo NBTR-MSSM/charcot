@@ -28,6 +28,7 @@ export default function main(app: sst.App): void {
     backEndOdpStackArgs = {}
   }
   backEndOdpStackArgs.zipBucketName = backEndPaidAccountStackArgs.zipBucketName
+  backEndOdpStackArgs.auth = backEndPaidAccountStack.auth
 
   // eslint-disable-next-line no-new
   new BackEndOdpStack(app, 'backend-odp', {}, backEndOdpStackArgs)

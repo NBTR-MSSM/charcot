@@ -36,7 +36,8 @@ export interface CerebrumImageOrder {
  * to find out what's up, like are their examples outdated or something???
  */
 export interface StackArguments {
-  api?: sst.Api
+  api?: sst.Api,
+  auth?: sst.Auth,
   handleCerebrumImageFulfillment?: sst.Function
   handleCerebrumImageTransfer?: sst.Function,
   zipBucketName?: string

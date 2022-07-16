@@ -1,10 +1,9 @@
 import * as sst from '@serverless-stack/resources'
-import { Bucket } from '@serverless-stack/resources'
+import { Auth, Bucket } from '@serverless-stack/resources'
 import * as iam from 'aws-cdk-lib/aws-iam'
 import { Bucket as S3Bucket, EventType } from 'aws-cdk-lib/aws-s3'
 import * as s3Notifications from 'aws-cdk-lib/aws-s3-notifications'
 import { StackArguments } from '../src/types/charcot.types'
-
 
 /**
  * This stack defines the Charcot backend porting on the AWS paid account of Mt Sinai:
@@ -14,6 +13,7 @@ import { StackArguments } from '../src/types/charcot.types'
  */
 export default class BackEndPaidAccountStack extends sst.Stack {
   api: sst.Api
+  auth: sst.Auth
   handleCerebrumImageFulfillment: sst.Function
   handleCerebrumImageTransfer: sst.Function
 
@@ -71,7 +71,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     const cerebrumImageBucketName = `${process.env.CEREBRUM_IMAGE_BUCKET_NAME}${bucketSuffix}`
     const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketSuffix}`
 
-    const cerebrumImageZipBucketName = args.zipBucketName!
+    const cerebrumImageZipBucketName = args.zipBucketName
 
     // Buckets and notification target functions
     this.handleCerebrumImageTransfer = new sst.Function(this, 'HandleCerebrumImageTransfer', {
@@ -154,7 +154,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
         })],
       environment: {
         CEREBRUM_IMAGE_ODP_BUCKET_NAME: cerebrumImageOdpBucketName,
-        CEREBRUM_IMAGE_ZIP_BUCKET_NAME: cerebrumImageZipBucketName,
+        CEREBRUM_IMAGE_ZIP_BUCKET_NAME: cerebrumImageZipBucketName!,
         CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName,
         FROM_EMAIL: process.env.FROM_EMAIL as string
       },
@@ -210,6 +210,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
           }
         },
         'POST /cerebrum-image-orders': {
+          authorizer: 'iam',
           function: {
             functionName: createCerebrumImageOrderFunctionName,
             handler: 'src/lambda/cerebrum-image-order.create',
@@ -241,10 +242,25 @@ export default class BackEndPaidAccountStack extends sst.Stack {
 
     this.api.attachPermissions([cerebrumImageMetaDataTable])
 
+    // Auth
+    this.auth = new Auth(this, 'Auth', {
+      login: ['email']
+    })
+
+    // TODO: Is this needed? What happens if I were to remove? Would anon users
+    //       be able too hit this endpoin, but no logged in ones????? (head scratch)
+    //       Experiment,
+    //       [REF|https://sst.dev/chapters/adding-auth-to-our-serverless-app.html|"The attachPermissionsForAuthUsers function allows us to specify the resources our authenticated users have access to."]
+    this.auth.attachPermissionsForAuthUsers(this.auth, [this.api])
+
     // Show the endpoint in the output. Have to "escape" underscores this way
     // because SST eats anything that's not alphabetic
     this.addOutputs({
       ApiEndpoint: this.api.url,
+      Region: this.region,
+      UserPoolId: this.auth.userPoolId,
+      IdentityPoolId: this.auth.cognitoIdentityPoolId!,
+      UserPoolClientId: this.auth.userPoolClientId,
       HANDLExUNDERxCEREBRUMxUNDERxIMAGExUNDERxFULFILLMENTxUNDERxROLExUNDERxARN: this.handleCerebrumImageFulfillment.role?.roleArn as string,
       HANDLExUNDERxCEREBRUMxUNDERxIMAGExUNDERxTRANSFERxUNDERxROLExUNDERxARN: this.handleCerebrumImageTransfer.role?.roleArn as string
     })

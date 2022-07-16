@@ -29,6 +29,7 @@ export default class BackEndOdpStack extends sst.Stack {
     const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketSuffix}`
 
     const cerebrumImageZipBucketName = args.zipBucketName!
+    const auth = args.auth!
 
     // Buckets
     let cerebrumImageOdpBucket
@@ -52,6 +53,11 @@ export default class BackEndOdpStack extends sst.Stack {
     const cerebrumImageZipBucket = new Bucket(this, cerebrumImageZipBucketName, {
       name: cerebrumImageZipBucketName
     })
+
+    // TODO: Do these need to be tied to AUTH as well, or is just the API find, since
+    //       users won't be directly hitting these?
+    // auth.attachPermissionsForAuthUsers(auth, [cerebrumImageOdpBucket, cerebrumImageZipBucket])
+
     // Grant fulfillment Lambda perms to put and get Zip file in
     // destination bucket. The Get is needed to allow for the
     // signed URL download
