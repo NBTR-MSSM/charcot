@@ -5,8 +5,12 @@ import { Bucket as S3Bucket, EventType } from 'aws-cdk-lib/aws-s3'
 import * as s3Notifications from 'aws-cdk-lib/aws-s3-notifications'
 import { StackArguments } from '../src/types/charcot.types'
 
+
 /**
- * This stack defines the Charcot backend porting on the AWS paid account of Mt Sinai.
+ * This stack defines the Charcot backend porting on the AWS paid account of Mt Sinai:
+ * - DynamoDB tables
+ * - S3
+ * - Lambda's/APIG
  */
 export default class BackEndPaidAccountStack extends sst.Stack {
   api: sst.Api
@@ -15,20 +19,20 @@ export default class BackEndPaidAccountStack extends sst.Stack {
 
   constructor(scope: sst.App, id: string, props: sst.StackProps, args: StackArguments) {
     super(scope, id, props)
+
     // DynamoDB Tables
-    const cerebrumImageMetaDataTableProps = {
-      fields: {
-        fileName: sst.TableFieldType.STRING,
-        region: sst.TableFieldType.STRING,
-        stain: sst.TableFieldType.STRING,
-        age: sst.TableFieldType.NUMBER,
-        race: sst.TableFieldType.STRING,
-        sex: sst.TableFieldType.STRING,
-        diagnosis: sst.TableFieldType.STRING,
-        disorder: sst.TableFieldType.STRING,
-        subjectNumber: sst.TableFieldType.NUMBER,
-        uploadDate: sst.TableFieldType.STRING
-      },
+    const cerebrumImageMetaDataTable = new sst.Table(this, process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string, {
+        fields: {
+          fileName: 'string',
+          region: 'string',
+          stain: 'string',
+          age: 'number',
+          race: 'string',
+          sex: 'string',
+          diagnosis: 'string',
+          subjectNumber: 'number',
+          uploadDate: 'string',
+        },
       primaryIndex: { partitionKey: 'fileName' },
       globalIndexes: {
         regionIndex: { partitionKey: 'region' },
@@ -37,23 +41,19 @@ export default class BackEndPaidAccountStack extends sst.Stack {
         raceIndex: { partitionKey: 'race' },
         sexIndex: { partitionKey: 'sex' },
         diagnosisIndex: { partitionKey: 'diagnosis' },
-        disorderIndex: { partitionKey: 'disorder' },
         subjectNumberIndex: { partitionKey: 'subjectNumber' }
       }
-    }
-    const cerebrumImageMetaDataTable = new sst.Table(this, process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string, cerebrumImageMetaDataTableProps)
+    })
 
-    const cerebrumImageOrderTableProps = {
+    const cerebrumImageOrderTable = new sst.Table(this, process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string, {
       fields: {
-        orderId: sst.TableFieldType.STRING,
-        email: sst.TableFieldType.STRING,
-        created: sst.TableFieldType.STRING,
-        filter: sst.TableFieldType.STRING
+        orderId: 'string',
+        email: 'string',
+        created: 'string',
+        filter: 'string'
       },
       primaryIndex: { partitionKey: 'orderId' }
-    }
-
-    const cerebrumImageOrderTable = new sst.Table(this, process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string, cerebrumImageOrderTableProps)
+    })
 
     const stage = this.stage
 
@@ -106,17 +106,14 @@ export default class BackEndPaidAccountStack extends sst.Stack {
       loadedBucket.addEventNotification(EventType.OBJECT_CREATED, new s3Notifications.LambdaDestination(this.handleCerebrumImageTransfer))
     } else {
       const cerebrumImageBucket = new Bucket(this, cerebrumImageBucketName, {
-        s3Bucket: {
-          bucketName: cerebrumImageBucketName
-        },
-        notifications: [
-          {
+        name: cerebrumImageBucketName,
+        notifications: {
+          myNotif: {
+            type: 'function',
             function: this.handleCerebrumImageTransfer,
-            notificationProps: {
-              events: [EventType.OBJECT_CREATED]
-            }
+            events: ['object_created']
           }
-        ]
+        }
       })
       cerebrumImageBucket.attachPermissions(['s3'])
     }

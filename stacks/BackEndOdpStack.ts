@@ -37,10 +37,8 @@ export default class BackEndOdpStack extends sst.Stack {
       cerebrumImageOdpBucket = S3Bucket.fromBucketName(this, 'ODPBucketLoadedByName', cerebrumImageOdpBucketName)
     } else {
       cerebrumImageOdpBucket = new Bucket(this, cerebrumImageOdpBucketName, {
-        s3Bucket: {
-          bucketName: cerebrumImageOdpBucketName
-        }
-      }).s3Bucket
+        name: cerebrumImageOdpBucketName
+      }).cdk.bucket
     }
 
     cerebrumImageOdpBucket.addToResourcePolicy(
@@ -52,14 +50,12 @@ export default class BackEndOdpStack extends sst.Stack {
       }))
 
     const cerebrumImageZipBucket = new Bucket(this, cerebrumImageZipBucketName, {
-      s3Bucket: {
-        bucketName: cerebrumImageZipBucketName
-      }
+      name: cerebrumImageZipBucketName
     })
     // Grant fulfillment Lambda perms to put and get Zip file in
     // destination bucket. The Get is needed to allow for the
     // signed URL download
-    cerebrumImageZipBucket.s3Bucket.addToResourcePolicy(
+    cerebrumImageZipBucket.cdk.bucket.addToResourcePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         principals: [new iam.ArnPrincipal(fulfillmentRoleArn)],
