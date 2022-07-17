@@ -4,6 +4,7 @@ import './Login.css'
 import { Auth } from 'aws-amplify'
 import { AppContext } from '../lib/context'
 import LoaderButton from '../components/LoaderButton'
+import { onError } from '../lib/error'
 
 class Login extends Component {
   constructor (props) {
@@ -29,8 +30,7 @@ class Login extends Component {
       this.context.handleLogin()
       this.context.redirect({ to: this.context.routeState.active })
     } catch (e) {
-      // eslint-disable-next-line no-undef
-      alert(e.message)
+      onError(e)
     }
     this.setState(
       { isLoading: false }

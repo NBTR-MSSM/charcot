@@ -13,6 +13,7 @@ import Filter from './lib/Filter'
 import { AppContext } from './lib/context'
 import { Auth } from 'aws-amplify'
 import { Redirect } from 'react-router-dom'
+import { onError } from './lib/error'
 
 const savedState = {
   filter: new Filter()
@@ -61,8 +62,7 @@ export default class App extends Component {
       this.handleLogin()
     } catch (e) {
       if (e !== 'No current user') {
-        // eslint-disable-next-line no-undef
-        alert(e)
+        onError(e)
       }
     }
 
