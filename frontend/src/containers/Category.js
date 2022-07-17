@@ -26,7 +26,6 @@ export default class Category extends Component {
   handleCategoryChange = (event) => {
     const { checked, value } = event.target
     const [dimension, category] = value.split('|')
-    console.log(`JMQ: Category checkbox onChange triggered dimension ${dimension}, category ${category}, was it checked? ${checked}`)
     if (checked) {
       this.props.onCategorySelect({ dimension, category })
     } else {

@@ -56,7 +56,6 @@ export default class App extends Component {
 
   onLoad = async () => {
     // Load user session if any (I.e. if user is already logged in)
-    // console.log('JMQ: loading user session if any')
     try {
       await Auth.currentSession()
       this.handleLogin()
@@ -83,7 +82,6 @@ export default class App extends Component {
   }
 
   redirect = ({ to }) => {
-    console.log(`JMQ: redirectTo ${to}`)
     this.setState(
       {
         redirectTo: to
@@ -106,9 +104,7 @@ export default class App extends Component {
    */
   handleCategorySelect = async ({ dimension, category }) => {
     const filter = this.state.filter
-    // console.log(`JMQ: pre handleCategorySelect filter is ${filter.serialize()}`)
     filter.add({ dimension, category })
-    // console.log(`JMQ: post handleCategorySelect filter is ${filter.serialize()}`)
     await this.updateChartDataState({ filter })
   }
 
@@ -118,10 +114,7 @@ export default class App extends Component {
    */
   handleCategoryUnselect = async ({ dimension, category }) => {
     const filter = this.state.filter
-    // console.log(`JMQ: pre handleCategoryUnselect filter is ${filter.serialize()}`)
     filter.remove({ dimension, category })
-
-    // console.log(`JMQ: post handleCategoryUnselect filter is ${filter.serialize()}`)
     await this.updateChartDataState({ filter })
   }
 
@@ -144,7 +137,6 @@ export default class App extends Component {
       filter
     })
 
-    // console.log(`JMQ: dimensionData is ${JSON.stringify(dimensionData)}`)
     savedState.filter = filter
     this.setState({
       filter: savedState.filter,
@@ -160,9 +152,7 @@ export default class App extends Component {
    * search for "when you go to do a comparison you are comparing the two exact same arrays ALWAYS"
    */
   render () {
-    console.log(`JMQ: rendering App, state is ${JSON.stringify(this.state, null, 2)}`)
     if (this.state.redirectTo) {
-      console.log(`JMQ: redirect to ${this.state.redirectTo}`)
       return <Redirect to={`/${this.state.redirectTo === 'home' ? '' : this.state.redirectTo}`}/>
     }
     let leftNav

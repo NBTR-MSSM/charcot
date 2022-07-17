@@ -61,13 +61,11 @@ export default class BaseHighchartsComponent extends Component {
 
   handleCategorySelect = (event) => {
     const { category } = event.target
-    // console.log(`JMQ: Selected category: ${category}, value: ${value}`)
     this.props.onCategorySelect({ dimension: this.dimension, category })
   }
 
   handleCategoryUnselect = (event) => {
     const { category } = event.target
-    // console.log(`JMQ: Unselected category: ${category}, value: ${value}`)
     this.props.onCategoryUnselect({ dimension: this.dimension, category })
   }
 
@@ -76,8 +74,6 @@ export default class BaseHighchartsComponent extends Component {
    * on the latest filter.
    */
   updateChart = () => {
-    // console.log(`JMQ: updateChart ${JSON.stringify(this.props.dimensionData)}`)
-
     if (Object.keys(this.props.dimensionData).length < 1) {
       return
     }
@@ -117,16 +113,12 @@ export default class BaseHighchartsComponent extends Component {
    */
   componentDidUpdate (prevProps) {
     if (this.props.filter !== prevProps.filter) {
-      // console.log(`JMQ: ${this.dimension} componentDidUpdate() filter changed prev filter = ${prevProps.filter.serialize()}, current filter = ${this.props.filter.serialize()}`)
       this.updateChart()
-    } else {
-      // console.log(`JMQ: ${this.dimension} componentDidUpdate() no change in filter`)
     }
   }
 
   render () {
     const { chartOptions } = this.state
-    // console.log(`JMQ: Rendering ${this.dimension}, current filter is ${this.props.filter.serialize()}`)
     return (
       <div>
         <HighchartsReact

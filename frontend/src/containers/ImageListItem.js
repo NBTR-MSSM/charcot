@@ -14,8 +14,6 @@ export default class ImageListItem extends Component {
     } else {
       fileName = e.target.parentElement.parentElement.childNodes[0].innerText
     }
-
-    console.log(`JMQ: selected image: ${fileName}`)
     this.props.onImageClick(fileName)
   }
 

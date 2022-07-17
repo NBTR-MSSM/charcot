@@ -44,12 +44,17 @@ const calculateTickInterval = (categories) => {
  * Contacts endpoint which returns array of dimension/category data.
  */
 const retrieveData = async ({ config, dimension, filter }) => {
-  return await API.get('charcot', config.endpoint, {
-    queryStringParameters: {
-      filter: filter.serialize(dimension),
-      numeric: config.isNumeric
-    }
-  })
+  const key = `${dimension}-${filter.serialize()}`
+  if (!CACHE.has(key)) {
+    console.log(`JMQ: key ${key} not found in CACHE`)
+    CACHE.set(key, await API.get('charcot', config.endpoint, {
+      queryStringParameters: {
+        filter: filter.serialize(dimension),
+        numeric: config.isNumeric
+      }
+    }))
+  }
+  return CACHE.get(key)
 }
 
 /**
@@ -96,6 +101,13 @@ const prepareCategoryData = ({ config, dimension, filter, values, resetCountToZe
   }
 }
 
+// Our bonafide cache
+const CACHE = new Map()
+
+/**
+ * TODO: Use guava for cache management. Right now using a poor man's version that caches
+ *       dimension-filter combo
+ */
 class DataService {
   async fetch ({ dimension, filter }) {
     const config = DIMENSION_CONFIGS[dimension]

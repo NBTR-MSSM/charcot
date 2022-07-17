@@ -45,7 +45,6 @@ class Login extends Component {
   }
 
   render () {
-    // console.log(`JMQ: this.context.isAuthenticated is ${this.context.isAuthenticated}`)
     return (
       <div className='Login'>
         <Form onSubmit={this.handleSubmit}>

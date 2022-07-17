@@ -5,7 +5,6 @@ import './Filter.css'
 export default class FilterComponent extends Component {
   handlePredicateRemove = (event) => {
     const [dimension, category] = event.target.name.split('|')
-    console.log(`JMQ: remove predicate ${dimension}, ${category}`)
     this.props.onCategoryUnselect({ dimension, category })
   }
 
@@ -13,7 +12,7 @@ export default class FilterComponent extends Component {
     return (
       <div className='Filter'>
         <Button id='clear-all-btn' type='reset' onClick={this.props.onClearFilter}>{'CLEAR ALL'}</Button>
-        {this.props.filter.jsx().map(e => <Button name={`${e.dimension}|${e.category}`} className='clear-predicate-btn'
+        {this.props.filter.jsx().map(e => <Button key={`key-${e.category}`} name={`${e.dimension}|${e.category}`} className='clear-predicate-btn'
                                                       value={e.category}
                                                       onClick={this.handlePredicateRemove}>{`${e.dimension}=${e.category}`}
           <span className='remove'>X</span></Button>)}
