@@ -34,7 +34,7 @@ export default class Category extends Component {
   }
 
   render () {
-    const category = this.props.category
+    const { category, dimension } = this.props
     return (
       <Form>
         <div key={category.name} className="mb-3">
@@ -43,7 +43,8 @@ export default class Category extends Component {
             type='checkbox'
             label={category.name}
             onChange={this.handleCategoryChange}
-            value={`${this.props.dimension}|${category.name}`}
+            value={`${dimension}|${category.name}`}
+            disabled={category.count < 1}
           />
         </div>
       </Form>

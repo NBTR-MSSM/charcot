@@ -96,8 +96,14 @@ export default class BaseHighchartsComponent extends Component {
           {
             data: Array.from(categories.entries()).map(e => ({
               y: e[1].count,
-              selected: e[1].selected
-            }))
+              selected: e[1].selected,
+              events: {
+                click: e[1].count < 1 ? () => false : undefined
+              }
+            })),
+            tooltip: {
+              pointFormat: '{point.key}<span style="color:#46d246"><strong>{point.y}</strong></span>'
+            }
           }
         ]
       }
