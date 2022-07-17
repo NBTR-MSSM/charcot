@@ -1,4 +1,4 @@
-.Checkout #back-to-search-btn {
+.Review #back-to-search-btn {
     /*float: left;*/
     /*margin-right: 50px;*/
     margin-top: 10px;
@@ -10,13 +10,13 @@
     font-weight: normal;
 }
 
-.charcot-checkout-container {
+.charcot-review-container {
     margin-top: 50px;
     background-color: white !important;
     margin-bottom: 500px;
 }
 
-.charcot-checkout-container-row {
+.charcot-review-container-row {
     padding-top: 10px;
     padding-bottom: 20px;
     padding-left: 20px;
@@ -26,7 +26,7 @@
     margin-left: 0px;
 }
 
-.charcot-checkout-container h3 {
+.charcot-review-container h3 {
     font-family: "Open Sans", sans-serif;
     font-weight: 600;
     padding-bottom: 30px;

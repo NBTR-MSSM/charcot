@@ -35,14 +35,14 @@ class Footer extends Component {
   render () {
     const buttonInfo = {
       text: 'Next',
-      to: '/checkout',
+      to: '/review',
       id: 'next-btn',
       function: () => {
         console.log('')
       }
     }
 
-    if (this.props.isCheckout) {
+    if (this.context.routeState.active === 'review') {
       buttonInfo.text = 'Submit'
       buttonInfo.id = 'submit-btn'
       buttonInfo.function = this.handleSubmitButtonClick

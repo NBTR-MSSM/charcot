@@ -169,9 +169,9 @@ export default class App extends Component {
     }
 
     let footer
-    if (this.state.routeState.active === 'search' || this.state.routeState.active === 'checkout') {
+    if (this.state.routeState.active === 'search' || this.state.routeState.active === 'review') {
       footer =
-        <Footer isCheckout={this.state.routeState.active === 'checkout'} filter={savedState.filter.clone()}
+        <Footer filter={savedState.filter.clone()}
                 dimensionData={this.state.dimensionData}/>
     }
 

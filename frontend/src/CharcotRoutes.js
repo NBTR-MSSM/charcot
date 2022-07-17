@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { Route, Switch } from 'react-router-dom'
 import Home from './containers/Home'
-import Checkout from './containers/Checkout'
+import Review from './containers/Review'
 import Search from './containers/Search'
 import NotFound from './containers/NotFound'
 import Login from './containers/Login'
@@ -22,12 +22,12 @@ export default class CharcotRoutes extends Component {
                   filter={this.props.filter}
                   dimensionData={this.props.dimensionData}/>
         </Route>
-        <Route exact path='/checkout'>
-          <Checkout onRouteLoad={this.props.onRouteLoad}
-                    onCategorySelect={this.props.onCategorySelect}
-                    onCategoryUnselect={this.props.onCategoryUnselect}
-                    filter={this.props.filter}
-                    dimensionData={this.props.dimensionData}/>
+        <Route exact path='/review'>
+          <Review onRouteLoad={this.props.onRouteLoad}
+                  onCategorySelect={this.props.onCategorySelect}
+                  onCategoryUnselect={this.props.onCategoryUnselect}
+                  filter={this.props.filter}
+                  dimensionData={this.props.dimensionData}/>
         </Route>
         <Route exact path='/signup'>
           <Signup />
