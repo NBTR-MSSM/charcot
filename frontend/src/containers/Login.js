@@ -23,15 +23,19 @@ class Login extends Component {
     this.setState(
       { isLoading: true }
     )
+
     const { email, password } = this.state
+
     try {
       await Auth.signIn(email, password)
       // eslint-disable-next-line no-undef
       this.context.handleLogin()
+      // send them back to whatever page they were one when they chose to sign up
       this.context.redirect({ to: this.context.routeState.active })
     } catch (e) {
       onError(e)
     }
+
     this.setState(
       { isLoading: false }
     )

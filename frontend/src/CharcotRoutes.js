@@ -5,6 +5,7 @@ import Checkout from './containers/Checkout'
 import Search from './containers/Search'
 import NotFound from './containers/NotFound'
 import Login from './containers/Login'
+import Signup from './containers/Signup'
 
 export default class CharcotRoutes extends Component {
   render () {
@@ -27,6 +28,9 @@ export default class CharcotRoutes extends Component {
                     onCategoryUnselect={this.props.onCategoryUnselect}
                     filter={this.props.filter}
                     dimensionData={this.props.dimensionData}/>
+        </Route>
+        <Route exact path='/signup'>
+          <Signup />
         </Route>
         <Route exact path='/login'>
           <Login />

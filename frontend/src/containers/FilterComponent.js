@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import Button from 'react-bootstrap/Button'
-import './Filter.css'
+import './FilterComponent.css'
 
 export default class FilterComponent extends Component {
   handlePredicateRemove = (event) => {
@@ -10,7 +10,7 @@ export default class FilterComponent extends Component {
 
   render = () => {
     return (
-      <div className='Filter'>
+      <div className='FilterComponent'>
         <Button id='clear-all-btn' type='reset' onClick={this.props.onClearFilter}>{'CLEAR ALL'}</Button>
         {this.props.filter.jsx().map(e => <Button key={`key-${e.category}`} name={`${e.dimension}|${e.category}`} className='clear-predicate-btn'
                                                       value={e.category}

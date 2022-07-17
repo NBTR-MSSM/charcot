@@ -23,7 +23,8 @@ const savedState = {
  * TODO: Move all the various handlers that are passed down the component hierarchy via props to AppContext,
  *       and clean up all those unnecessary props.
  * TODO: Methodology for redirect upon login/logout a bit convoluted. Each route sets the routeState, then upon
- *       login/logout we redirect to the last known route. Is there a cleaner way of doing it?
+ *       login/logout we redirect to the last known route. Is there a cleaner way of doing it? `react-router-dom` 6.3.0
+ *       offers the useNavigate() method to simply all this, but will worry about that later.
  */
 export default class App extends Component {
   constructor (props) {
@@ -73,10 +74,9 @@ export default class App extends Component {
   }
 
   handleLogin = () => {
-    savedState.isAuthenticated = true
     this.setState(
       {
-        isAuthenticated: savedState.isAuthenticated
+        isAuthenticated: true
       }
     )
   }
@@ -96,6 +96,7 @@ export default class App extends Component {
         isAuthenticated: false
       }
     )
+    this.redirect({ to: 'login' })
   }
 
   /**
@@ -152,6 +153,11 @@ export default class App extends Component {
    * search for "when you go to do a comparison you are comparing the two exact same arrays ALWAYS"
    */
   render () {
+    /*
+     * This is a (somewhat convoluted) way to handle redirect back to page of origin
+     * during signup/login and any other scenario where applicable. The componentDidUpdate()
+     * lifecycle method clears this.state.redirectTo to avoid infinite redirect!
+     */
     if (this.state.redirectTo) {
       return <Redirect to={`/${this.state.redirectTo === 'home' ? '' : this.state.redirectTo}`}/>
     }
