@@ -31,7 +31,8 @@ export default class BackEndPaidAccountStack extends sst.Stack {
         sex: 'string',
         diagnosis: 'string',
         subjectNumber: 'number',
-        uploadDate: 'string'
+        uploadDate: 'string',
+        enabled: 'string'
       },
       primaryIndex: { partitionKey: 'fileName' },
       globalIndexes: {

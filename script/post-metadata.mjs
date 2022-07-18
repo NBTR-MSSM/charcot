@@ -21,9 +21,9 @@ const sanitize = (str) => {
 const sendData = async (buffer) => {
   // Toggle between demo AWS and Mt Sinai's accounts. Top is "demo", bottom is Mt Sinai dev/prod respectively
   // await axiosClient.post('https://ob0mldzrca.execute-api.us-east-1.amazonaws.com/cerebrum-images', buffer) // LOCAL
-  // await axiosClient.post('https://bntmykot74.execute-api.us-east-1.amazonaws.com/cerebrum-images', buffer) // DEMO
+  await axiosClient.post('https://bntmykot74.execute-api.us-east-1.amazonaws.com/cerebrum-images', buffer) // DEMO
   // await axiosClient.post('https://5oiylsl5xk.execute-api.us-east-1.amazonaws.com/cerebrum-images', buffer) // DEV
-  await axiosClient.post('https://wq2rjam09d.execute-api.us-east-1.amazonaws.com/cerebrum-images', buffer) // PROD
+  // await axiosClient.post('https://wq2rjam09d.execute-api.us-east-1.amazonaws.com/cerebrum-images', buffer) // PROD
   console.log(`JMQ: Successfully posted ${JSON.stringify(buffer)}`)
 }
 
@@ -47,7 +47,8 @@ stream.pipe(jsonArrayStreams.parse())
           sex: sanitize(chunk.Sex),
           diagnosis: sanitize(chunk.Disorder),
           subjectNumber: chunk.SubNum,
-          uploadDate: '06/03/2022'
+          uploadDate: '06/03/2022',
+          enabled: 'Thioflavin S' === chunk.Stain ? 'false' : 'true'
         })
         // If buffer is full, flush it
         if (buffer.length > flushThreshold) {

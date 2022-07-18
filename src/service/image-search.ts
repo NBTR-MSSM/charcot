@@ -40,7 +40,8 @@ class ImageSearch {
       IndexName: `${dimension}Index`
     }
     this.addFilter(event, params)
-    console.log(`JMQ: params is ${JSON.stringify(params)}`)
+    this.addEnabledOnlyCondition(params)
+    // console.log(`JMQ: params is ${JSON.stringify(params)}`)
 
     type Dimension = { value: string | number, title: string, count: number, range: Range | undefined, rangeIndex: number }
     let ret: Dimension[] = []
@@ -117,7 +118,7 @@ class ImageSearch {
     if (!filter) {
       return
     }
-    console.log(`JMQ: raw filter is ${filter}`)
+    // console.log(`JMQ: raw filter is ${filter}`)
 
     const exprAttrNames: Record<string, string> = {}
     const exprAttrValues: Record<string, string | number> = {}
@@ -171,7 +172,20 @@ class ImageSearch {
     params.FilterExpression = dynamoFilter
     params.ExpressionAttributeNames = { ...params.ExpressionAttributeNames || {}, ...exprAttrNames }
     params.ExpressionAttributeValues = exprAttrValues
-    console.log(`JMQ: DynamoDB filter is ${dynamoFilter}`)
+    console.log(`JMQ: addFilter() DynamoDB filter is ${dynamoFilter}`)
+  }
+
+  private addEnabledOnlyCondition(params: DocumentClient.QueryInput) {
+    let curFilter = params.FilterExpression
+    curFilter = curFilter ? `${(curFilter)} AND` : ''
+    params.FilterExpression = `${curFilter} #enabled = :true`
+    const attrNames = params.ExpressionAttributeNames || {}
+    const attrVals = params.ExpressionAttributeValues || {}
+    attrNames['#enabled'] = 'enabled'
+    attrVals[':true'] = 'true'
+    params.ExpressionAttributeNames = attrNames
+    params.ExpressionAttributeValues = attrVals
+    console.log(`JMQ: addEnabledOnlyCondition() DynamoDB filter is ${params.FilterExpression}`)
   }
 }
 
