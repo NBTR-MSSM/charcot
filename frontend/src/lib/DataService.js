@@ -18,7 +18,7 @@ const DIMENSION_CONFIGS = {
     endpoint: '/cerebrum-images/ages?interval=6&max=90&start=12',
     isNumeric: true
   },
-  sex: { name: 'sex', displayName: 'Gender', endpoint: '/cerebrum-images/sexes' },
+  sex: { name: 'sex', displayName: 'Sex', endpoint: '/cerebrum-images/sexes' },
   region: { name: 'region', displayName: 'Brain Region', endpoint: '/cerebrum-images/regions' },
   stain: { name: 'stain', displayName: 'Stain', endpoint: '/cerebrum-images/stains' },
   race: { name: 'race', displayName: 'Race', endpoint: '/cerebrum-images/races' },
@@ -59,7 +59,7 @@ const retrieveData = async ({ config, dimension, filter }) => {
 
 /**
  * Produces a map of category name to category data object that includes the
- * count associated with the category, for example for the Gender dimension:
+ * count associated with the category, for example for the Sex dimension:
  *   Male   -> { count: 12345 }
  *   Female -> { count: 67890 }
  */

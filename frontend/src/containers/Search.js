@@ -1,6 +1,6 @@
 import { Component } from 'react'
 import AgeChart from './AgeChart'
-import GenderChart from './GenderChart'
+import SexChart from './SexChart'
 import RegionChart from './RegionChart'
 import StainChart from './StainChart'
 import RaceChart from './RaceChart'
@@ -44,10 +44,10 @@ export default class Search extends Component {
           </tr>
           <tr>
             <td>
-              <GenderChart filter={this.props.filter}
-                           onCategorySelect={this.props.onCategorySelect}
-                           onCategoryUnselect={this.props.onCategoryUnselect}
-                           dimensionData={this.props.dimensionData}/>
+              <SexChart filter={this.props.filter}
+                        onCategorySelect={this.props.onCategorySelect}
+                        onCategoryUnselect={this.props.onCategoryUnselect}
+                        dimensionData={this.props.dimensionData}/>
             </td>
             <td>
               <RegionChart filter={this.props.filter}

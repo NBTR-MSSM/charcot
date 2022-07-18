@@ -2,11 +2,11 @@ import BaseHighchartsComponent from './BaseHighchartsComponent'
 
 const chartOptions = {
   title: {
-    text: 'Gender'
+    text: 'Sex'
   }
 }
 
-export default class GenderChart extends BaseHighchartsComponent {
+export default class SexChart extends BaseHighchartsComponent {
   constructor (props) {
     super(props, { chartOptions, dimension: 'sex' })
   }
