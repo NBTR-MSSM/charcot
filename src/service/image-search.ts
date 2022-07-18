@@ -5,6 +5,7 @@ import RangeMap from '../common/range-map'
 import { paramCase } from 'change-case'
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
 import { singular } from 'pluralize'
+import { rank } from '../common/rank'
 
 class ImageSearch {
   async search(event: APIGatewayProxyEventV2): Promise<Record<string, any>> {
@@ -48,7 +49,7 @@ class ImageSearch {
       const res = await dynamoDbClient.scan(params)
       const items = res.Items
       // console.log(`JMQ: items is ${JSON.stringify(items)}`)
-      // If dynamo returned 0 items and this is first iteratioon of the loop, return
+      // If dynamo returned 0 items and this is first iteration of the loop, return
       // HTTP not found code (404)
       if (!items) {
         break
@@ -88,7 +89,7 @@ class ImageSearch {
           ++obj.count
           return prev
         }, new Map<string | number, Dimension>(ret.map((obj) => [obj.value, obj]))).values())
-          .sort((a: Dimension, b: Dimension): number => b.rangeIndex - a.rangeIndex || (a.value as unknown as number) - (b.value as unknown as number))
+          .sort((a: Dimension, b: Dimension): number => b.rangeIndex - a.rangeIndex || rank(dimension, a.title) - rank(dimension, b.title))
       }
 
       const lastEvaluatedKey = res.LastEvaluatedKey

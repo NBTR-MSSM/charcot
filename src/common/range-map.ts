@@ -3,8 +3,8 @@ import { Range, RangeInfo } from '../types/charcot.types'
 /**
  * Specialized map that when queried for a numeric value it actually gives a range
  * to which such value belongs, for example given value '4' this map's get()
- * method reeturns range 4 - 6.
- * The range interval, the min and max ranges are calculated based on
+ * method returns range 4 - 6.
+ * The range interval, the min and max ranges are calculated as a functon of
  * the input arguments to the constructor. See the constructor documentation
  * for more info.
  *
