@@ -14,6 +14,13 @@ class Signup extends Component {
       password: '',
       confirmPassword: '',
       confirmationCode: '',
+      firstName: '',
+      lastName: '',
+      degree: '',
+      institutionName: '',
+      institutionAddress: '',
+      areasOfInterest: '',
+      intendedUse: '',
       newUser: '',
       isLoading: false
     }
@@ -31,6 +38,19 @@ class Signup extends Component {
     return this.state.confirmationCode.length > 0
   }
 
+  signupAttributes = () => {
+    const { familyName, givenName, degree, institutionName, institutionAddress, areasOfInterest, intendedUse } = this.state
+    const obj = { }
+    obj.family_name = familyName
+    obj.given_name = givenName
+    obj['custom:degree'] = degree
+    obj['custom:institutionName'] = institutionName
+    obj['custom:institutionAddress'] = institutionAddress
+    obj['custom:areasOfInterest'] = areasOfInterest
+    obj['custom:intendedUse'] = intendedUse
+    return obj
+  }
+
   handleSubmit = async (event) => {
     event.preventDefault()
     this.setState({
@@ -38,9 +58,13 @@ class Signup extends Component {
     })
     const { email, password } = this.state
     try {
+      console.log(`JMQ: attributes is ${JSON.stringify(this.signupAttributes())}`)
       const newUser = await Auth.signUp({
         username: email,
-        password
+        password,
+        attributes: {
+          ...this.signupAttributes()
+        }
       })
       this.setState({
         isLoading: true,
@@ -136,6 +160,60 @@ class Signup extends Component {
             onChange={this.handleFormChange}
             value={this.state.confirmPassword}
           />
+        </Form.Group>
+        <Form.Group controlId='firstName' size="lg">
+          <Form.Label>First Name</Form.Label>
+          <Form.Control
+            type='text'
+            value={this.state.firstName}
+            onChange={this.handleFormChange}
+          />
+        </Form.Group>
+        <Form.Group controlId='lastName' size="lg">
+          <Form.Label>Last Name</Form.Label>
+          <Form.Control
+            type='text'
+            value={this.state.lastName}
+            onChange={this.handleFormChange}
+          />
+        </Form.Group>
+        <Form.Group controlId="degree" size="lg">
+          <Form.Label>Degree</Form.Label>
+          <Form.Control
+            type='text'
+            value={this.state.degree}
+            onChange={this.handleFormChange}
+          />
+        </Form.Group>
+        <Form.Group controlId="institutionName" size="lg">
+          <Form.Label>Institution Name</Form.Label>
+          <Form.Control
+            type='text'
+            value={this.state.institutionName}
+            onChange={this.handleFormChange}
+          />
+        </Form.Group>
+        <Form.Group controlId="institutionAddress" size="lg">
+          <Form.Label>Institution Address</Form.Label>
+          <Form.Control as="textarea"
+                        rows={3}
+                        value={this.state.institutionAddress}
+                        onChange={this.handleFormChange}/>
+        </Form.Group>
+        <Form.Group controlId="areasOfInterest" size="lg">
+          <Form.Label>Areas of Scientific Interest</Form.Label>
+          <Form.Control
+            type='text'
+            value={this.state.areasOfInterest}
+            onChange={this.handleFormChange}
+          />
+        </Form.Group>
+        <Form.Group controlId="intendedUse" size="lg">
+          <Form.Label>Brief description of the intended use of images (no more than 500 words)</Form.Label>
+          <Form.Control as="textarea"
+                        rows={5}
+                        value={this.state.intendedUse}
+                        onChange={this.handleFormChange}/>
         </Form.Group>
         <LoaderButton
           block="true"
