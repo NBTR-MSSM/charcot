@@ -28,6 +28,16 @@ export interface CerebrumImageOrder {
   email: string
 }
 
+export type Range = string
+
+export interface Dimension {
+  value: string | number,
+  title: string,
+  count: number,
+  range: Range | undefined,
+  rank: number
+}
+
 /**
  * The StackProps type does not accept arbitrary arguments like
  * https://serverless-stack.com/chapters/add-an-api-to-create-a-note.html examples claim
@@ -43,9 +53,7 @@ export interface StackArguments {
   zipBucketName?: string
 }
 
-export type Range = string
-
 export type RangeInfo = {
-  range: Range | undefined,
-  index: number
+  range: Range,
+  rank: number
 }

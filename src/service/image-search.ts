@@ -1,6 +1,6 @@
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
 import { dynamoDbClient, HttpResponse } from '@exsoinn/aws-sdk-wrappers'
-import { Range } from '../types/charcot.types'
+import { Dimension } from '../types/charcot.types'
 import RangeMap from '../common/range-map'
 import { paramCase } from 'change-case'
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
@@ -43,7 +43,6 @@ class ImageSearch {
     this.addEnabledOnlyCondition(params)
     // console.log(`JMQ: params is ${JSON.stringify(params)}`)
 
-    type Dimension = { value: string | number, title: string, count: number, range: Range | undefined, rangeIndex: number }
     let ret: Dimension[] = []
     let responseCode = 404
     while (true) {
@@ -76,7 +75,7 @@ class ImageSearch {
               title: cur[dimension],
               value: val,
               range: undefined,
-              rangeIndex: -1
+              rank: -1
             }
             prev.set(val, obj as Dimension)
 
@@ -84,13 +83,13 @@ class ImageSearch {
             if (Number.isInteger(val) && isNumeric) {
               const rangeInfo = ranges.get(val)
               obj.range = rangeInfo?.range
-              obj.rangeIndex = rangeInfo?.index as number
+              obj.rank = rangeInfo?.rank as number
             }
           }
           ++obj.count
           return prev
         }, new Map<string | number, Dimension>(ret.map((obj) => [obj.value, obj]))).values())
-          .sort((a: Dimension, b: Dimension): number => b.rangeIndex - a.rangeIndex || rank(dimension, a.title) - rank(dimension, b.title))
+          .sort((a: Dimension, b: Dimension): number => b.rank - a.rank || rank(dimension, a.title) - rank(dimension, b.title))
       }
 
       const lastEvaluatedKey = res.LastEvaluatedKey
@@ -128,14 +127,14 @@ class ImageSearch {
      * Deal with the numeric range categories (E.g. age)
      */
     // First deal with the less than and greater than ranges (the bottom and top ones in the chart)
-    for (const m of filter.matchAll(/((\w+)\s=\s(?:'(\d+)\s<='|'<\s(\d+)'))/g)) {
+    for (const m of filter.matchAll(/((\w+)\s=\s(?:'(\d+)\+'|'<\s(\d+)'))/g)) {
       const category = m[2]
       const categoryPlaceholder = `#${category.replace(/\s+/g, '')}`
-      const gtOrEqTo = m[3]
+      const greaterThan = m[3]
       const lt = m[4]
-      const num = gtOrEqTo || lt
+      const num = greaterThan || lt
       const searchStr = m[1]
-      const replaceStr = gtOrEqTo ? `${categoryPlaceholder} > :${num}` : `${categoryPlaceholder} <= :${num}`
+      const replaceStr = greaterThan ? `${categoryPlaceholder} > :${num}` : `${categoryPlaceholder} < :${num}`
       exprAttrNames[categoryPlaceholder] = category
       exprAttrValues[`:${num}`] = Number.parseInt(num)
       dynamoFilter = dynamoFilter.replace(searchStr, replaceStr)

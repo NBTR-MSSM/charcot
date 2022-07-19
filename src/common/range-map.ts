@@ -4,9 +4,7 @@ import { Range, RangeInfo } from '../types/charcot.types'
  * Specialized map that when queried for a numeric value it actually gives a range
  * to which such value belongs, for example given value '4' this map's get()
  * method returns range 4 - 6.
- * The range interval, the min and max ranges are calculated as a functon of
- * the input arguments to the constructor. See the constructor documentation
- * for more info.
+ * See the constructor documentation for more info.
  *
  * interval = 6, max = 12, start = 6
  * X,  0 => < 6
@@ -25,41 +23,40 @@ export default class RangeMap {
   private readonly max: number
   private readonly start: number
   private readonly map: Map<number, Range> = new Map<number, Range>()
-  private readonly rangeIndexAdjustment: number
 
   /**
    * Initializes a RangeMap object.
    *
    * @param interval - How big each range should be
-   * @param max - The max value for which there's a range, for example if 90 then numbers higher than that fall into the > 90 range
+   * @param max - The max value for which there's a range, for example if 90 then numbers higher than that fall into the 90+ range
    * @param start - The number at which to start ranges, for example if 6, numbers less than that just fall into the < 6 range
    */
   constructor(interval: number, max: number, start: number) {
     this.interval = interval
     this.max = max
     this.start = start
-    this.rangeIndexAdjustment = this.start !== this.interval ? (this.start / this.interval) - 1 : 0
-    this.map.set(0, `< ${start}`)
-    let cur = start
 
+    // Map every single number between start (inclusive) and max (exclusive) to the range it belongs to
+    let cur = start
     while (cur < this.max) {
-      this.map.set(this.calculateRangeIndex(cur), `${cur} - ${(cur += this.interval) - 1}`)
+      const first = cur
+      const last = (cur += this.interval) - 1
+      const range = `${first} - ${last}`
+      for (let i = first; i <= last; i++) {
+        this.map.set(i, range)
+      }
     }
-    this.map.set(this.calculateRangeIndex(cur), `${cur} <=`)
   }
 
   get(val: number): RangeInfo | undefined {
-    let idx = this.calculateRangeIndex(val)
-    // Dimension values outside of the max fall into the max bucket (the last range).
-    const range = this.map.get(idx) || ((idx = this.calculateRangeIndex(this.max)) && this.map.get(idx))
-    return { range: range as Range, index: idx }
-  }
-
-  private calculateRangeIndex(val: number): number {
-    const idx = Math.floor((val / this.interval) - this.rangeIndexAdjustment)
-    // The adjustment applied when generating the ranges in the constructors
-    // results in negative index when the passed in value is less than the interval,
-    // ceiling those to '0'
-    return idx < 0 ? 0 : idx
+    const rangeInfo = { range: '', rank: val }
+    if (val < this.start) {
+      rangeInfo.range = `< ${this.start}`
+    } else if (val >= this.max) {
+      rangeInfo.range = `${this.max}+`
+    } else {
+      rangeInfo.range = this.map.get(val)!
+    }
+    return rangeInfo
   }
 }
