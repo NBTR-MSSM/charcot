@@ -31,40 +31,34 @@ class Search extends Component {
             <td>
               <AgeChart filter={this.props.filter}
                         onCategorySelect={this.props.onCategorySelect}
-                        onCategoryUnselect={this.props.onCategoryUnselect}
-                        dimensionData={this.props.dimensionData}/>
+                        onCategoryUnselect={this.props.onCategoryUnselect}/>
             </td>
             <td>
               <DiagnosisChart filter={this.props.filter}
                               onCategorySelect={this.props.onCategorySelect}
-                              onCategoryUnselect={this.props.onCategoryUnselect}
-                              dimensionData={this.props.dimensionData}/>
+                              onCategoryUnselect={this.props.onCategoryUnselect}/>
             </td>
           </tr>
           <tr>
             <td>
               <SexChart filter={this.props.filter}
                         onCategorySelect={this.props.onCategorySelect}
-                        onCategoryUnselect={this.props.onCategoryUnselect}
-                        dimensionData={this.props.dimensionData}/>
+                        onCategoryUnselect={this.props.onCategoryUnselect}/>
             </td>
             <td>
               <RegionChart filter={this.props.filter}
                            onCategorySelect={this.props.onCategorySelect}
-                           onCategoryUnselect={this.props.onCategoryUnselect}
-                           dimensionData={this.props.dimensionData}/>
+                           onCategoryUnselect={this.props.onCategoryUnselect}/>
             </td>
           </tr>
           <tr>
             <td><RaceChart filter={this.props.filter}
                            onCategorySelect={this.props.onCategorySelect}
-                           onCategoryUnselect={this.props.onCategoryUnselect}
-                           dimensionData={this.props.dimensionData}/></td>
+                           onCategoryUnselect={this.props.onCategoryUnselect}/></td>
             <td>
               <StainChart filter={this.props.filter}
                           onCategorySelect={this.props.onCategorySelect}
-                          onCategoryUnselect={this.props.onCategoryUnselect}
-                          dimensionData={this.props.dimensionData}/>
+                          onCategoryUnselect={this.props.onCategoryUnselect}/>
             </td>
           </tr>
           </tbody>

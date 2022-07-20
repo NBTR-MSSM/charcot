@@ -74,11 +74,12 @@ export default class BaseHighchartsComponent extends Component {
    * on the latest filter.
    */
   updateChart = () => {
-    if (Object.keys(this.props.dimensionData).length < 1) {
+    const dimensions = this.context.dimensionData.dimensions
+    if (dimensions.length < 1) {
       return
     }
 
-    const { categories, chartHeight, tickInterval } = this.props.dimensionData[this.dimension]
+    const { categories, chartHeight, tickInterval } = (dimensions.filter(e => e.dimension === this.dimension))[0]
 
     this.setState({
       chartOptions: {

@@ -1,12 +1,13 @@
 import React, { Component } from 'react'
 import Accordion from 'react-bootstrap/Accordion'
 import DimensionAccordionItem from './DimensionAccordionItem'
+import { AppContext } from '../lib/context'
 
-export default class DimensionAccordion extends Component {
+class DimensionAccordion extends Component {
   render () {
     return (
       <Accordion className='DimensionAccordion'>
-        {Object.values(this.props.dimensionData).map((e, index) => {
+        {Object.values(this.context.dimensionData.dimensions).map((e, index) => {
           if (e.hideInAccordion) {
             return undefined
           }
@@ -20,3 +21,7 @@ export default class DimensionAccordion extends Component {
     )
   }
 }
+
+DimensionAccordion.contextType = AppContext
+
+export default DimensionAccordion

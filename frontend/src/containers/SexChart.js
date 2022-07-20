@@ -1,4 +1,5 @@
 import BaseHighchartsComponent from './BaseHighchartsComponent'
+import { AppContext } from '../lib/context'
 
 const chartOptions = {
   title: {
@@ -6,8 +7,12 @@ const chartOptions = {
   }
 }
 
-export default class SexChart extends BaseHighchartsComponent {
+class SexChart extends BaseHighchartsComponent {
   constructor (props) {
     super(props, { chartOptions, dimension: 'sex' })
   }
 }
+
+SexChart.contextType = AppContext
+
+export default SexChart

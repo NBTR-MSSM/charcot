@@ -31,7 +31,9 @@ export default class App extends Component {
       isAuthenticating: true,
       email: '',
       filter: new Filter(),
-      dimensionData: [],
+      dimensionData: {
+        dimensions: []
+      },
       handleClearFilter: this.handleClearFilter,
       handleLogin: this.handleLogin,
       handleLogout: this.handleLogout,
@@ -45,7 +47,6 @@ export default class App extends Component {
   }
 
   async componentDidMount () {
-    console.log(`JMQ: App did mount ${window.location.pathname}`)
     await this.onLoad()
   }
 
@@ -142,7 +143,6 @@ export default class App extends Component {
 
   currentPage = () => {
     const history = this.state.navHistory
-    console.log(`JMQ: currentPage() ${JSON.stringify(history)}`)
     return history.length > 0 && history[history.length - 1]
   }
 
@@ -185,18 +185,14 @@ export default class App extends Component {
     }
     let leftNav
     if (this.currentPage() === '/search') {
-      leftNav = <div><LeftNav dimensionData={this.state.dimensionData}
-                              onCategorySelect={this.handleCategorySelect}
+      leftNav = <div><LeftNav onCategorySelect={this.handleCategorySelect}
                               onCategoryUnselect={this.handleCategoryUnselect}/></div>
     }
 
     let footer
     if (this.currentPage() === '/search' || this.currentPage() === '/review') {
       footer =
-        <Footer filter={savedState.filter.clone()}
-                dimensionData={this.state.dimensionData}/>
-    } else {
-      console.log('JMQ: hiding footer')
+        <Footer filter={savedState.filter.clone()}/>
     }
 
     let authFragment = <><LinkContainer to="/signup">
@@ -212,32 +208,31 @@ export default class App extends Component {
 
     return !this.state.isAuthenticating && (
       <div className='App container py-3'>
-        <Stack direction="horizontal" gap={3}>
-          {leftNav}
-          <div>
-            <Navbar collapseOnSelect bg="light" expand="md" className="mb-3 fixed-top charcot-top-nav">
-              <LinkContainer to="/">
-                <Navbar.Brand className="font-weight-bold text-muted">
-                  Mount Sinai Brain Slide
-                </Navbar.Brand>
-              </LinkContainer>
-              <Navbar.Toggle/>
-              <Navbar.Collapse className="justify-content-end">
-                <Nav activeKey={window.location.pathname}>
-                  <LinkContainer to="/search">
-                    <Nav.Link>Search</Nav.Link>
-                  </LinkContainer>
-                  {authFragment}
-                </Nav>
-              </Navbar.Collapse>
-            </Navbar>
-          </div>
-        </Stack>
         <AppContext.Provider value={this.state}>
+          <Stack direction="horizontal" gap={3}>
+            {leftNav}
+            <div>
+              <Navbar collapseOnSelect bg="light" expand="md" className="mb-3 fixed-top charcot-top-nav">
+                <LinkContainer to="/">
+                  <Navbar.Brand className="font-weight-bold text-muted">
+                    Mount Sinai Brain Slide
+                  </Navbar.Brand>
+                </LinkContainer>
+                <Navbar.Toggle/>
+                <Navbar.Collapse className="justify-content-end">
+                  <Nav activeKey={window.location.pathname}>
+                    <LinkContainer to="/search">
+                      <Nav.Link>Search</Nav.Link>
+                    </LinkContainer>
+                    {authFragment}
+                  </Nav>
+                </Navbar.Collapse>
+              </Navbar>
+            </div>
+          </Stack>
           <CharcotRoutes onCategorySelect={this.handleCategorySelect}
                          onCategoryUnselect={this.handleCategoryUnselect}
-                         filter={savedState.filter.clone()}
-                         dimensionData={this.state.dimensionData}/>
+                         filter={savedState.filter.clone()}/>
           {footer}
         </AppContext.Provider>
       </div>)

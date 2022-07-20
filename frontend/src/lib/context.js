@@ -5,7 +5,9 @@ export const AppContext = createContext({
   isAuthenticated: false,
   email: '',
   filter: new Filter(),
-  dimensionData: [],
+  dimensionData: {
+    dimensions: []
+  },
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   redirectToPrevious: () => {},
   // eslint-disable-next-line @typescript-eslint/no-empty-function

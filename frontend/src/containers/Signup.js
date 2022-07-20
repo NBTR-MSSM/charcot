@@ -70,7 +70,6 @@ class Signup extends Component {
     })
     const { email, password } = this.state
     try {
-      console.log(`JMQ: attributes is ${JSON.stringify(this.signupAttributes())}`)
       const newUser = await Auth.signUp({
         username: email,
         password,

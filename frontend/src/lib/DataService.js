@@ -57,20 +57,13 @@ const retrieveData = async ({ config, dimension, filter }) => {
   return CACHE.get(key)
 }
 
-/**
- * Produces a map of category name to category data object that includes the
- * count associated with the category, for example for the Sex dimension:
- *   Male   -> { count: 12345 }
- *   Female -> { count: 67890 }
- */
 const prepareCategoryData = ({ config, dimension, filter, values, resetCountToZero = false }) => {
-  let grandTotal = 0
   const selectedCategories = new Set()
   const categories = values.reduce((prev, cur) => {
     const currentCategory = {
       count: resetCountToZero ? 0 : cur.count
     }
-    grandTotal += currentCategory.count
+
     if (config.isNumeric) {
       // Things like 'age' dimension will have the range repeated in the payload, because the ID is the age
       // but ranges group 2 or more age groups, hence the reason for logic below to keep track of ranges
@@ -96,8 +89,8 @@ const prepareCategoryData = ({ config, dimension, filter, values, resetCountToZe
 
   return {
     categories,
-    grandTotal,
-    selectedCategories
+    selectedCategories,
+    selectedSlideCount: Array.from(categories.values()).filter(e => e.selected).reduce((prev, cur) => prev + cur.count, 0)
   }
 }
 
@@ -112,7 +105,7 @@ class DataService {
   async fetch ({ dimension, filter }) {
     const config = DIMENSION_CONFIGS[dimension]
     const filteredValues = await retrieveData({ config, dimension, filter })
-    const { categories: filteredCategories, grandTotal, selectedCategories } = prepareCategoryData({
+    const { categories: filteredCategories, selectedCategories, selectedSlideCount } = prepareCategoryData({
       config,
       dimension,
       filter,
@@ -143,11 +136,11 @@ class DataService {
       dimension,
       displayName: config.displayName,
       categories: mergedCategories,
-      grandTotal,
       selectedCategories,
       chartHeight: `${chartHeight < 200 ? 200 : (chartHeight > 600 ? 600 : chartHeight)}px`,
       tickInterval: calculateTickInterval(mergedCategories),
       selectedCategoryCount: selectedCategories.size,
+      selectedSlideCount,
       categoryCount,
       filteredCategoryCount: Array.from(filteredCategories.keys()).length,
       statToDisplay: config.statToDisplay,
@@ -162,10 +155,17 @@ class DataService {
       promises.push(this.fetch({ dimension, filter }))
     }
     const res = await Promise.all(promises)
-    const ret = {}
-    for (let i = 0; i < res.length; i++) {
-      ret[dimensions[i]] = res[i]
+    const ret = {
+      dimensions: []
     }
+    let selectedSlideCount = 0
+    for (let i = 0; i < res.length; i++) {
+      const dimensionObj = res[i]
+      ret.dimensions.push(dimensionObj)
+      // calculate total number of slides across all the dimensions
+      selectedSlideCount = dimensionObj.selectedSlideCount || selectedSlideCount
+    }
+    ret.selectedSlideCount = selectedSlideCount
     return ret
   }
 }

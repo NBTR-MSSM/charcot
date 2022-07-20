@@ -49,12 +49,14 @@ class Footer extends Component {
     }
 
     const isProcessing = this.state.isProcessing
+    const dimensionData = this.context.dimensionData
     return (
       <footer className='Footer fixed-bottom'>
         <Stack bsPrefix={'charcot-footer-hstack'} direction='horizontal' gap={3}>
-          {Object.values(this.props.dimensionData).map((e, index) => {
+          {Object.values(dimensionData.dimensions).map((e, index) => {
             return <Stat key={index} info={e}/>
           })}
+          <Stat info={{ selectedCategoryCount: dimensionData.selectedSlideCount, displayName: 'Total Selected Slides' }}/>
           <LinkContainer to={buttonInfo.to}>
             <LoaderButton id={buttonInfo.id} onClick={isProcessing ? null : buttonInfo.function}
                           disabled={isProcessing}
