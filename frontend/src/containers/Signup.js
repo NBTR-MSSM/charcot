@@ -26,6 +26,10 @@ class Signup extends Component {
     }
   }
 
+  componentDidMount () {
+    this.context.pushToHistory()
+  }
+
   validateForm = () => {
     return (
       this.state.email.length > 0 &&
@@ -39,8 +43,16 @@ class Signup extends Component {
   }
 
   signupAttributes = () => {
-    const { familyName, givenName, degree, institutionName, institutionAddress, areasOfInterest, intendedUse } = this.state
-    const obj = { }
+    const {
+      familyName,
+      givenName,
+      degree,
+      institutionName,
+      institutionAddress,
+      areasOfInterest,
+      intendedUse
+    } = this.state
+    const obj = {}
     obj.family_name = familyName
     obj.given_name = givenName
     obj['custom:degree'] = degree
@@ -88,9 +100,9 @@ class Signup extends Component {
     try {
       await Auth.confirmSignUp(email, confirmationCode)
       await Auth.signIn(email, password)
-      this.context.handleLogin()
-      // send them back to whatever page they were one when they chose to sign up
-      this.context.redirect({ to: this.context.routeState.active })
+      this.context.handleLogin({ email })
+      // send them back to whatever page they were on when they chose to sign up
+      this.context.redirectToPrevious()
     } catch (e) {
       onError(e)
     }

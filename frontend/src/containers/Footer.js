@@ -17,18 +17,18 @@ class Footer extends Component {
 
   handleSubmitButtonClick = async () => {
     if (!this.context.isAuthenticated) {
-      this.context.redirect({ to: 'login' })
+      this.context.redirect({ to: '/login' })
     } else {
       this.setState({ isProcessing: true })
       const filter = this.props.filter.serialize()
       await API.post('charcot', '/cerebrum-image-orders', {
         body: {
           filter,
-          email: 'joquijada2010@gmail.com'
+          email: this.context.email
         }
       })
       this.setState({ isProcessing: false })
-      // TODO Redirect to submission confirmation page
+      this.context.redirect({ to: '/confirmation' })
     }
   }
 
@@ -42,7 +42,7 @@ class Footer extends Component {
       }
     }
 
-    if (this.context.routeState.active === 'review') {
+    if (this.context.currentPage() === '/review') {
       buttonInfo.text = 'Submit'
       buttonInfo.id = 'submit-btn'
       buttonInfo.function = this.handleSubmitButtonClick

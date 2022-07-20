@@ -4,12 +4,11 @@ import './Review.css'
 import DimensionAccordion from './DimensionAccordion'
 import Button from 'react-bootstrap/Button'
 import { LinkContainer } from 'react-router-bootstrap'
+import { AppContext } from '../lib/context'
 
-export default class Review extends Component {
+class Review extends Component {
   componentDidMount () {
-    this.props.onRouteLoad({
-      active: 'review'
-    })
+    this.context.pushToHistory()
   }
 
   render = () => {
@@ -27,3 +26,7 @@ export default class Review extends Component {
       </div>)
   }
 }
+
+Review.contextType = AppContext
+
+export default Review

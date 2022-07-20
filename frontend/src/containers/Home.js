@@ -4,9 +4,7 @@ import { AppContext } from '../lib/context'
 
 class Home extends Component {
   componentDidMount () {
-    this.context.handleRouteLoad({
-      active: 'home'
-    })
+    this.context.pushToHistory()
   }
 
   render () {

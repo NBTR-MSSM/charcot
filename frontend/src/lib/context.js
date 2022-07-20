@@ -3,9 +3,11 @@ import Filter from './Filter'
 
 export const AppContext = createContext({
   isAuthenticated: false,
-  routeState: {},
+  email: '',
   filter: new Filter(),
   dimensionData: [],
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  redirectToPrevious: () => {},
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   handleLogin: () => {},
   // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -13,5 +15,9 @@ export const AppContext = createContext({
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   redirect: () => {},
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  handleRouteLoad: () => {}
+  currentPage: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  pushToHistory: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  handleClearFilter: () => {}
 })

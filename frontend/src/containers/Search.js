@@ -7,18 +7,17 @@ import RaceChart from './RaceChart'
 import DiagnosisChart from './DiagnosisChart'
 import './Search.css'
 import FilterComponent from './FilterComponent'
+import { AppContext } from '../lib/context'
 
-export default class Search extends Component {
+class Search extends Component {
   componentDidMount () {
-    this.props.onRouteLoad({
-      active: 'search'
-    })
+    this.context.pushToHistory()
   }
 
   render () {
     let filterComponent = ''
     if (!this.props.filter.isEmpty()) {
-      filterComponent = <FilterComponent onClearFilter={this.props.onClearFilter} filter={this.props.filter}
+      filterComponent = <FilterComponent filter={this.props.filter}
                                          onCategoryUnselect={this.props.onCategoryUnselect}/>
     }
 
@@ -73,3 +72,7 @@ export default class Search extends Component {
       </div>)
   }
 }
+
+Search.contextType = AppContext
+
+export default Search

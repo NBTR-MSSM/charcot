@@ -16,6 +16,10 @@ class Login extends Component {
     }
   }
 
+  componentDidMount () {
+    this.context.pushToHistory()
+  }
+
   validateForm = () => this.state.email.length > 0 && this.state.password.length > 0
 
   handleSubmit = async (event) => {
@@ -29,9 +33,9 @@ class Login extends Component {
     try {
       await Auth.signIn(email, password)
       // eslint-disable-next-line no-undef
-      this.context.handleLogin()
+      this.context.handleLogin({ email })
       // send them back to whatever page they were one when they chose to sign up
-      this.context.redirect({ to: this.context.routeState.active })
+      this.context.redirectToPrevious()
     } catch (e) {
       onError(e)
     }

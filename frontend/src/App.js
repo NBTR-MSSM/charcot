@@ -22,9 +22,6 @@ const savedState = {
 /**
  * TODO: Move all the various handlers that are passed down the component hierarchy via props to AppContext,
  *       and clean up all those unnecessary props.
- * TODO: Methodology for redirect upon login/logout a bit convoluted. Each route sets the routeState, then upon
- *       login/logout we redirect to the last known route. Is there a cleaner way of doing it? `react-router-dom` 6.3.0
- *       offers the useNavigate() method to simply all this, but will worry about that later.
  */
 export default class App extends Component {
   constructor (props) {
@@ -32,23 +29,36 @@ export default class App extends Component {
     this.state = {
       isAuthenticated: false,
       isAuthenticating: true,
-      routeState: {},
+      email: '',
       filter: new Filter(),
       dimensionData: [],
+      handleClearFilter: this.handleClearFilter,
       handleLogin: this.handleLogin,
       handleLogout: this.handleLogout,
       redirect: this.redirect,
-      handleRouteLoad: this.handleRouteLoad,
-      redirectTo: ''
+      currentPage: this.currentPage,
+      redirectTo: '',
+      redirectToPrevious: this.redirectToPrevious,
+      navHistory: [],
+      pushToHistory: this.pushToHistory
     }
   }
 
   async componentDidMount () {
-    console.log('App mounted')
+    console.log(`JMQ: App did mount ${window.location.pathname}`)
     await this.onLoad()
   }
 
+  pushToHistory = () => {
+    const history = this.state.navHistory
+    history.push(window.location.pathname)
+    this.setState({
+      navHistory: history
+    })
+  }
+
   componentDidUpdate () {
+    console.log('JMQ: App did update ')
     if (this.state.redirectTo) {
       this.setState({
         redirectTo: ''
@@ -56,11 +66,17 @@ export default class App extends Component {
     }
   }
 
+  redirectToPrevious = () => {
+    const history = this.state.navHistory
+    this.redirect({ to: history[history.length - 2] })
+  }
+
   onLoad = async () => {
     // Load user session if any (I.e. if user is already logged in)
     try {
       await Auth.currentSession()
-      this.handleLogin()
+      const user = await Auth.currentUserInfo()
+      this.handleLogin({ email: user.attributes.email })
     } catch (e) {
       if (e !== 'No current user') {
         onError(e)
@@ -73,9 +89,10 @@ export default class App extends Component {
     await this.updateChartDataState({ filter: this.state.filter })
   }
 
-  handleLogin = () => {
+  handleLogin = ({ email }) => {
     this.setState(
       {
+        email,
         isAuthenticated: true
       }
     )
@@ -84,7 +101,7 @@ export default class App extends Component {
   redirect = ({ to }) => {
     this.setState(
       {
-        redirectTo: to
+        redirectTo: to || 'home'
       }
     )
   }
@@ -96,7 +113,7 @@ export default class App extends Component {
         isAuthenticated: false
       }
     )
-    this.redirect({ to: 'login' })
+    this.redirect({ to: '/login' })
   }
 
   /**
@@ -123,10 +140,15 @@ export default class App extends Component {
     await this.updateChartDataState({ filter: this.state.filter.clear() })
   }
 
-  handleRouteLoad = (routeState) => {
-    this.setState({
-      routeState: { ...routeState }
-    })
+  currentPage = () => {
+    const history = this.state.navHistory
+    console.log(`JMQ: currentPage() ${JSON.stringify(history)}`)
+    return history.length > 0 && history[history.length - 1]
+  }
+
+  previousPage = () => {
+    const history = this.state.navHistory
+    return history.length > 1 && history[history.length - 2]
   }
 
   /**
@@ -159,20 +181,22 @@ export default class App extends Component {
      * lifecycle method clears this.state.redirectTo to avoid infinite redirect!
      */
     if (this.state.redirectTo) {
-      return <Redirect to={`/${this.state.redirectTo === 'home' ? '' : this.state.redirectTo}`}/>
+      return <Redirect to={this.state.redirectTo}/>
     }
     let leftNav
-    if (this.state.routeState.active === 'search') {
+    if (this.currentPage() === '/search') {
       leftNav = <div><LeftNav dimensionData={this.state.dimensionData}
                               onCategorySelect={this.handleCategorySelect}
                               onCategoryUnselect={this.handleCategoryUnselect}/></div>
     }
 
     let footer
-    if (this.state.routeState.active === 'search' || this.state.routeState.active === 'review') {
+    if (this.currentPage() === '/search' || this.currentPage() === '/review') {
       footer =
         <Footer filter={savedState.filter.clone()}
                 dimensionData={this.state.dimensionData}/>
+    } else {
+      console.log('JMQ: hiding footer')
     }
 
     let authFragment = <><LinkContainer to="/signup">
@@ -212,8 +236,7 @@ export default class App extends Component {
         <AppContext.Provider value={this.state}>
           <CharcotRoutes onCategorySelect={this.handleCategorySelect}
                          onCategoryUnselect={this.handleCategoryUnselect}
-                         onClearFilter={this.handleClearFilter}
-                         onRouteLoad={this.handleRouteLoad} filter={savedState.filter.clone()}
+                         filter={savedState.filter.clone()}
                          dimensionData={this.state.dimensionData}/>
           {footer}
         </AppContext.Provider>

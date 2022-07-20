@@ -6,6 +6,7 @@ import Search from './containers/Search'
 import NotFound from './containers/NotFound'
 import Login from './containers/Login'
 import Signup from './containers/Signup'
+import Confirmation from './containers/Confirmation'
 
 export default class CharcotRoutes extends Component {
   render () {
@@ -14,17 +15,17 @@ export default class CharcotRoutes extends Component {
         <Route exact path='/'>
           <Home/>
         </Route>
+        <Route exact path='/home'>
+          <Home/>
+        </Route>
         <Route exact path='/search'>
-          <Search onRouteLoad={this.props.onRouteLoad}
-                  onCategorySelect={this.props.onCategorySelect}
+          <Search onCategorySelect={this.props.onCategorySelect}
                   onCategoryUnselect={this.props.onCategoryUnselect}
-                  onClearFilter={this.props.onClearFilter}
                   filter={this.props.filter}
                   dimensionData={this.props.dimensionData}/>
         </Route>
         <Route exact path='/review'>
-          <Review onRouteLoad={this.props.onRouteLoad}
-                  onCategorySelect={this.props.onCategorySelect}
+          <Review onCategorySelect={this.props.onCategorySelect}
                   onCategoryUnselect={this.props.onCategoryUnselect}
                   filter={this.props.filter}
                   dimensionData={this.props.dimensionData}/>
@@ -34,6 +35,9 @@ export default class CharcotRoutes extends Component {
         </Route>
         <Route exact path='/login'>
           <Login />
+        </Route>
+        <Route exact path='/confirmation'>
+          <Confirmation />
         </Route>
         {/* Finally, catch all unmatched routes */}
         <Route>
