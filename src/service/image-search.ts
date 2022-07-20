@@ -130,11 +130,11 @@ class ImageSearch {
     for (const m of filter.matchAll(/((\w+)\s=\s(?:'(\d+)\+'|'<\s(\d+)'))/g)) {
       const category = m[2]
       const categoryPlaceholder = `#${category.replace(/\s+/g, '')}`
-      const greaterThan = m[3]
+      const greaterThanOrEqualTo = m[3]
       const lt = m[4]
-      const num = greaterThan || lt
+      const num = greaterThanOrEqualTo || lt
       const searchStr = m[1]
-      const replaceStr = greaterThan ? `${categoryPlaceholder} > :${num}` : `${categoryPlaceholder} < :${num}`
+      const replaceStr = greaterThanOrEqualTo ? `${categoryPlaceholder} >= :${num}` : `${categoryPlaceholder} < :${num}`
       exprAttrNames[categoryPlaceholder] = category
       exprAttrValues[`:${num}`] = Number.parseInt(num)
       dynamoFilter = dynamoFilter.replace(searchStr, replaceStr)
