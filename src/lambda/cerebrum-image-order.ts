@@ -1,6 +1,6 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import { dynamoDbClient, HttpResponse, lambdaClient, lambdaWrapper } from '@exsoinn/aws-sdk-wrappers'
-import { CerebrumImageOrder } from '../types/charcot.types'
+import { CerebrumImageOrder, Filter } from '../types/charcot.types'
 import { v4 as uuidGenerator } from 'uuid'
 import imageSearch from '../service/image-search'
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
@@ -8,13 +8,11 @@ import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
 // TODO: Update unit test to reflect use of filter
 const parseOrder = async (event: APIGatewayProxyEventV2): Promise<CerebrumImageOrder | undefined> => {
   const order = event.body
-  console.log(`JMQ: event is ${JSON.stringify(event)}`)
   if (!order) {
     return undefined
   }
   const orderObj = JSON.parse(order)
-  const filter = (event.queryStringParameters && event.queryStringParameters.filter) || orderObj.filter
-  console.log(`JMQ: orderObj is ${JSON.stringify(orderObj)}`)
+  const filter: Filter = (event.queryStringParameters && event.queryStringParameters.filter) || orderObj.filter
   if (!orderObj.email || (!orderObj.fileNames && !filter)) {
     return undefined
   }
@@ -22,14 +20,14 @@ const parseOrder = async (event: APIGatewayProxyEventV2): Promise<CerebrumImageO
   return {
     orderId,
     email: orderObj.email as string,
-    fileNames: orderObj.fileNames || await fetchFileNames(event),
+    fileNames: orderObj.fileNames || await fetchFileNames(filter),
     filter,
     created: new Date().toISOString()
   }
 }
 
-const fetchFileNames = async (event: APIGatewayProxyEventV2): Promise<string[]> => {
-  const res = await imageSearch.search(event)
+const fetchFileNames = async (filter: Filter): Promise<string[]> => {
+  const res = await imageSearch.search(filter)
   const items = res.body as DocumentClient.ItemList
   return items.map((e) => e.fileName)
 }

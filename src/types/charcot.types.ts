@@ -2,6 +2,8 @@ import * as sst from '@serverless-stack/resources'
 
 type CharcotFileName = string
 
+export type Filter = string
+
 export interface CerebrumImageMetaData {
   fileName: CharcotFileName
   region: string
@@ -24,7 +26,7 @@ export interface CerebrumImageOrder {
   orderId: string
   created: string
   fileNames: CharcotFileName[]
-  filter: string | undefined,
+  filter: Filter | undefined,
   email: string
 }
 

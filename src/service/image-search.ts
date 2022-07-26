@@ -1,6 +1,6 @@
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
 import { dynamoDbClient, HttpResponse } from '@exsoinn/aws-sdk-wrappers'
-import { Dimension } from '../types/charcot.types'
+import { Dimension, Filter } from '../types/charcot.types'
 import RangeMap from '../common/range-map'
 import { paramCase } from 'change-case'
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
@@ -8,11 +8,11 @@ import { singular } from 'pluralize'
 import { rank } from '../common/rank'
 
 class ImageSearch {
-  async search(event: APIGatewayProxyEventV2): Promise<Record<string, any>> {
+  async search(filter: Filter): Promise<Record<string, any>> {
     const params: DocumentClient.QueryInput = {
       TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string
     }
-    this.addFilter(event, params)
+    this.addFilter(filter, params)
     const res = await dynamoDbClient.scan(params)
     let responseCode = 200
     if (!res.Items) {
@@ -39,7 +39,7 @@ class ImageSearch {
       TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string,
       IndexName: `${dimension}Index`
     }
-    this.addFilter(event, params)
+    this.addFilter((event.queryStringParameters && event.queryStringParameters.filter) as Filter, params)
     this.addEnabledOnlyCondition(params)
     // console.log(`JMQ: params is ${JSON.stringify(params)}`)
 
@@ -112,8 +112,7 @@ class ImageSearch {
    * the DynamoDB query untouched.
    * WARNING: Fairly heavy use of RegEx alert.
    */
-  private addFilter(event: APIGatewayProxyEventV2, params: DocumentClient.QueryInput) {
-    const filter = event.queryStringParameters && event.queryStringParameters.filter
+  private addFilter(filter: Filter, params: DocumentClient.QueryInput) {
     if (!filter) {
       return
     }
