@@ -1,0 +1,29 @@
+{
+  "Comment": "Charcot Route53 Config",
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "mountsinaicharcot.org",
+        "Type": "A",
+        "AliasTarget": {
+          "HostedZoneId": "Z2FDTNDATAQYW2",
+          "DNSName": "__DISTRIBUTION_DOMAIN_NAME__",
+          "EvaluateTargetHealth": true
+        }
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "www.mountsinaicharcot.org",
+        "Type": "A",
+        "AliasTarget": {
+          "HostedZoneId": "Z2FDTNDATAQYW2",
+          "DNSName": "__DISTRIBUTION_DOMAIN_NAME__",
+          "EvaluateTargetHealth": true
+        }
+      }
+    }
+  ]
+}

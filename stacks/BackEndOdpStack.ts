@@ -29,7 +29,6 @@ export default class BackEndOdpStack extends sst.Stack {
     const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketSuffix}`
 
     const cerebrumImageZipBucketName = args.zipBucketName!
-    const auth = args.auth!
 
     // Buckets
     let cerebrumImageOdpBucket

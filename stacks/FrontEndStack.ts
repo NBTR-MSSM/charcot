@@ -25,6 +25,7 @@ export default class FrontendStack extends sst.Stack {
     // Show the url in the output and the environment used for thi React app
     this.addOutputs({
       SiteUrl: site.url,
+      DistributionId: site.distributionId,
       Environment: JSON.stringify(environment, null, 2)
     })
   }
