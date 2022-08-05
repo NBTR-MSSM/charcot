@@ -202,18 +202,21 @@ export default class App extends Component {
         <Nav.Link>Login</Nav.Link>
       </LinkContainer>
     </>
+
     if (this.state.isAuthenticated) {
       authFragment = <Nav.Link onClick={this.handleLogout}>Logout</Nav.Link>
     }
 
+    console.log(`JMQ: currentPage is ${this.currentPage()}`)
+
     return !this.state.isAuthenticating && (
       <div className='App container py-3'>
         <AppContext.Provider value={this.state}>
-          <Stack direction="horizontal" gap={3}>
+          <Stack hidden={this.currentPage() === '/'} direction="horizontal" gap={3}>
             {leftNav}
             <div>
               <Navbar collapseOnSelect bg="light" expand="md" className="mb-3 fixed-top charcot-top-nav">
-                <LinkContainer to="/">
+                <LinkContainer to="/home">
                   <Navbar.Brand className="font-weight-bold text-muted">
                     Mount Sinai Brain Slide
                   </Navbar.Brand>

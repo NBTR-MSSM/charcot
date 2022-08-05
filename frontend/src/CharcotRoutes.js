@@ -7,13 +7,14 @@ import NotFound from './containers/NotFound'
 import Login from './containers/Login'
 import Signup from './containers/Signup'
 import Confirmation from './containers/Confirmation'
+import Splash from './containers/Splash'
 
 export default class CharcotRoutes extends Component {
   render () {
     return (
       <Switch>
         <Route exact path='/'>
-          <Home/>
+          <Splash/>
         </Route>
         <Route exact path='/home'>
           <Home/>
