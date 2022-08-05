@@ -38,7 +38,7 @@ describe('cerebrum-image-fulfillment', () => {
         },
         Subject: { Data: 'Charcot Image Request Ready' }
       },
-      Source: 'joquijada2010@gmail.com'
+      Source: 'no-reply@mountsinaicharcot.org'
     })
     dateSpy.mockRestore()
   })
