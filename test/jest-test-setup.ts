@@ -15,22 +15,26 @@ jest.mock('@exsoinn/aws-sdk-wrappers', () => {
   awsWrappers.dynamoDbClient.get = jest.fn(() => Promise.resolve())
   awsWrappers.dynamoDbClient.put = jest.fn(() => Promise.resolve())
   awsWrappers.dynamoDbClient.query = jest.fn(() => Promise.resolve())
+  awsWrappers.dynamoDbClient.scan = jest.fn(() => Promise.resolve())
   awsWrappers.lambdaClient.invokeLambda = jest.fn(() => Promise.resolve())
   awsWrappers.s3Client.copy = jest.fn(() => Promise.resolve())
   awsWrappers.s3Client.deleteObject = jest.fn(() => Promise.resolve())
   awsWrappers.s3Client.getSignedUrlPromise = jest.fn(() => Promise.resolve())
   awsWrappers.s3Client.zipObjectsToBucket = jest.fn(() => Promise.resolve())
   awsWrappers.s3Client.buildNewClient = jest.fn(() => awsWrappers.s3Client)
-  awsWrappers.sesClient.sendEmail = jest.fn(() => Promise.resolve())
+  awsWrappers.sesClient.sendEmail = jest.fn(() => ({
+    promise: () => Promise.resolve()
+  }))
   return awsWrappers
 })
 
 process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME = 'cerebrum-image-metadata'
 process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME = 'cerebrum-image-order'
-process.env.CEREBRUM_IMAGE_BUCKET_NAME = 'nbtr-production'
+process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME = 'nbtr-production'
 process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME = 'cerebrum-image-zip'
 process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME = 'handle-cerebrum-image-request-dev'
 process.env.ZIP_LINK_EXPIRY = '999'
+process.env.FROM_EMAIL = 'no-reply@mountsinaicharcot.org'
 
 jestGlobal.BASE_REQUEST = {
   headers: { 'content-type': 'application/x-www-form-urlencoded' },

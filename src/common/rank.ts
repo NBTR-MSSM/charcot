@@ -58,12 +58,11 @@ const rankings: Record<string, Record<string, number>> = {
     'Amyotropic Lateral Sclerosis (ALS)': 52,
     unkown: LOWEST_RANK,
     Other: LOWEST_RANK
-  }
+  },
+  race: {},
+  sex: {}
 }
 
 export const rank = (dimension: string, category: string): number => {
-  if (!rankings[dimension]) {
-    return LOWEST_RANK
-  }
   return rankings[dimension][category] || LOWEST_RANK
 }

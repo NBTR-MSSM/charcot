@@ -48,7 +48,6 @@ class ImageSearch {
     while (true) {
       const res = await dynamoDbClient.scan(params)
       const items = res.Items
-      // console.log(`JMQ: items is ${JSON.stringify(items)}`)
       // If dynamo returned 0 items and this is first iteration of the loop, return
       // HTTP not found code (404)
       if (!items) {
@@ -63,11 +62,8 @@ class ImageSearch {
         const max = Number.parseInt((event.queryStringParameters && event.queryStringParameters.max) || '90')
         const start = Number.parseInt((event.queryStringParameters && event.queryStringParameters.start) || interval.toString())
         const ranges: RangeMap = new RangeMap(interval, max, start)
-        // console.log(`JMQ: LastEvaluatedKey is ${JSON.stringify(res.LastEvaluatedKey)}`)
         ret = Array.from(items.reduce((prev: Map<string | number, Dimension>, cur: DocumentClient.AttributeMap) => {
-          // console.log(`JMQ: cur is ${JSON.stringify(cur)}`)
           const val = Number.isInteger(cur[dimension]) && isNumeric ? cur[dimension] : paramCase(`${cur[dimension]}`)
-          // console.log(`JMQ: val is ${cur[dimension]}`)
           let obj: Dimension | undefined
           if (!(obj = prev.get(val))) {
             obj = {
@@ -79,7 +75,8 @@ class ImageSearch {
             }
             prev.set(val, obj as Dimension)
 
-            // Ranging applies to dimensions numeric in nature only (E.g. Age)
+            // Ranging applies to dimensions numeric in nature only (E.g. Age) and where
+            // caller indeed wants to treat those as range-able (numeric=true in query string params)
             if (Number.isInteger(val) && isNumeric) {
               const rangeInfo = ranges.get(val)
               obj.range = rangeInfo?.range
@@ -94,7 +91,6 @@ class ImageSearch {
 
       const lastEvaluatedKey = res.LastEvaluatedKey
       if (lastEvaluatedKey) {
-        // console.log(`JMQ: lastEvaluatedKey is ${JSON.stringify(lastEvaluatedKey)}`)
         params.ExclusiveStartKey = lastEvaluatedKey
       } else {
         break
@@ -175,8 +171,8 @@ class ImageSearch {
 
   private addEnabledOnlyCondition(params: DocumentClient.QueryInput) {
     let curFilter = params.FilterExpression
-    curFilter = curFilter ? `${(curFilter)} AND` : ''
-    params.FilterExpression = `${curFilter} #enabled = :true`
+    curFilter = curFilter ? `${(curFilter)} AND ` : ''
+    params.FilterExpression = `${curFilter}#enabled = :true`
     const attrNames = params.ExpressionAttributeNames || {}
     const attrVals = params.ExpressionAttributeValues || {}
     attrNames['#enabled'] = 'enabled'

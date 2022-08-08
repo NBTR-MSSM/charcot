@@ -2,25 +2,8 @@
   "name": "charcot",
   "version": "0.1.0",
   "private": true,
-  "jest": {
-    "coverageThreshold": {
-      "global": {
-        "branches": 100,
-        "functions": 100,
-        "lines": 100,
-        "statements": 100
-      }
-    },
-    "setupFilesAfterEnv": [
-      "./test/jest-test-setup.ts"
-    ],
-    "testPathIgnorePatterns": [
-      ".js",
-      "stacks/"
-    ]
-  },
   "scripts": {
-    "test": "sst test --coverage --transform '{}' --preset 'ts-jest' --coveragePathIgnorePatterns 'coverage' --coveragePathIgnorePatterns '.build' --coveragePathIgnorePatterns '.sst' --coveragePathIgnorePatterns 'test' --coveragePathIgnorePatterns 'd.ts' --coveragePathIgnorePatterns 'stacks/'",
+    "test": "jest --config=\"./jest.config.ts\" --coverage",
     "start": "AWS_PROFILE=default sst start --stage demo",
     "build": "AWS_PROFILE=default sst build",
     "deploy:demo": "./script/deploy.mjs deploy -p default -o alt -s demo",
@@ -48,8 +31,9 @@
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^5.1.1",
+    "jest": "^28.1.3",
     "json-array-streams": "^1.0.1",
-    "ts-jest": "^27.1.0",
+    "ts-jest": "^28.0.7",
     "yargs": "^17.3.1"
   },
   "dependencies": {
@@ -61,6 +45,7 @@
     "lodash.merge": "^4.6.2",
     "nodemailer": "^6.7.2",
     "pluralize": "^8.0.0",
+    "ts-node": "^10.9.1",
     "uuid": "^8.3.2"
   }
 }

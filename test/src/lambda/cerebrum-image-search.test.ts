@@ -2,6 +2,7 @@ import * as lambda from '../../../src/lambda/cerebrum-image-search'
 import { APIGatewayProxyEventV2, Context } from 'aws-lambda'
 import merge from 'lodash.merge'
 import { dynamoDbClient } from '@exsoinn/aws-sdk-wrappers'
+import { ages, agesOutput, diagnoses, diagnosesOutput } from '../../fixture/cerebrum-image-dynamodb-search-result.fixture'
 
 const jestGlobal = global as any
 describe('cerebrum-image-search', () => {
@@ -32,7 +33,7 @@ describe('cerebrum-image-search', () => {
       race: 'Black',
       stain: 'XYZ'
     }
-    const res = await lambda.handle(event, {} as Context, jest.fn())
+    const res = await lambda.search(event, {} as Context, jest.fn())
     expect(res).toEqual({
       statusCode: 200,
       body: JSON.stringify(items, null, ' ')
@@ -67,7 +68,7 @@ describe('cerebrum-image-search', () => {
       stain: 'XYZ',
       email: 'john.smith@acme.com'
     }
-    const res = await lambda.handle(event, {} as Context, jest.fn())
+    const res = await lambda.search(event, {} as Context, jest.fn())
     expect(res).toEqual({
       statusCode: 500,
       body: JSON.stringify({
@@ -76,7 +77,7 @@ describe('cerebrum-image-search', () => {
     })
   })
 
-  it('returns error no search criteria has been specified', async () => {
+  it('returns error when no search criteria has been specified', async () => {
     const mockError = 'THIS IS A TEST: Problem creating image Zip'
     // @ts-ignore
     dynamoDbClient.query.mockRejectedValueOnce(mockError)
@@ -85,7 +86,7 @@ describe('cerebrum-image-search', () => {
     event.queryStringParameters = {
       foo: 'bar'
     }
-    const res = await lambda.handle(event, {} as Context, jest.fn())
+    const res = await lambda.search(event, {} as Context, jest.fn())
     expect(res).toEqual({
       statusCode: 401,
       body: JSON.stringify({
@@ -102,7 +103,7 @@ describe('cerebrum-image-search', () => {
     const event = {} as APIGatewayProxyEventV2
     merge(event, jestGlobal.BASE_REQUEST)
     event.queryStringParameters = undefined
-    const res = await lambda.handle(event, {} as Context, jest.fn())
+    const res = await lambda.search(event, {} as Context, jest.fn())
     expect(res).toEqual({
       statusCode: 401,
       body: JSON.stringify({
@@ -110,5 +111,95 @@ describe('cerebrum-image-search', () => {
       }, null, ' ')
     })
     expect(dynamoDbClient.query).toHaveBeenCalledTimes(0)
+  })
+
+  it('returns 404 if no results found for a dimension', async () => {
+    // @ts-ignore
+    dynamoDbClient.scan.mockResolvedValueOnce({})
+    const event = {} as APIGatewayProxyEventV2
+    merge(event, jestGlobal.BASE_REQUEST)
+    event.pathParameters = {
+      dimension: 'ages'
+    }
+    const res = await lambda.dimension(event, {} as Context, jest.fn())
+    expect(res).toEqual({
+      statusCode: 404,
+      body: JSON.stringify([])
+    })
+    expect(dynamoDbClient.scan).toHaveBeenCalledWith({
+      ExpressionAttributeValues: {
+        ':true': 'true'
+      },
+      ExpressionAttributeNames: {
+        '#dimension': 'age',
+        '#enabled': 'enabled'
+      },
+      FilterExpression: '#enabled = :true',
+      ProjectionExpression: '#dimension',
+      TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string,
+      IndexName: 'ageIndex'
+    })
+  })
+
+  it('calculates correctly ranges for dimensions that are numeric', async () => {
+    // @ts-ignore
+    dynamoDbClient.scan.mockResolvedValueOnce(ages)
+    const event = {} as APIGatewayProxyEventV2
+    merge(event, jestGlobal.BASE_REQUEST)
+    event.pathParameters = {
+      dimension: 'ages'
+    }
+    event.queryStringParameters = {
+      numeric: 'true'
+    }
+    const res = await lambda.dimension(event, {} as Context, jest.fn())
+    expect(res).toEqual({
+      statusCode: 200,
+      body: JSON.stringify(agesOutput, null, ' ')
+    })
+    expect(dynamoDbClient.scan).toHaveBeenCalledWith({
+      ExpressionAttributeValues: {
+        ':true': 'true'
+      },
+      ExpressionAttributeNames: {
+        '#dimension': 'age',
+        '#enabled': 'enabled'
+      },
+      FilterExpression: '#enabled = :true',
+      ProjectionExpression: '#dimension',
+      TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string,
+      IndexName: 'ageIndex'
+    })
+  })
+
+  it('calculates correctly search results are for dimensions that are not numeric', async () => {
+    // @ts-ignore
+    dynamoDbClient.scan.mockResolvedValueOnce(diagnoses)
+    const event = {} as APIGatewayProxyEventV2
+    merge(event, jestGlobal.BASE_REQUEST)
+    event.pathParameters = {
+      dimension: 'diagnoses'
+    }
+    event.queryStringParameters = {
+      numeric: 'true'
+    }
+    const res = await lambda.dimension(event, {} as Context, jest.fn())
+    expect(res).toEqual({
+      statusCode: 200,
+      body: JSON.stringify(diagnosesOutput, null, ' ')
+    })
+    expect(dynamoDbClient.scan).toHaveBeenCalledWith({
+      ExpressionAttributeValues: {
+        ':true': 'true'
+      },
+      ExpressionAttributeNames: {
+        '#dimension': 'diagnosis',
+        '#enabled': 'enabled'
+      },
+      FilterExpression: '#enabled = :true',
+      ProjectionExpression: '#dimension',
+      TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string,
+      IndexName: 'diagnosisIndex'
+    })
   })
 })

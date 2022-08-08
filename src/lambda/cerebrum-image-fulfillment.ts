@@ -16,13 +16,14 @@ const sendMail = async (email: string, zipPath: string): Promise<PromiseResult<S
     path: zipPath,
     expires: process.env.ZIP_LINK_EXPIRY as string
   })
-  const emailParams = {
+  const emailParams: SES.Types.SendEmailRequest = {
     Destination: {
       ToAddresses: [email]
     },
     Message: {
       Body: {
-        Text: { Data: `Your requested image Zip is ready. You can access via this link, ${zipLink}.` }
+        Html: { Data: `Your requested image Zip is ready. You can access via this <a href='${zipLink}'>link</a>` },
+        Text: { Data: `Your requested image Zip is ready. You can access via this link: ${zipLink}.` }
       },
       Subject: { Data: 'Charcot Image Request Ready' }
     },

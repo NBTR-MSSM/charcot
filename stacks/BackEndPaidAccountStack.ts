@@ -69,8 +69,8 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     // with their stage-less S3 buckets which were in place already before Charcot. Renaming
     // those existing buckets is not an option
     const bucketSuffix = stage === 'prod' ? '' : `-${stage}`
-    const cerebrumImageBucketName = `${process.env.CEREBRUM_IMAGE_BUCKET_NAME}${bucketSuffix}`
-    const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketSuffix}`
+    const cerebrumImageBucketName = `${process.env.CEREBRUM_IMAGE_BUCKET_NAME}${bucketSuffix}` // source
+    const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketSuffix}` //target
 
     const cerebrumImageZipBucketName = args.zipBucketName
 
