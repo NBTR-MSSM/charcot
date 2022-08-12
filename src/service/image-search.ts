@@ -13,6 +13,7 @@ class ImageSearch {
       TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string
     }
     this.addFilter(filter, params)
+    console.log(`JMQ: search() params is ${JSON.stringify(params)}`)
     const res = await dynamoDbClient.scan(params)
     let responseCode = 200
     if (!res.Items) {

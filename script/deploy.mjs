@@ -77,17 +77,17 @@ try {
     // ...and update ODP image bucket policy to allow access for image transfer. This
     // step is needed in 'prod' stage only, read function doc above it.
     if (stage === 'prod') {
-      await updateOdpCerebrumImageBucketPolicy({
+      /*await updateOdpCerebrumImageBucketPolicy({
         awsProfile: odpAccountProfile,
         bucket: process.env.CerebrumImageOdpBucketName,
         imageTransferLambdaRoleArn: process.env.HANDLE_CEREBRUM_IMAGE_TRANSFER_ROLE_ARN,
         fulfillmentLambdaRoleArn: process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_ROLE_ARN
-      })
+      })*/
 
       await configureCharcotDomain({
         awsProfile: paidAccountProfile,
         distributionId: process.env.DistributionId,
-        distributionDomainName: process.env.SiteUrl
+        distributionDomainName: process.env.DistributionDomain
       })
     }
   }

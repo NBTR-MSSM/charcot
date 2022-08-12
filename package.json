@@ -13,8 +13,7 @@
     "lint:fix": "eslint -c .eslintrc.yml --no-eslintrc --fix ./",
     "remove": "sst remove",
     "remove:demo": "./script/deploy.mjs remove -p default -o alt -s demo",
-    "remove:dev": "./script/deploy.mjs remove -p mssm -o mssm-odp -s dev",
-    "remove:prod": "./script/deploy.mjs remove -p mssm -o mssm-odp -s prod"
+    "remove:dev": "./script/deploy.mjs remove -p mssm -o mssm-odp -s dev"
   },
   "devDependencies": {
     "@tsconfig/node14": "^1.0.1",

@@ -5,7 +5,7 @@ import BackEndPaidAccountStack from '../../stacks/BackEndPaidAccountStack'
 test('Charcot Stack', () => {
   const app = new sst.App()
   // WHEN
-  const stack = new BackEndPaidAccountStack(app, 'charcot-stack')
+  const stack = new BackEndPaidAccountStack(app, 'charcot-stack', {}, {})
 
   const template = Template.fromStack(stack)
 

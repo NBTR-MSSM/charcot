@@ -29,6 +29,7 @@ const parseOrder = async (event: APIGatewayProxyEventV2): Promise<CerebrumImageO
 const fetchFileNames = async (filter: Filter): Promise<string[]> => {
   const res = await imageSearch.search(filter)
   const items = res.body as DocumentClient.ItemList
+  console.log(`JMQ: items is ${JSON.stringify(items)}`)
   return items.map((e) => e.fileName)
 }
 
