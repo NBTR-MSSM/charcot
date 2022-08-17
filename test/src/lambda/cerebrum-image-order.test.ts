@@ -1,9 +1,7 @@
 import * as lambda from '../../../src/lambda/cerebrum-image-order'
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from 'aws-lambda'
 import merge from 'lodash.merge'
-import { dynamoDbClient, lambdaClient } from '@exsoinn/aws-sdk-wrappers'
-
-const imageFulfillmentLambdaName = process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME as string
+import { axiosClient, dynamoDbClient } from '@exsoinn/aws-sdk-wrappers'
 
 const mockOrderEventBody: Readonly<Record<string, any>> = {
   fileNames: ['XE13-009_2_HE_1.mrxs', 'XE13-009_2_Sil_1.mrxs', 'XE12-025_1_HE_1.mrxs'],
@@ -17,13 +15,14 @@ describe('cerebrum-image-order', () => {
     event = {} as APIGatewayProxyEventV2
     merge(event, jestGlobal.BASE_REQUEST)
   })
+
   it('submits image order for fulfillment', async () => {
     const currentTime = new Date('2021-12-27 00:00:00 UTC')
     // @ts-ignore
     const dateSpy = jest.spyOn(global, 'Date').mockImplementation(() => currentTime)
     // @ts-ignore
-    lambdaClient.invokeLambda.mockResolvedValueOnce({
-      StatusCode: 202
+    axiosClient.post.mockResolvedValueOnce({
+      status: 202
     })
     event.body = JSON.stringify(mockOrderEventBody)
     const res = await lambda.create(event, {} as Context, jest.fn()) as APIGatewayProxyStructuredResultV2
@@ -44,13 +43,7 @@ describe('cerebrum-image-order', () => {
     })
 
     // @ts-ignore
-    expect(lambdaClient.invokeLambda.mock.calls[0][0]).toEqual(imageFulfillmentLambdaName)
-    // @ts-ignore
-    expect(lambdaClient.invokeLambda.mock.calls[0][1]).toEqual('Event')
-    // @ts-ignore
-    expect(lambdaClient.invokeLambda.mock.calls[0][2]).toEqual(JSON.stringify({ orderId: jestGlobal.dummyOrderId }))
-    // @ts-ignore
-    expect(lambdaClient.invokeLambda.mock.calls[0][3]).toEqual(imageFulfillmentLambdaName)
+    expect(axiosClient.post).toHaveBeenCalledWith(`https://${process.env.FULFILLMENT_HOST}/cerebrum-image-orders/${jestGlobal.dummyOrderId}/fulfill`)
     dateSpy.mockRestore()
   })
 
@@ -66,7 +59,7 @@ describe('cerebrum-image-order', () => {
         message: `Something went wrong, ${mockError}`
       }, null, ' ')
     })
-    expect((lambdaClient as any).invokeLambda).toHaveBeenCalledTimes(0)
+    expect((axiosClient as any).post).toHaveBeenCalledTimes(0)
   })
 
   it('returns error when email is missing', async () => {
@@ -81,7 +74,7 @@ describe('cerebrum-image-order', () => {
         message: 'Request is either empty or invalid'
       }, null, ' ')
     })
-    expect((lambdaClient as any).invokeLambda).toHaveBeenCalledTimes(0)
+    expect((axiosClient as any).post).toHaveBeenCalledTimes(0)
   })
 
   it('returns error when order contains no files', async () => {
@@ -96,7 +89,7 @@ describe('cerebrum-image-order', () => {
         message: 'Request is either empty or invalid'
       }, null, ' ')
     })
-    expect((lambdaClient as any).invokeLambda).toHaveBeenCalledTimes(0)
+    expect((axiosClient as any).post).toHaveBeenCalledTimes(0)
   })
 
   it('returns error when order is empty', async () => {
@@ -108,6 +101,6 @@ describe('cerebrum-image-order', () => {
         message: 'Request is either empty or invalid'
       }, null, ' ')
     })
-    expect((lambdaClient as any).invokeLambda).toHaveBeenCalledTimes(0)
+    expect((axiosClient as any).post).toHaveBeenCalledTimes(0)
   })
 })

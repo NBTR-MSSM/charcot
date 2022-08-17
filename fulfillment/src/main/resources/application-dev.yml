@@ -1,0 +1,15 @@
+charcot:
+  dynamodb:
+    order:
+      table:
+        name:
+          dev-charcot-cerebrum-image-order
+  s3:
+    zip:
+      bucket:
+        name:
+          cerebrum-image-zip-dev
+  ses:
+    from:
+      email:
+        no-reply@dev.mountsinaicharcot.org

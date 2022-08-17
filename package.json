@@ -4,16 +4,17 @@
   "private": true,
   "scripts": {
     "test": "jest --config=\"./jest.config.ts\" --coverage",
-    "start": "AWS_PROFILE=default sst start --stage dev",
-    "build": "AWS_PROFILE=default sst build",
+    "start": "AWS_PROFILE=mssm sst start --stage debug",
+    "build": "AWS_PROFILE=mssm sst build",
     "deploy:demo": "./script/deploy.mjs deploy -p default -o alt -s demo",
     "deploy:dev": "./script/deploy.mjs deploy -p mssm -o mssm-odp -s dev",
     "deploy:prod": "./script/deploy.mjs deploy -p mssm -o mssm-odp -s prod",
     "lint": "eslint -c .eslintrc.yml --no-eslintrc ./",
     "lint:fix": "eslint -c .eslintrc.yml --no-eslintrc --fix ./",
-    "remove": "sst remove",
+    "remove": "AWS_PROFILE=mssm sst remove --stage debug",
     "remove:demo": "./script/deploy.mjs remove -p default -o alt -s demo",
-    "remove:dev": "./script/deploy.mjs remove -p mssm -o mssm-odp -s dev"
+    "remove:dev": "./script/deploy.mjs remove -p mssm -o mssm-odp -s dev -c",
+    "deploy:fulfillment:dev": "AWS_PROFILE=mssm npx sst deploy --stage dev fulfillment"
   },
   "devDependencies": {
     "@tsconfig/node14": "^1.0.1",

@@ -9,16 +9,15 @@ import { Certificate } from 'aws-cdk-lib/aws-certificatemanager'
 import * as route53 from 'aws-cdk-lib/aws-route53'
 
 /**
- * This stack defines the Charcot backend porting on the AWS paid account of Mt Sinai:
- * - DynamoDB tables
- * - S3
- * - Lambda's/APIG
+ * This stack defines the Charcot backend AWS paid account of Mt Sinai portion of the app
  */
 export default class BackEndPaidAccountStack extends sst.Stack {
   api: sst.Api
-  auth: sst.Auth
-  handleCerebrumImageFulfillment: sst.Function
-  handleCerebrumImageTransfer: sst.Function
+  handleCerebrumImageTransferRoleArn: string
+  userPoolId: string
+  userPoolClientId: string
+  cognitoIdentityPoolId?: string
+  cerebrumImageOrderTableArn: string
 
   constructor(scope: sst.App, id: string, props: sst.StackProps, args: StackArguments) {
     super(scope, id, props)
@@ -62,7 +61,6 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     const stage = this.stage
 
     const handleCerebrumImageTransferFunctionName = `${process.env.HANDLE_CEREBRUM_IMAGE_TRANSFER_FUNCTION_NAME}-${stage}`
-    const handleCerebrumImageFulfillmentFunctionName = `${process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME}-${stage}`
     const createCerebrumImageMetadataFunctionName = `${process.env.CREATE_CEREBRUM_IMAGE_METADATA_FUNCTION_NAME}-${stage}`
     const handleCerebrumImageSearchFunctionName = `${process.env.HANDLE_CEREBRUM_IMAGE_SEARCH_FUNCTION_NAME}-${stage}`
     const handleCerebrumImageDimensionFunctionName = `${process.env.HANDLE_CEREBRUM_IMAGE_DIMENSION_FUNCTION_NAME}-${stage}`
@@ -74,12 +72,9 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     const bucketSuffix = stage === 'prod' ? '' : `-${stage}`
     const cerebrumImageBucketName = `${process.env.CEREBRUM_IMAGE_BUCKET_NAME}${bucketSuffix}` // source s3 bucket
     const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketSuffix}` // target s3 bucket
-    const cerebrumImageOdpBucketNameProdStage = process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME
-
-    const cerebrumImageZipBucketName = args.zipBucketName
 
     // Buckets and notification target functions
-    this.handleCerebrumImageTransfer = new sst.Function(this, 'HandleCerebrumImageTransfer', {
+    const handleCerebrumImageTransfer = new sst.Function(this, 'HandleCerebrumImageTransfer', {
       functionName: handleCerebrumImageTransferFunctionName,
       handler: 'src/lambda/cerebrum-image-transfer.handle',
       memorySize: 128,
@@ -98,8 +93,11 @@ export default class BackEndPaidAccountStack extends sst.Stack {
       environment: {
         CEREBRUM_IMAGE_ODP_BUCKET_NAME: cerebrumImageOdpBucketName
       },
-      timeout: 900
+      timeout: 900,
+      vpc: args.vpc
     })
+
+    this.handleCerebrumImageTransferRoleArn = handleCerebrumImageTransfer?.role?.roleArn as string
 
     if (stage === 'prod') {
       /*
@@ -108,66 +106,20 @@ export default class BackEndPaidAccountStack extends sst.Stack {
        * unable to drop and recreate it
        */
       const loadedBucket = S3Bucket.fromBucketName(this, 'BucketLoadedByName', cerebrumImageBucketName)
-      loadedBucket.addEventNotification(EventType.OBJECT_CREATED, new s3Notifications.LambdaDestination(this.handleCerebrumImageTransfer))
+      loadedBucket.addEventNotification(EventType.OBJECT_CREATED, new s3Notifications.LambdaDestination(handleCerebrumImageTransfer))
     } else {
       const cerebrumImageBucket = new Bucket(this, cerebrumImageBucketName, {
         name: cerebrumImageBucketName,
         notifications: {
-          myNotif: {
+          myNotification: {
             type: 'function',
-            function: this.handleCerebrumImageTransfer,
+            function: handleCerebrumImageTransfer,
             events: ['object_created']
           }
         }
       })
       cerebrumImageBucket.attachPermissions(['s3'])
     }
-
-    // Function definitions
-    // TODO: See if Lambda memory size can be reduced by inspecting logs to see exactly how much memory used
-    //  Also might need to asynchronously invoke multiple times the Lambda to create smaller, Zips so that each running
-    //  instance stays below the memory limit
-    // Note: Fulfillment Lambda's across the different stages will all read from the PROD stage image bucket. This is done
-    //       this way to avoid having to replicate just for testing purposes terabytes of data of the image slides
-    this.handleCerebrumImageFulfillment = new sst.Function(this, 'HandleCerebrumImageFulfillment', {
-      functionName: handleCerebrumImageFulfillmentFunctionName,
-      handler: 'src/lambda/cerebrum-image-fulfillment.handle',
-      memorySize: 10240,
-      initialPolicy: [
-        new iam.PolicyStatement({
-          effect: iam.Effect.ALLOW,
-          actions: ['dynamodb:GetItem'],
-          resources: [cerebrumImageOrderTable.tableArn]
-        }),
-        new iam.PolicyStatement({
-          effect: iam.Effect.ALLOW,
-          actions: ['s3:GetObject'],
-          resources: [`arn:aws:s3:::${cerebrumImageOdpBucketNameProdStage}/*`]
-        }),
-        new iam.PolicyStatement({
-          effect: iam.Effect.ALLOW,
-          actions: ['s3:ListBucket'],
-          resources: [`arn:aws:s3:::${cerebrumImageOdpBucketNameProdStage}`]
-        }),
-        new iam.PolicyStatement({
-          effect: iam.Effect.ALLOW,
-          actions: ['s3:PutObject', 's3:GetObject'],
-          resources: [`arn:aws:s3:::${cerebrumImageZipBucketName}/*`]
-        }),
-        new iam.PolicyStatement({
-          effect: iam.Effect.ALLOW,
-          actions: ['ses:SendEmail'],
-          resources: ['*']
-        })],
-      environment: {
-        CEREBRUM_IMAGE_ODP_BUCKET_NAME: cerebrumImageOdpBucketNameProdStage!,
-        CEREBRUM_IMAGE_ZIP_BUCKET_NAME: cerebrumImageZipBucketName!,
-        CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName,
-        FROM_EMAIL: process.env.FROM_EMAIL!,
-        ZIP_LINK_EXPIRY: process.env.ZIP_LINK_EXPIRY!
-      },
-      timeout: 900
-    })
 
     // Create a HTTP API
     const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
@@ -179,6 +131,11 @@ export default class BackEndPaidAccountStack extends sst.Stack {
      *   'It seems you are configuring custom domains for you URL. And SST is not able to find the hosted zone "mountsinaicharcot.org" in your AWS Route 53 account. Please double check and make sure the zone exists, or pass in a different zone.'
      */
     this.api = new sst.Api(this, 'Api', {
+      defaults: {
+        function: {
+          vpc: args.vpc
+        }
+      },
       customDomain: {
         domainName: `${stage === 'prod' ? 'api.mountsinaicharcot.org' : `api-${stage}.mountsinaicharcot.org`}`,
         cdk: {
@@ -240,11 +197,6 @@ export default class BackEndPaidAccountStack extends sst.Stack {
             initialPolicy: [
               new iam.PolicyStatement({
                 effect: iam.Effect.ALLOW,
-                actions: ['lambda:InvokeAsync', 'lambda:InvokeFunction'],
-                resources: [this.handleCerebrumImageFulfillment.functionArn]
-              }),
-              new iam.PolicyStatement({
-                effect: iam.Effect.ALLOW,
                 actions: ['dynamodb:PutItem'],
                 resources: [cerebrumImageOrderTable.tableArn]
               }),
@@ -255,8 +207,8 @@ export default class BackEndPaidAccountStack extends sst.Stack {
               })],
             environment: {
               CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName,
-              HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME: handleCerebrumImageFulfillmentFunctionName,
-              CEREBRUM_IMAGE_METADATA_TABLE_NAME: cerebrumImageMetaDataTable.tableName
+              CEREBRUM_IMAGE_METADATA_TABLE_NAME: cerebrumImageMetaDataTable.tableName,
+              FULFILLMENT_HOST: process.env.FULFILLMENT_HOST as string
             }
           }
         }
@@ -266,7 +218,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     this.api.attachPermissions([cerebrumImageMetaDataTable])
 
     // Auth
-    this.auth = new Auth(this, 'Auth', {
+    const auth = new Auth(this, 'Auth', {
       login: ['email'],
       cdk: {
         userPool: {
@@ -285,18 +237,20 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     //       be able too hit this endpoint, but not anon ones????? (head scratch)
     //       Experiment,
     //       [REF|https://sst.dev/chapters/adding-auth-to-our-serverless-app.html|"The attachPermissionsForAuthUsers function allows us to specify the resources our authenticated users have access to."]
-    this.auth.attachPermissionsForAuthUsers(this.auth, [this.api])
+    auth.attachPermissionsForAuthUsers(this, [this.api])
 
-    // Show the endpoint in the output. Have to "escape" underscores this way
-    // because SST eats anything that's not alphabetic
+    this.userPoolId = auth.userPoolId
+    this.cognitoIdentityPoolId = auth.cognitoIdentityPoolId
+    this.userPoolClientId = auth.userPoolClientId
+    this.cerebrumImageOrderTableArn = cerebrumImageOrderTable.tableArn
     this.addOutputs({
       ApiEndpoint: this.api.customDomainUrl || this.api.url,
       Region: this.region,
-      UserPoolId: this.auth.userPoolId,
-      IdentityPoolId: this.auth.cognitoIdentityPoolId!,
-      UserPoolClientId: this.auth.userPoolClientId,
-      HANDLExUNDERxCEREBRUMxUNDERxIMAGExUNDERxFULFILLMENTxUNDERxROLExUNDERxARN: this.handleCerebrumImageFulfillment.role?.roleArn as string,
-      HANDLExUNDERxCEREBRUMxUNDERxIMAGExUNDERxTRANSFERxUNDERxROLExUNDERxARN: this.handleCerebrumImageTransfer.role?.roleArn as string
+      UserPoolId: this.userPoolId,
+      CognitoIdentityPoolId: this.cognitoIdentityPoolId!,
+      UserPoolClientId: this.userPoolClientId,
+      HandleCerebrumImageTransferRoleArn: this.handleCerebrumImageTransferRoleArn,
+      CerebrumImageOrderTableArn: this.cerebrumImageOrderTableArn
     })
   }
 }

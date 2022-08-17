@@ -43,14 +43,6 @@
     },
     {
       "Effect": "Allow",
-      "Principal": {
-        "AWS": "AROAQVEKI27L6OWL46HBF"
-      },
-      "Action": "s3:PutObject",
-      "Resource": "arn:aws:s3:::nbtr-production/*"
-    },
-    {
-      "Effect": "Allow",
       "Principal": "*",
       "Action": "s3:GetObject",
       "Resource": "arn:aws:s3:::nbtr-production/*"
@@ -64,7 +56,7 @@
     {
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::045387143127:role/prod-charcot-backend-paid-HandleCerebrumImageTrans-FH3HJMU8VSVM"
+        "AWS": "AROAQVEKI27L2P66PJJOK"
       },
       "Action": "s3:PutObject",
       "Resource": "arn:aws:s3:::nbtr-production/*"
@@ -72,7 +64,7 @@
     {
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::045387143127:role/prod-charcot-backend-paid-HandleCerebrumImageFulfi-1VX2IPP71LXOO"
+        "AWS": "AROAQVEKI27LWHW2D52HV"
       },
       "Action": "s3:GetObject",
       "Resource": "arn:aws:s3:::nbtr-production/*"
@@ -80,7 +72,7 @@
     {
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::045387143127:role/prod-charcot-backend-paid-HandleCerebrumImageFulfi-1VX2IPP71LXOO"
+        "AWS": "AROAQVEKI27LWHW2D52HV"
       },
       "Action": "s3:ListBucket",
       "Resource": "arn:aws:s3:::nbtr-production"

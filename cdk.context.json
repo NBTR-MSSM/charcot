@@ -1,6 +1,325 @@
 {
-  "hosted-zone:account=045387143127:domainName=mountsinaicharcot.org:region=us-east-1": {
-    "Id": "/hostedzone/Z0341163303ASZWMW1YTS",
-    "Name": "mountsinaicharcot.org."
+  "availability-zones:account=045387143127:region=us-east-1": [
+    "us-east-1a",
+    "us-east-1b",
+    "us-east-1c",
+    "us-east-1d",
+    "us-east-1e",
+    "us-east-1f"
+  ],
+  "vpc-provider:account=045387143127:filter.vpc-id=vpc-0677808aed4c8b300:region=us-east-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-0677808aed4c8b300",
+    "vpcCidrBlock": "10.0.0.0/16",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "charcot-ingress",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-0faab58e1168fbe51",
+            "cidr": "10.0.128.0/18",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-0da6bf1f505b62fa7"
+          },
+          {
+            "subnetId": "subnet-088c425517b3f0db2",
+            "cidr": "10.0.192.0/18",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-0d4c9b9144a405480"
+          }
+        ]
+      },
+      {
+        "name": "charcot-application",
+        "type": "Private",
+        "subnets": [
+          {
+            "subnetId": "subnet-0a0d2bd639f0e02ba",
+            "cidr": "10.0.0.0/18",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-092d1c1ccc519a97a"
+          },
+          {
+            "subnetId": "subnet-0ba6fb98bb3f776e4",
+            "cidr": "10.0.64.0/18",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-0a682d227155c16af"
+          }
+        ]
+      }
+    ]
+  },
+  "availability-zones:account=950869325006:region=us-east-1": [
+    "us-east-1a",
+    "us-east-1b",
+    "us-east-1c",
+    "us-east-1d",
+    "us-east-1e",
+    "us-east-1f"
+  ],
+  "vpc-provider:account=045387143127:filter.vpc-id=vpc-0fbf198267043cbd7:region=us-east-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-0fbf198267043cbd7",
+    "vpcCidrBlock": "10.0.0.0/16",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "charcot-application",
+        "type": "Private",
+        "subnets": [
+          {
+            "subnetId": "subnet-0a7af501336d9f051",
+            "cidr": "10.0.0.0/18",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-016ada9af508e7deb"
+          },
+          {
+            "subnetId": "subnet-0dfc5c91fcfc8735b",
+            "cidr": "10.0.64.0/18",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-0e669aed7d66eed3b"
+          }
+        ]
+      },
+      {
+        "name": "charcot-ingress",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-010c02324a3518a08",
+            "cidr": "10.0.128.0/18",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-04769aba2d2c62dfc"
+          },
+          {
+            "subnetId": "subnet-086f2b7d8ca713add",
+            "cidr": "10.0.192.0/18",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-0a55f649ad8544180"
+          }
+        ]
+      }
+    ]
+  },
+  "vpc-provider:account=045387143127:filter.vpc-id=vpc-0be9a45c3bac07d94:region=us-east-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-0be9a45c3bac07d94",
+    "vpcCidrBlock": "10.0.0.0/16",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "charcot-ingress",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-09f676876139e2647",
+            "cidr": "10.0.128.0/18",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-051ac7ecf2ba25f53"
+          },
+          {
+            "subnetId": "subnet-0aaf044f8af7cfef9",
+            "cidr": "10.0.192.0/18",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-0b7d206ba5fc7c6b0"
+          }
+        ]
+      },
+      {
+        "name": "charcot-application",
+        "type": "Private",
+        "subnets": [
+          {
+            "subnetId": "subnet-09b86be4085db0e8f",
+            "cidr": "10.0.0.0/18",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-08ceb05d79a93678e"
+          },
+          {
+            "subnetId": "subnet-026ead2804b2f959a",
+            "cidr": "10.0.64.0/18",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-027e18fcb9dec37b5"
+          }
+        ]
+      }
+    ]
+  },
+  "vpc-provider:account=045387143127:filter.vpc-id=vpc-0c9c682fd6d1c37d7:region=us-east-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-0c9c682fd6d1c37d7",
+    "vpcCidrBlock": "10.0.0.0/16",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "charcot-ingress",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-0c758d210b5086cbf",
+            "cidr": "10.0.128.0/18",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-064279a906eaea272"
+          },
+          {
+            "subnetId": "subnet-0abf36cd547592650",
+            "cidr": "10.0.192.0/18",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-00747cfe9db551681"
+          }
+        ]
+      },
+      {
+        "name": "charcot-application",
+        "type": "Private",
+        "subnets": [
+          {
+            "subnetId": "subnet-02b20707349b5c503",
+            "cidr": "10.0.0.0/18",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-09fb890b700d81b2d"
+          },
+          {
+            "subnetId": "subnet-0819b4cd7491b9d5e",
+            "cidr": "10.0.64.0/18",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-088bdef3a0cdc5a22"
+          }
+        ]
+      }
+    ]
+  },
+  "vpc-provider:account=045387143127:filter.vpc-id=vpc-0b75dec6842abd729:region=us-east-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-0b75dec6842abd729",
+    "vpcCidrBlock": "10.0.0.0/16",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "charcot-ingress",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-0a2e1a7af941dcc1e",
+            "cidr": "10.0.128.0/18",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-0bc9230de02b4366c"
+          },
+          {
+            "subnetId": "subnet-000c21857f4a5b23c",
+            "cidr": "10.0.192.0/18",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-02a4a06b6cc67135a"
+          }
+        ]
+      },
+      {
+        "name": "charcot-application",
+        "type": "Private",
+        "subnets": [
+          {
+            "subnetId": "subnet-0ef26c2052ac1e231",
+            "cidr": "10.0.0.0/18",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-0a21794f9a78e1b88"
+          },
+          {
+            "subnetId": "subnet-05659bb860e126147",
+            "cidr": "10.0.64.0/18",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-0ef04a59c76117fc7"
+          }
+        ]
+      }
+    ]
+  },
+  "vpc-provider:account=950869325006:filter.vpc-id=vpc-09f3056d2a0cd5627:region=us-east-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-09f3056d2a0cd5627",
+    "vpcCidrBlock": "172.31.0.0/16",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "Public",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-0f698f56c5140e5ab",
+            "cidr": "172.31.0.0/20",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-02547f2d1ded1b2f8"
+          },
+          {
+            "subnetId": "subnet-0c8b260d9213569cf",
+            "cidr": "172.31.80.0/20",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-02547f2d1ded1b2f8"
+          },
+          {
+            "subnetId": "subnet-02641703c71a43afd",
+            "cidr": "172.31.16.0/20",
+            "availabilityZone": "us-east-1c",
+            "routeTableId": "rtb-02547f2d1ded1b2f8"
+          },
+          {
+            "subnetId": "subnet-0959459c46b58dc76",
+            "cidr": "172.31.32.0/20",
+            "availabilityZone": "us-east-1d",
+            "routeTableId": "rtb-02547f2d1ded1b2f8"
+          },
+          {
+            "subnetId": "subnet-08f200b1ca0e1acd7",
+            "cidr": "172.31.48.0/20",
+            "availabilityZone": "us-east-1e",
+            "routeTableId": "rtb-02547f2d1ded1b2f8"
+          },
+          {
+            "subnetId": "subnet-0c080d4c476ced6fd",
+            "cidr": "172.31.64.0/20",
+            "availabilityZone": "us-east-1f",
+            "routeTableId": "rtb-02547f2d1ded1b2f8"
+          }
+        ]
+      }
+    ]
+  },
+  "vpc-provider:account=045387143127:filter.vpc-id=vpc-09ef5b21a4e9c1b73:region=us-east-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-09ef5b21a4e9c1b73",
+    "vpcCidrBlock": "10.0.0.0/16",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "charcot-ingress",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-059e86d0c6b821f54",
+            "cidr": "10.0.128.0/18",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-045cd96e09ca12a85"
+          },
+          {
+            "subnetId": "subnet-0ee375228c6db0f6b",
+            "cidr": "10.0.192.0/18",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-0175b2da69b62513c"
+          }
+        ]
+      },
+      {
+        "name": "charcot-application",
+        "type": "Private",
+        "subnets": [
+          {
+            "subnetId": "subnet-0a402715e96cf8d19",
+            "cidr": "10.0.0.0/18",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-0d1de46e9684cdddd"
+          },
+          {
+            "subnetId": "subnet-09510f08bd2872511",
+            "cidr": "10.0.64.0/18",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-0560ceca1790c4ea8"
+          }
+        ]
+      }
+    ]
   }
 }

@@ -1,4 +1,4 @@
-import * as sst from '@serverless-stack/resources'
+import { IVpc, SubnetSelection } from 'aws-cdk-lib/aws-ec2'
 
 type CharcotFileName = string
 
@@ -48,10 +48,17 @@ export interface Dimension {
  * to find out what's up, like are their examples outdated or something???
  */
 export interface StackArguments {
-  api?: sst.Api,
-  auth?: sst.Auth,
-  handleCerebrumImageFulfillment?: sst.Function
-  handleCerebrumImageTransfer?: sst.Function,
+  apiEndPoint?: string,
+  cerebrumImageOrderTableArn?: string,
+  fulfillmentServiceTaskRoleArn?: string,
+  handleCerebrumImageTransferRoleArn?: string,
+  userPoolId?: string,
+  userPoolClientId?: string,
+  cognitoIdentityPoolId?: string,
+  privateSubnets?: SubnetSelection,
+  publicSubnets?: SubnetSelection,
+  vpc?: IVpc,
+  vpcId?: string,
   zipBucketName?: string
 }
 

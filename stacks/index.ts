@@ -2,7 +2,9 @@ import BackEndPaidAccountStack from './BackEndPaidAccountStack'
 import * as sst from '@serverless-stack/resources'
 import BackEndOdpStack from './BackEndOdpStack'
 import FrontendStack from './FrontEndStack'
-import { StackArguments } from '../src/types/charcot.types'
+import FulfillmentStack from './FulfillmentStack'
+import CommonStack from './CommonStack'
+import { SubnetFilter, Vpc } from 'aws-cdk-lib/aws-ec2'
 
 const calculateZipBucketName = (stage: string) => {
   const bucketSuffix = stage === 'prod' ? '' : `-${stage}`
@@ -15,32 +17,47 @@ export default function main(app: sst.App): void {
     runtime: 'nodejs14.x'
   })
 
-  const backEndPaidAccountStackArgs: StackArguments = {
-    zipBucketName: calculateZipBucketName(app.stage)
-  }
-  const backEndPaidAccountStack = new BackEndPaidAccountStack(app, 'backend-paid-account', {}, backEndPaidAccountStackArgs)
+  const stage = app.stage
+  const zipBucketName = calculateZipBucketName(stage)
+  let backEndPaidAccountStack: BackEndPaidAccountStack
+  let fulfillmentStack: FulfillmentStack
+  if (stage === 'debug' || app.account === '045387143127') {
+    const commonStack = new CommonStack(app, 'common', {})
 
-  let backEndOdpStackArgs: StackArguments = {
-    handleCerebrumImageTransfer: backEndPaidAccountStack.handleCerebrumImageTransfer,
-    handleCerebrumImageFulfillment: backEndPaidAccountStack.handleCerebrumImageFulfillment
-  }
-  if (process.env.IS_DEPLOY_SCRIPT) {
-    backEndOdpStackArgs = {}
-  }
-  backEndOdpStackArgs.zipBucketName = backEndPaidAccountStackArgs.zipBucketName
-  backEndOdpStackArgs.auth = backEndPaidAccountStack.auth
+    const vpc = process.env.VpcId ? Vpc.fromLookup(commonStack, 'VPC', { vpcId: process.env.VpcId }) : commonStack.vpc
 
-  // eslint-disable-next-line no-new
-  new BackEndOdpStack(app, 'backend-odp', {}, backEndOdpStackArgs)
+    const publicSubnets = process.env.PublicSubnets ? { subnetFilters: [SubnetFilter.byIds(process.env.PublicSubnets.split(','))] } : commonStack.publicSubnets
+    const privateSubnets = process.env.PrivateSubnets ? { subnetFilters: [SubnetFilter.byIds(process.env.PrivateSubnets.split(','))] } : commonStack.privateSubnets
 
-  let frontEndStackArgs: StackArguments = {
-    api: backEndPaidAccountStack.api,
-    auth: backEndPaidAccountStack.auth
-  }
-  if (process.env.IS_DEPLOY_SCRIPT) {
-    frontEndStackArgs = {}
-  }
+    backEndPaidAccountStack = new BackEndPaidAccountStack(app, 'backend-paid-account', {}, {
+      zipBucketName,
+      vpc,
+      publicSubnets,
+      privateSubnets
+    })
 
-  // eslint-disable-next-line no-new
-  new FrontendStack(app, 'frontend', {}, frontEndStackArgs)
+    fulfillmentStack = new FulfillmentStack(app, 'fulfillment', {}, {
+      cerebrumImageOrderTableArn: backEndPaidAccountStack.cerebrumImageOrderTableArn,
+      privateSubnets,
+      publicSubnets,
+      vpc,
+      zipBucketName
+    })
+
+    // eslint-disable-next-line no-new
+    new FrontendStack(app, 'frontend', {}, {
+      apiEndPoint: process.env.ApiEndpoint || backEndPaidAccountStack.api.url,
+      userPoolId: process.env.UserPoolId || backEndPaidAccountStack.userPoolId,
+      userPoolClientId: process.env.UserPoolClientId || backEndPaidAccountStack.userPoolClientId,
+      cognitoIdentityPoolId: process.env.CognitoIdentityPoolId || backEndPaidAccountStack.cognitoIdentityPoolId
+    })
+  }
+  if (stage === 'debug' || app.account === '950869325006') {
+    // eslint-disable-next-line no-new
+    new BackEndOdpStack(app, 'backend-odp', {}, {
+      fulfillmentServiceTaskRoleArn: process.env.FulfillmentServiceTaskRoleArn || fulfillmentStack!.fulfillmentServiceTaskRoleArn,
+      handleCerebrumImageTransferRoleArn: process.env.HandleCerebrumImageTransferRoleArn || backEndPaidAccountStack!.handleCerebrumImageTransferRoleArn,
+      zipBucketName
+    })
+  }
 }

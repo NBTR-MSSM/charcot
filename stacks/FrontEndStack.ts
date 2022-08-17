@@ -6,18 +6,15 @@ import * as route53 from 'aws-cdk-lib/aws-route53'
 export default class FrontendStack extends sst.Stack {
   constructor(scope: sst.App, id: string, props: sst.StackProps, args: StackArguments) {
     super(scope, id, props)
-    const { api, auth } = args
+    const { apiEndPoint, userPoolId, userPoolClientId, cognitoIdentityPoolId } = args
+
     // Define our React app
     const environment = {
-      // The 'foo' needed because SST does pre-processing of all stacks even
-      // when deploying an unrelated stack. This is mainly to keep
-      // deploy.msj happy.
-      REACT_APP_API_URL: api?.url || process.env.ApiEndpoint as string || 'foo',
+      REACT_APP_API_URL: apiEndPoint!,
       REACT_APP_REGION: scope.region,
-      // REACT_APP_BUCKET: bucket.bucketName,
-      REACT_APP_USER_POOL_ID: auth?.userPoolId || process.env.UserPoolId! || 'foo',
-      REACT_APP_USER_POOL_CLIENT_ID: auth?.userPoolClientId || process.env.UserPoolClientId! || 'foo',
-      REACT_APP_IDENTITY_POOL_ID: auth?.cognitoIdentityPoolId || process.env.IdentityPoolId! || 'foo'
+      REACT_APP_USER_POOL_ID: userPoolId!,
+      REACT_APP_USER_POOL_CLIENT_ID: userPoolClientId!,
+      REACT_APP_IDENTITY_POOL_ID: cognitoIdentityPoolId!
     }
     const stage = this.stage
     const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
@@ -37,7 +34,7 @@ export default class FrontendStack extends sst.Stack {
       }
     })
 
-    // Show the url in the output and the environment used for thi React app
+    // Show the url in the output and the environment used for this React app
     this.addOutputs({
       SiteUrl: site.customDomainUrl || site.url,
       DistributionDomain: site.distributionDomain,

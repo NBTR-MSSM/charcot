@@ -6,7 +6,7 @@ import { StackArguments } from '../src/types/charcot.types'
 
 /**
  * This stack defines the Charcot backend portion of the AWS ODP account of Mt Sinai. This stack
- * <strong>depends</strong> on the BackEndPaidAccountStack for AWS paid account ot have run first, therefore
+ * <strong>depends</strong> on the BackEndPaidAccountStack for AWS paid account to have run first, therefore
  * this should be run after the AWS paid account BackEndPaidAccountStack has been deployed. The
  * reason is that this stack expects as inputs the outputs from BackEndPaidAccountStack, for example
  * ARN's of Lambda's that should be granted permission to write to the ODP image bucket
@@ -17,8 +17,8 @@ export default class BackEndOdpStack extends sst.Stack {
   constructor(scope: sst.App, id: string, props: sst.StackProps, args: StackArguments) {
     super(scope, id, props)
 
-    const fulfillmentRoleArn = args.handleCerebrumImageFulfillment?.role?.roleArn || process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_ROLE_ARN as string
-    const imgTransferRoleArn = args.handleCerebrumImageTransfer?.role?.roleArn || process.env.HANDLE_CEREBRUM_IMAGE_TRANSFER_ROLE_ARN as string
+    const fulfillmentRoleArn = args.fulfillmentServiceTaskRoleArn!
+    const imgTransferRoleArn = args.handleCerebrumImageTransferRoleArn!
 
     const stage = this.stage
     // See comment in BackEndPaidAccountStack.ts for the reason of this logic,
@@ -51,9 +51,11 @@ export default class BackEndOdpStack extends sst.Stack {
       name: cerebrumImageZipBucketName
     })
 
-    // Grant fulfillment Lambda perms to put Zip file in
-    // destination bucket. The 's3:GetObject' is needed to allow for the
-    // signed URL download
+    /*
+     * Grant fulfillment service perms to put Zip file in
+     * destination bucket. The 's3:GetObject' is needed to allow for the
+     * signed URL download
+     */
     cerebrumImageZipBucket.cdk.bucket.addToResourcePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
@@ -62,18 +64,23 @@ export default class BackEndOdpStack extends sst.Stack {
         resources: [`${cerebrumImageZipBucket.bucketArn}/*`]
       }))
 
+    /*
+     * Also grant fulfillment perms to read the images that are to be zipped. The ListObject policy is needed
+     * because the Zip operation needs to list out contents of folders in order to build final
+     * list of objects to Zip
+     */
     cerebrumImageOdpBucket.addToResourcePolicy(
       new iam.PolicyStatement({
+        sid: 'Allow Charcot Fulfillment Service to Read Objects',
         effect: iam.Effect.ALLOW,
         principals: [new iam.ArnPrincipal(fulfillmentRoleArn)],
         actions: ['s3:GetObject'],
         resources: [`${cerebrumImageOdpBucket.bucketArn}/*`]
       }))
 
-    // The ListObject policy is needed because the Zip operation needs to list out
-    // contents of folders in order to build final list of objects to Zip
     cerebrumImageOdpBucket.addToResourcePolicy(
       new iam.PolicyStatement({
+        sid: 'Allow Charcot Fulfillment Service to List Objects',
         effect: iam.Effect.ALLOW,
         principals: [new iam.ArnPrincipal(fulfillmentRoleArn)],
         actions: ['s3:ListBucket'],

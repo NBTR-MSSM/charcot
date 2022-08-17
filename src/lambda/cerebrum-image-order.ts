@@ -1,5 +1,5 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2 } from 'aws-lambda'
-import { dynamoDbClient, HttpResponse, lambdaClient, lambdaWrapper } from '@exsoinn/aws-sdk-wrappers'
+import { axiosClient, dynamoDbClient, HttpResponse, lambdaWrapper } from '@exsoinn/aws-sdk-wrappers'
 import { CerebrumImageOrder, Filter } from '../types/charcot.types'
 import { v4 as uuidGenerator } from 'uuid'
 import imageSearch from '../service/image-search'
@@ -37,15 +37,14 @@ export const create: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIG
   // TODO: After some back and forth between user and this Lambda,
   //   the final list of files requested is ready to be sent to processor.
   try {
-    const lambdaName = process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_FUNCTION_NAME
     const order: CerebrumImageOrder | undefined = await parseOrder(event)
     if (order) {
       await dynamoDbClient.put({
         TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME,
         Item: order
       })
-      const lambdaRes = await (lambdaClient as any).invokeLambda(lambdaName, 'Event', JSON.stringify({ orderId: order.orderId }), lambdaName)
-      return new HttpResponse(lambdaRes.StatusCode as number, 'Your order is being processed, you will get an email soon', {
+      const resp = await axiosClient.post(`https://${process.env.FULFILLMENT_HOST}/cerebrum-image-orders/${order.orderId}/fulfill`)
+      return new HttpResponse(resp.status, 'Your order is being processed, you will get an email soon', {
         body: order
       })
     } else {

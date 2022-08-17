@@ -14,13 +14,26 @@ class ImageSearch {
     }
     this.addFilter(filter, params)
     console.log(`JMQ: search() params is ${JSON.stringify(params)}`)
-    const res = await dynamoDbClient.scan(params)
-    let responseCode = 200
-    if (!res.Items) {
-      responseCode = 404
+    let responseCode = 404
+    let retItems: DocumentClient.ItemList = []
+    while (true) {
+      const res = await dynamoDbClient.scan(params)
+      const items = res.Items
+      console.log(`JMQ: items is ${JSON.stringify(items)}`)
+      if (!items) {
+        break
+      }
+      retItems = retItems.concat(items)
+      responseCode = 200
+      const lastEvaluatedKey = res.LastEvaluatedKey
+      if (lastEvaluatedKey) {
+        params.ExclusiveStartKey = lastEvaluatedKey
+      } else {
+        break
+      }
     }
     return new HttpResponse(responseCode, '', {
-      body: res.Items
+      body: retItems
     })
   }
 
@@ -87,7 +100,7 @@ class ImageSearch {
           ++obj.count
           return prev
         }, new Map<string | number, Dimension>(ret.map((obj) => [obj.value, obj]))).values())
-          .sort((a: Dimension, b: Dimension): number => b.rank - a.rank || rank(dimension, a.title) - rank(dimension, b.title))
+          .sort((a, b): number => (b as Dimension).rank - (a as Dimension).rank || rank(dimension, (a as Dimension).title) - rank(dimension, (b as Dimension).title)) as Dimension[]
       }
 
       const lastEvaluatedKey = res.LastEvaluatedKey

@@ -1,0 +1,19 @@
+charcot:
+  dynamodb:
+    order:
+      table:
+        name:
+          debug-charcot-cerebrum-image-order
+  s3:
+    zip:
+      bucket:
+        name:
+          cerebrum-image-zip-debug
+  ses:
+    from:
+      email:
+        no-reply@debug.mountsinaicharcot.org
+  profile:
+    name:
+      odp:
+        mssm
