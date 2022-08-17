@@ -60,7 +60,9 @@ const rankings: Record<string, Record<string, number>> = {
     Other: LOWEST_RANK
   },
   race: {},
-  sex: {}
+  sex: {},
+  subjectNumber: {},
+  age: {}
 }
 
 export const rank = (dimension: string, category: string): number => {

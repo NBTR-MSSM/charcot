@@ -9,9 +9,6 @@ const calculateZipBucketName = (stage: string) => {
   return `${process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME}${bucketSuffix}`
 }
 
-/**
- * We support two modes of deploying:
- */
 export default function main(app: sst.App): void {
   // Set default runtime for all functions
   app.setDefaultFunctionProps({

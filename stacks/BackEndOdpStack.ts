@@ -5,7 +5,6 @@ import { Bucket as S3Bucket } from 'aws-cdk-lib/aws-s3'
 import { StackArguments } from '../src/types/charcot.types'
 
 /**
- * /**
  * This stack defines the Charcot backend portion of the AWS ODP account of Mt Sinai. This stack
  * <strong>depends</strong> on the BackEndPaidAccountStack for AWS paid account ot have run first, therefore
  * this should be run after the AWS paid account BackEndPaidAccountStack has been deployed. The
@@ -18,7 +17,6 @@ export default class BackEndOdpStack extends sst.Stack {
   constructor(scope: sst.App, id: string, props: sst.StackProps, args: StackArguments) {
     super(scope, id, props)
 
-    //
     const fulfillmentRoleArn = args.handleCerebrumImageFulfillment?.role?.roleArn || process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_ROLE_ARN as string
     const imgTransferRoleArn = args.handleCerebrumImageTransfer?.role?.roleArn || process.env.HANDLE_CEREBRUM_IMAGE_TRANSFER_ROLE_ARN as string
 
@@ -53,12 +51,8 @@ export default class BackEndOdpStack extends sst.Stack {
       name: cerebrumImageZipBucketName
     })
 
-    // TODO: Do these need to be tied to AUTH as well, or is just the API find, since
-    //       users won't be directly hitting these?
-    // auth.attachPermissionsForAuthUsers(auth, [cerebrumImageOdpBucket, cerebrumImageZipBucket])
-
-    // Grant fulfillment Lambda perms to put and get Zip file in
-    // destination bucket. The Get is needed to allow for the
+    // Grant fulfillment Lambda perms to put Zip file in
+    // destination bucket. The 's3:GetObject' is needed to allow for the
     // signed URL download
     cerebrumImageZipBucket.cdk.bucket.addToResourcePolicy(
       new iam.PolicyStatement({

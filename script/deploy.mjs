@@ -83,12 +83,6 @@ try {
         imageTransferLambdaRoleArn: process.env.HANDLE_CEREBRUM_IMAGE_TRANSFER_ROLE_ARN,
         fulfillmentLambdaRoleArn: process.env.HANDLE_CEREBRUM_IMAGE_FULFILLMENT_ROLE_ARN
       })*/
-
-      await configureCharcotDomain({
-        awsProfile: paidAccountProfile,
-        distributionId: process.env.DistributionId,
-        distributionDomainName: process.env.DistributionDomain
-      })
     }
   }
 } catch (e) {
@@ -148,78 +142,5 @@ function retrieveStackOutputsAndStoreInEnvironment (stackOutput) {
     const val = m[2]
     process.env[key] = val
     console.log(`Set environment value ${key}=${val}`)
-  }
-}
-
-
-/**
- * Deals with stuff pertaining to setting up the Charcot domain name for the site
- */
-async function configureCharcotDomain ({ awsProfile, distributionId, distributionDomainName }) {
-  const certAn = 'arn:aws:acm:us-east-1:045387143127:certificate/1004f57f-a544-476d-8a31-5b878a71c276'
-
-  fs.writeFileSync('/tmp/route53-charcot-config.json', JSON.stringify(createRoute53Config(distributionDomainName)))
-  await $`AWS_PROFILE=${awsProfile} aws route53 change-resource-record-sets --hosted-zone-id Z0341163303ASZWMW1YTS --change-batch file:///tmp/route53-charcot-config.json`
-
-  // Get current CDN config. Need to update current, then replace, as per AWS `aws cloudfront update-distribution help`
-  const cdn = JSON.parse(await $`AWS_PROFILE=${awsProfile} aws cloudfront get-distribution-config --id ${distributionId}`)
-  const eTag = cdn.ETag
-  delete cdn.ETag
-
-  // Update the CDN with aliases (CNAME's)
-  cdn.DistributionConfig.Aliases = {
-    Quantity: 2,
-    Items: [
-      '*.mountsinaicharcot.org',
-      'mountsinaicharcot.org'
-    ]
-  }
-
-  // Add certificate to the CDN
-  cdn.DistributionConfig.ViewerCertificate = {
-    CloudFrontDefaultCertificate: false,
-    ACMCertificateArn: certAn,
-    SSLSupportMethod: 'sni-only',
-    MinimumProtocolVersion: 'TLSv1.2_2019',
-    Certificate: certAn,
-    CertificateSource: 'acm'
-  }
-
-  fs.writeFileSync('/tmp/new-charcot-cdn.json', JSON.stringify(cdn.DistributionConfig))
-
-  // Update the CDN config, this replaces it
-  await $`AWS_PROFILE=${awsProfile} aws cloudfront update-distribution --id ${distributionId} --if-match ${eTag} --distribution-config file:///tmp/new-charcot-cdn.json`
-}
-
-
-function createRoute53Config(distributionDomainName) {
-  return {
-    Comment: 'Charcot Route53 Config',
-    Changes: [
-      {
-        Action: 'UPSERT',
-        ResourceRecordSet: {
-          Name: 'mountsinaicharcot.org',
-          Type: 'A',
-          AliasTarget: {
-            HostedZoneId: 'Z2FDTNDATAQYW2',
-            DNSName: distributionDomainName,
-            EvaluateTargetHealth: true
-          }
-        }
-      },
-      {
-        Action: 'UPSERT',
-        ResourceRecordSet: {
-          Name: 'www.mountsinaicharcot.org',
-          Type: 'A',
-          AliasTarget: {
-            HostedZoneId: 'Z2FDTNDATAQYW2',
-            DNSName: distributionDomainName,
-            EvaluateTargetHealth: true
-          }
-        }
-      }
-    ]
   }
 }

@@ -4,6 +4,9 @@ import * as iam from 'aws-cdk-lib/aws-iam'
 import { Bucket as S3Bucket, EventType } from 'aws-cdk-lib/aws-s3'
 import * as s3Notifications from 'aws-cdk-lib/aws-s3-notifications'
 import { StackArguments } from '../src/types/charcot.types'
+import { StringAttribute } from 'aws-cdk-lib/aws-cognito'
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager'
+import * as route53 from 'aws-cdk-lib/aws-route53'
 
 /**
  * This stack defines the Charcot backend porting on the AWS paid account of Mt Sinai:
@@ -69,8 +72,9 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     // with their stage-less S3 buckets which were in place already before Charcot. Renaming
     // those existing buckets is not an option
     const bucketSuffix = stage === 'prod' ? '' : `-${stage}`
-    const cerebrumImageBucketName = `${process.env.CEREBRUM_IMAGE_BUCKET_NAME}${bucketSuffix}` // source
-    const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketSuffix}` //target
+    const cerebrumImageBucketName = `${process.env.CEREBRUM_IMAGE_BUCKET_NAME}${bucketSuffix}` // source s3 bucket
+    const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketSuffix}` // target s3 bucket
+    const cerebrumImageOdpBucketNameProdStage = process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME
 
     const cerebrumImageZipBucketName = args.zipBucketName
 
@@ -119,10 +123,12 @@ export default class BackEndPaidAccountStack extends sst.Stack {
       cerebrumImageBucket.attachPermissions(['s3'])
     }
 
-    // Functions
+    // Function definitions
     // TODO: See if Lambda memory size can be reduced by inspecting logs to see exactly how much memory used
     //  Also might need to asynchronously invoke multiple times the Lambda to create smaller, Zips so that each running
     //  instance stays below the memory limit
+    // Note: Fulfillment Lambda's across the different stages will all read from the PROD stage image bucket. This is done
+    //       this way to avoid having to replicate just for testing purposes terabytes of data of the image slides
     this.handleCerebrumImageFulfillment = new sst.Function(this, 'HandleCerebrumImageFulfillment', {
       functionName: handleCerebrumImageFulfillmentFunctionName,
       handler: 'src/lambda/cerebrum-image-fulfillment.handle',
@@ -136,12 +142,12 @@ export default class BackEndPaidAccountStack extends sst.Stack {
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
           actions: ['s3:GetObject'],
-          resources: [`arn:aws:s3:::${cerebrumImageOdpBucketName}/*`]
+          resources: [`arn:aws:s3:::${cerebrumImageOdpBucketNameProdStage}/*`]
         }),
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
           actions: ['s3:ListBucket'],
-          resources: [`arn:aws:s3:::${cerebrumImageOdpBucketName}`]
+          resources: [`arn:aws:s3:::${cerebrumImageOdpBucketNameProdStage}`]
         }),
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
@@ -154,16 +160,32 @@ export default class BackEndPaidAccountStack extends sst.Stack {
           resources: ['*']
         })],
       environment: {
-        CEREBRUM_IMAGE_ODP_BUCKET_NAME: cerebrumImageOdpBucketName,
+        CEREBRUM_IMAGE_ODP_BUCKET_NAME: cerebrumImageOdpBucketNameProdStage!,
         CEREBRUM_IMAGE_ZIP_BUCKET_NAME: cerebrumImageZipBucketName!,
         CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName,
-        FROM_EMAIL: process.env.FROM_EMAIL as string
+        FROM_EMAIL: process.env.FROM_EMAIL!,
+        ZIP_LINK_EXPIRY: process.env.ZIP_LINK_EXPIRY!
       },
       timeout: 900
     })
 
     // Create a HTTP API
+    const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
+      hostedZoneId: 'Z0341163303ASZWMW1YTS',
+      zoneName: 'mountsinaicharcot.org'
+    })
+    /*
+     * Note: W/o explicitly passing in hostedZone, was getting:
+     *   'It seems you are configuring custom domains for you URL. And SST is not able to find the hosted zone "mountsinaicharcot.org" in your AWS Route 53 account. Please double check and make sure the zone exists, or pass in a different zone.'
+     */
     this.api = new sst.Api(this, 'Api', {
+      customDomain: {
+        domainName: `${stage === 'prod' ? 'api.mountsinaicharcot.org' : `api-${stage}.mountsinaicharcot.org`}`,
+        cdk: {
+          hostedZone,
+          certificate: Certificate.fromCertificateArn(this, 'MyCert', 'arn:aws:acm:us-east-1:045387143127:certificate/1004f57f-a544-476d-8a31-5b878a71c276')
+        }
+      },
       routes: {
         'POST /cerebrum-images': {
           function: {
@@ -245,11 +267,22 @@ export default class BackEndPaidAccountStack extends sst.Stack {
 
     // Auth
     this.auth = new Auth(this, 'Auth', {
-      login: ['email']
+      login: ['email'],
+      cdk: {
+        userPool: {
+          customAttributes: {
+            degree: new StringAttribute({ minLen: 1, maxLen: 256, mutable: true }),
+            institutionName: new StringAttribute({ minLen: 1, maxLen: 256, mutable: true }),
+            institutionAddress: new StringAttribute({ minLen: 1, maxLen: 256, mutable: true }),
+            areasOfInterest: new StringAttribute({ minLen: 1, maxLen: 256, mutable: true }),
+            intendedUse: new StringAttribute({ minLen: 1, maxLen: 500, mutable: true })
+          }
+        }
+      }
     })
 
-    // TODO: Is this needed? What happens if I were to remove? Would anon users
-    //       be able too hit this endpoin, but no logged in ones????? (head scratch)
+    // TODO: Is this needed? What happens if I were to remove? Would logged in users
+    //       be able too hit this endpoint, but not anon ones????? (head scratch)
     //       Experiment,
     //       [REF|https://sst.dev/chapters/adding-auth-to-our-serverless-app.html|"The attachPermissionsForAuthUsers function allows us to specify the resources our authenticated users have access to."]
     this.auth.attachPermissionsForAuthUsers(this.auth, [this.api])
@@ -257,7 +290,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     // Show the endpoint in the output. Have to "escape" underscores this way
     // because SST eats anything that's not alphabetic
     this.addOutputs({
-      ApiEndpoint: this.api.url,
+      ApiEndpoint: this.api.customDomainUrl || this.api.url,
       Region: this.region,
       UserPoolId: this.auth.userPoolId,
       IdentityPoolId: this.auth.cognitoIdentityPoolId!,

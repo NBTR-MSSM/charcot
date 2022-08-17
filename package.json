@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "test": "jest --config=\"./jest.config.ts\" --coverage",
-    "start": "AWS_PROFILE=default sst start --stage demo",
+    "start": "AWS_PROFILE=default sst start --stage dev",
     "build": "AWS_PROFILE=default sst build",
     "deploy:demo": "./script/deploy.mjs deploy -p default -o alt -s demo",
     "deploy:dev": "./script/deploy.mjs deploy -p mssm -o mssm-odp -s dev",
