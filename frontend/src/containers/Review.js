@@ -19,8 +19,7 @@ class Review extends Component {
           <Button id='back-to-search-btn'>{'< Back to Search'}</Button>
         </LinkContainer>
         <Container bsPrefix={'charcot-review-container'}>
-          <DimensionAccordion onCategorySelect={this.props.onCategorySelect}
-                              onCategoryUnselect={this.props.onCategoryUnselect}/>
+          <DimensionAccordion />
         </Container>
       </div>)
   }

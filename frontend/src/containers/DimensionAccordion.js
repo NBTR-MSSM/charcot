@@ -13,9 +13,7 @@ class DimensionAccordion extends Component {
           }
           return <DimensionAccordionItem key={index}
                                          eventKey={index}
-                                         info={e}
-                                         onCategorySelect={this.props.onCategorySelect}
-                                         onCategoryUnselect={this.props.onCategoryUnselect}/>
+                                         info={e}/>
         })}
       </Accordion>
     )

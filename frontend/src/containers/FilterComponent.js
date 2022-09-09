@@ -6,7 +6,7 @@ import { AppContext } from '../lib/context'
 class FilterComponent extends Component {
   handlePredicateRemove = (event) => {
     const [dimension, category] = event.target.name.split('|')
-    this.props.onCategoryUnselect({ dimension, category })
+    this.context.handleCategoryUnselect({ dimension, category })
   }
 
   render = () => {

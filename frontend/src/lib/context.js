@@ -11,6 +11,10 @@ export const AppContext = createContext({
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   redirectToPrevious: () => {},
   // eslint-disable-next-line @typescript-eslint/no-empty-function
+  handleCategorySelect: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  handleCategoryUnselect: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   handleLogin: () => {},
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   handleLogout: () => {},

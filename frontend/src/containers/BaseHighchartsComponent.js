@@ -61,12 +61,12 @@ export default class BaseHighchartsComponent extends Component {
 
   handleCategorySelect = (event) => {
     const { category } = event.target
-    this.props.onCategorySelect({ dimension: this.dimension, category })
+    this.context.handleCategorySelect({ dimension: this.dimension, category })
   }
 
   handleCategoryUnselect = (event) => {
     const { category } = event.target
-    this.props.onCategoryUnselect({ dimension: this.dimension, category })
+    this.context.handleCategoryUnselect({ dimension: this.dimension, category })
   }
 
   /**

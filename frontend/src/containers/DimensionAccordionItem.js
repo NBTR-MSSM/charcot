@@ -1,8 +1,9 @@
 import { Component } from 'react'
 import Accordion from 'react-bootstrap/Accordion'
 import Category from './Category'
+import { AppContext } from '../lib/context'
 
-export default class DimensionAccordionItem extends Component {
+class DimensionAccordionItem extends Component {
   render () {
     const info = this.props.info
     return (<Accordion.Item bsPrefix='charcot-accordion-item' eventKey={this.props.eventKey}>
@@ -11,11 +12,13 @@ export default class DimensionAccordionItem extends Component {
         {Array.from(info.categories.values()).map((category, index) => {
           return <Category key={index}
                            category={category}
-                           dimension={info.dimension}
-                           onCategorySelect={this.props.onCategorySelect}
-                           onCategoryUnselect={this.props.onCategoryUnselect}/>
+                           dimension={info.dimension}/>
         })}
       </Accordion.Body>
     </Accordion.Item>)
   }
 }
+
+DimensionAccordionItem.contextType = AppContext
+
+export default DimensionAccordionItem

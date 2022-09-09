@@ -34,6 +34,8 @@ export default class App extends Component {
       dimensionData: {
         dimensions: []
       },
+      handleCategorySelect: this.handleCategorySelect,
+      handleCategoryUnselect: this.handleCategoryUnselect,
       handleClearFilter: this.handleClearFilter,
       handleLogin: this.handleLogin,
       handleLogout: this.handleLogout,
@@ -185,8 +187,7 @@ export default class App extends Component {
     }
     let leftNav
     if (this.currentPage() === '/search') {
-      leftNav = <div><LeftNav onCategorySelect={this.handleCategorySelect}
-                              onCategoryUnselect={this.handleCategoryUnselect}/></div>
+      leftNav = <div><LeftNav/></div>
     }
 
     let footer
@@ -233,9 +234,7 @@ export default class App extends Component {
               </Navbar>
             </div>
           </Stack>
-          <CharcotRoutes onCategorySelect={this.handleCategorySelect}
-                         onCategoryUnselect={this.handleCategoryUnselect}
-                         filter={savedState.filter.clone()}/>
+          <CharcotRoutes filter={savedState.filter.clone()}/>
           {footer}
         </AppContext.Provider>
       </div>)

@@ -6,8 +6,7 @@ export default class LeftNav extends Component {
   render () {
     return (
       <div className='LeftNav'>
-        <DimensionAccordion onCategorySelect={this.props.onCategorySelect}
-                            onCategoryUnselect={this.props.onCategoryUnselect}/>
+        <DimensionAccordion/>
       </div>
     )
   }

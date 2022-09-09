@@ -20,14 +20,10 @@ export default class CharcotRoutes extends Component {
           <Home/>
         </Route>
         <Route exact path='/search'>
-          <Search onCategorySelect={this.props.onCategorySelect}
-                  onCategoryUnselect={this.props.onCategoryUnselect}
-                  filter={this.props.filter}/>
+          <Search filter={this.props.filter}/>
         </Route>
         <Route exact path='/review'>
-          <Review onCategorySelect={this.props.onCategorySelect}
-                  onCategoryUnselect={this.props.onCategoryUnselect}
-                  filter={this.props.filter}/>
+          <Review filter={this.props.filter}/>
         </Route>
         <Route exact path='/signup'>
           <Signup />

@@ -17,8 +17,7 @@ class Search extends Component {
   render () {
     let filterComponent = ''
     if (!this.props.filter.isEmpty()) {
-      filterComponent = <FilterComponent filter={this.props.filter}
-                                         onCategoryUnselect={this.props.onCategoryUnselect}/>
+      filterComponent = <FilterComponent filter={this.props.filter}/>
     }
 
     return (
@@ -29,36 +28,24 @@ class Search extends Component {
           <tbody>
           <tr>
             <td>
-              <AgeChart filter={this.props.filter}
-                        onCategorySelect={this.props.onCategorySelect}
-                        onCategoryUnselect={this.props.onCategoryUnselect}/>
+              <AgeChart filter={this.props.filter}/>
             </td>
             <td>
-              <DiagnosisChart filter={this.props.filter}
-                              onCategorySelect={this.props.onCategorySelect}
-                              onCategoryUnselect={this.props.onCategoryUnselect}/>
+              <DiagnosisChart filter={this.props.filter}/>
             </td>
           </tr>
           <tr>
             <td>
-              <SexChart filter={this.props.filter}
-                        onCategorySelect={this.props.onCategorySelect}
-                        onCategoryUnselect={this.props.onCategoryUnselect}/>
+              <SexChart filter={this.props.filter}/>
             </td>
             <td>
-              <RegionChart filter={this.props.filter}
-                           onCategorySelect={this.props.onCategorySelect}
-                           onCategoryUnselect={this.props.onCategoryUnselect}/>
+              <RegionChart filter={this.props.filter}/>
             </td>
           </tr>
           <tr>
-            <td><RaceChart filter={this.props.filter}
-                           onCategorySelect={this.props.onCategorySelect}
-                           onCategoryUnselect={this.props.onCategoryUnselect}/></td>
+            <td><RaceChart filter={this.props.filter}/></td>
             <td>
-              <StainChart filter={this.props.filter}
-                          onCategorySelect={this.props.onCategorySelect}
-                          onCategoryUnselect={this.props.onCategoryUnselect}/>
+              <StainChart filter={this.props.filter}/>
             </td>
           </tr>
           </tbody>

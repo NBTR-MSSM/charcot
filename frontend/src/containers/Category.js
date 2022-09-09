@@ -1,7 +1,8 @@
 import { Component } from 'react'
 import Form from 'react-bootstrap/Form'
+import { AppContext } from '../lib/context'
 
-export default class Category extends Component {
+class Category extends Component {
   constructor (props) {
     super(props)
     this.state = { checked: false }
@@ -27,9 +28,9 @@ export default class Category extends Component {
     const { checked, value } = event.target
     const [dimension, category] = value.split('|')
     if (checked) {
-      this.props.onCategorySelect({ dimension, category })
+      this.context.handleCategorySelect({ dimension, category })
     } else {
-      this.props.onCategoryUnselect({ dimension, category })
+      this.context.handleCategoryUnselect({ dimension, category })
     }
   }
 
@@ -51,3 +52,7 @@ export default class Category extends Component {
     )
   }
 }
+
+Category.contextType = AppContext
+
+export default Category
