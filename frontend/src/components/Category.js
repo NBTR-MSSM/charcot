@@ -37,18 +37,16 @@ class Category extends Component {
   render () {
     const { category, dimension } = this.props
     return (
-      <Form>
-        <div key={category.name} className="mb-3">
-          <Form.Check
-            checked={this.state.checked}
-            type='checkbox'
-            label={category.name}
-            onChange={this.handleCategoryChange}
-            value={`${dimension}|${category.name}`}
-            disabled={category.count < 1}
-          />
-        </div>
-      </Form>
+      <div key={`${dimension}-${category.name}`} className="mb-3">
+        <Form.Check
+          checked={this.state.checked}
+          type='checkbox'
+          label={category.name}
+          onChange={this.handleCategoryChange}
+          value={`${dimension}|${category.name}`}
+          disabled={category.count < 1}
+        />
+      </div>
     )
   }
 }

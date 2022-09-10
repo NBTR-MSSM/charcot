@@ -6,7 +6,7 @@ import StainChart from './StainChart'
 import RaceChart from './RaceChart'
 import DiagnosisChart from './DiagnosisChart'
 import './Search.css'
-import FilterComponent from './FilterComponent'
+import FilterComponent from '../components/FilterComponent'
 import { AppContext } from '../lib/context'
 
 class Search extends Component {

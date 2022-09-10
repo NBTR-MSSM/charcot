@@ -12,4 +12,14 @@
 
 .LeftNav .charcot-accordion-item {
     width: 191px;
+    font-size: 10px;
+}
+
+.LeftNav .charcot-accordion-item .mb-3 {
+    margin-bottom: .1rem !important;
+    font-size: 11px;
+}
+
+.LeftNav .accordion-button {
+    font-size: 14px;
 }

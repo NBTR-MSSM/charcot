@@ -55,7 +55,7 @@ class ImageSearch {
     }
     this.addFilter((event.queryStringParameters && event.queryStringParameters.filter) as Filter, params)
     this.addEnabledOnlyCondition(params)
-    // console.log(`JMQ: params is ${JSON.stringify(params)}`)
+    console.log(`JMQ: dimension() params is ${JSON.stringify(params)}`)
 
     let ret: Dimension[] = []
     let responseCode = 404
@@ -163,7 +163,9 @@ class ImageSearch {
 
     // Deal with the text categories (E.g. stain, region, sex, race, diagnosis)
     for (const m of dynamoFilter.matchAll(/(\w+)\s=\s'([^']+)'/g)) {
-      // Handle category replacement one time only, in the first iteration
+      // Globally handle category replacement upon the first iteration and
+      // upon the first iteration only. Why though? This is idempotent so can run many times
+      // harmlessly, right?
       const category = m[1]
       const categoryPlaceholder = `#${category.replace(/\s+/g, '')}`
       if (!exprAttrNames[categoryPlaceholder]) {
@@ -173,13 +175,18 @@ class ImageSearch {
 
       const val = m[2]
       const valuePlaceHolder = `:${val.replace(/\W+/g, '')}`
-      exprAttrValues[valuePlaceHolder] = val.replace(/__QUOTE__/g, "'")
+      // Ensure numeric values are stored as JavaScript numeric type, else DynamoDB
+      // returns results because it won't coerce to numbers strings that  are numeric
+      // in nature
+      console.log(`JMQ: val is ${val}`)
+      exprAttrValues[valuePlaceHolder] = val.match(/^\d+$/) ? parseInt(val) : val.replace(/__QUOTE__/g, "'")
       dynamoFilter = dynamoFilter.replace(`'${val}'`, valuePlaceHolder)
     }
 
     params.FilterExpression = dynamoFilter
     params.ExpressionAttributeNames = { ...params.ExpressionAttributeNames || {}, ...exprAttrNames }
     params.ExpressionAttributeValues = exprAttrValues
+    console.log(`JMQ: exprAttrValues is ${JSON.stringify(exprAttrValues)}`)
     console.log(`JMQ: addFilter() DynamoDB filter is ${dynamoFilter}`)
   }
 

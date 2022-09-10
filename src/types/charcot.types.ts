@@ -55,8 +55,6 @@ export interface StackArguments {
   userPoolId?: string,
   userPoolClientId?: string,
   cognitoIdentityPoolId?: string,
-  privateSubnets?: SubnetSelection,
-  publicSubnets?: SubnetSelection,
   vpc?: IVpc,
   vpcId?: string,
   zipBucketName?: string

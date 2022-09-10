@@ -1,0 +1,10 @@
+.SubjectNumberFileUpload #clear-file-btn {
+    color: red;
+    font-weight: bolder;
+    font-style: italic;
+    font-size: .5rem;
+}
+
+.SubjectNumberFileUpload #subjectNumberFile {
+    font-size: .4rem;
+}

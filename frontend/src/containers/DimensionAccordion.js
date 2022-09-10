@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import Accordion from 'react-bootstrap/Accordion'
-import DimensionAccordionItem from './DimensionAccordionItem'
+import DimensionAccordionItem from '../components/DimensionAccordionItem'
 import { AppContext } from '../lib/context'
 
 class DimensionAccordion extends Component {

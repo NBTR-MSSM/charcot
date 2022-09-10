@@ -1,5 +1,6 @@
 import { API } from 'aws-amplify'
 import Filter from './Filter'
+import SubjectNumberFileUpload from '../components/SubjectNumberFileUpload'
 
 /*
  * Every time a chart needs to me modified and/or a new one added, add the corresponding config here
@@ -7,10 +8,10 @@ import Filter from './Filter'
 const DIMENSION_CONFIGS = {
   subjectNumber: {
     name: 'subjectNumber',
-    displayName: 'Subject',
+    displayName: 'Subject Number',
     endpoint: '/cerebrum-images/subjectNumbers',
     statToDisplay: 'filteredCategoryCount',
-    hideInAccordion: true
+    body: <SubjectNumberFileUpload/>
   },
   age: {
     name: 'age',
@@ -46,7 +47,7 @@ const calculateTickInterval = (categories) => {
 const retrieveData = async ({ config, dimension, filter }) => {
   const key = `${dimension}-${filter.serialize()}`
   if (!CACHE.has(key)) {
-    console.log(`JMQ: key ${key} not found in CACHE`)
+    // console.log(`JMQ: key ${key} not found in CACHE`)
     CACHE.set(key, await API.get('charcot', config.endpoint, {
       queryStringParameters: {
         filter: filter.serialize(dimension),
@@ -79,6 +80,7 @@ const prepareCategoryData = ({ config, dimension, filter, values, resetCountToZe
 
     prev.set(currentCategory.name, currentCategory)
 
+    // console.log(`JMQ: filter is ${filter.serialize()}`)
     if (filter.has({ dimension, category: currentCategory.name })) {
       selectedCategories.add(currentCategory.name)
       currentCategory.selected = true
@@ -144,7 +146,8 @@ class DataService {
       categoryCount,
       filteredCategoryCount: Array.from(filteredCategories.keys()).length,
       statToDisplay: config.statToDisplay,
-      hideInAccordion: config.hideInAccordion
+      hideInAccordion: config.hideInAccordion,
+      body: config.body
     }
   }
 

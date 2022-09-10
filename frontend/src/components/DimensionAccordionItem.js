@@ -9,7 +9,7 @@ class DimensionAccordionItem extends Component {
     return (<Accordion.Item bsPrefix='charcot-accordion-item' eventKey={this.props.eventKey}>
       <Accordion.Header>{info.displayName}</Accordion.Header>
       <Accordion.Body>
-        {Array.from(info.categories.values()).map((category, index) => {
+        {info.body || Array.from(info.categories.values()).map((category, index) => {
           return <Category key={index}
                            category={category}
                            dimension={info.dimension}/>

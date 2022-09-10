@@ -64,7 +64,7 @@ export default class Filter {
 
   serialize (dimensionToIgnore) {
     const dimensionsPredicates = Object.entries(this.filter).filter((tup) => tup[0] !== dimensionToIgnore).map(tup => {
-      const predicates = Array.from(tup[1].values()).map(val => `${tup[0]} = '${val.replace(/'/g, '__QUOTE__')}'`)
+      const predicates = Array.from(tup[1].values()).map(val => `${tup[0]} = '${!Number.isInteger(val) ? val.replace(/'/g, '__QUOTE__') : val}'`)
       const predicatesAsString = predicates.join(' OR ')
       return predicates.length > 1 ? `(${predicatesAsString})` : predicatesAsString
     })

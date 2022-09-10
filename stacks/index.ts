@@ -26,20 +26,13 @@ export default function main(app: sst.App): void {
 
     const vpc = process.env.VpcId ? Vpc.fromLookup(commonStack, 'VPC', { vpcId: process.env.VpcId }) : commonStack.vpc
 
-    const publicSubnets = process.env.PublicSubnets ? { subnetFilters: [SubnetFilter.byIds(process.env.PublicSubnets.split(','))] } : commonStack.publicSubnets
-    const privateSubnets = process.env.PrivateSubnets ? { subnetFilters: [SubnetFilter.byIds(process.env.PrivateSubnets.split(','))] } : commonStack.privateSubnets
-
     backEndPaidAccountStack = new BackEndPaidAccountStack(app, 'backend-paid-account', {}, {
       zipBucketName,
-      vpc,
-      publicSubnets,
-      privateSubnets
+      vpc
     })
 
     fulfillmentStack = new FulfillmentStack(app, 'fulfillment', {}, {
       cerebrumImageOrderTableArn: backEndPaidAccountStack.cerebrumImageOrderTableArn,
-      privateSubnets,
-      publicSubnets,
       vpc,
       zipBucketName
     })
