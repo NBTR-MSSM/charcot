@@ -17,10 +17,10 @@ export default class CommonStack extends sst.Stack {
       vpcName: `${stage}-charcot`,
       maxAzs: 2,
       subnetConfiguration: [
-        {
+        /* {
           name: 'charcot-application',
           subnetType: SubnetType.PRIVATE_WITH_NAT
-        },
+        }, */
         {
           name: 'charcot-ingress',
           subnetType: SubnetType.PUBLIC

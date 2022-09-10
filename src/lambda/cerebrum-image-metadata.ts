@@ -33,6 +33,7 @@ export const create: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIG
   await Promise.all(promises).catch(e => {
     response.statusCode = 400
     response.message = `Problem processing image data: ${e}`
+    console.error('Problem processing image data', e)
   })
 
   if (endOfSnapshot) {

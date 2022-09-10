@@ -93,8 +93,8 @@ export default class BackEndPaidAccountStack extends sst.Stack {
       environment: {
         CEREBRUM_IMAGE_ODP_BUCKET_NAME: cerebrumImageOdpBucketName
       },
-      timeout: 900,
-      vpc: args.vpc
+      timeout: 900
+      // vpc: args.vpc
     })
 
     this.handleCerebrumImageTransferRoleArn = handleCerebrumImageTransfer?.role?.roleArn as string
@@ -132,9 +132,9 @@ export default class BackEndPaidAccountStack extends sst.Stack {
      */
     this.api = new sst.Api(this, 'Api', {
       defaults: {
-        function: {
+        /* function: {
           vpc: args.vpc
-        }
+        } */
       },
       customDomain: {
         domainName: `${stage === 'prod' ? 'api.mountsinaicharcot.org' : `api-${stage}.mountsinaicharcot.org`}`,
