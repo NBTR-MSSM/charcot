@@ -16,22 +16,11 @@ class ImageSearch {
     console.log(`JMQ: search() params is ${JSON.stringify(params)}`)
     let responseCode = 404
     let retItems: DocumentClient.ItemList = []
-    while (true) {
-      const res = await dynamoDbClient.scan(params)
-      const items = res.Items
-      console.log(`JMQ: items is ${JSON.stringify(items)}`)
-      if (!items) {
-        break
-      }
+    const callback = (items: DocumentClient.ItemList) => {
       retItems = retItems.concat(items)
       responseCode = 200
-      const lastEvaluatedKey = res.LastEvaluatedKey
-      if (lastEvaluatedKey) {
-        params.ExclusiveStartKey = lastEvaluatedKey
-      } else {
-        break
-      }
     }
+    await this.handleSearch(params, callback)
     return new HttpResponse(responseCode, '', {
       body: retItems
     })
@@ -59,61 +48,67 @@ class ImageSearch {
 
     let ret: Dimension[] = []
     let responseCode = 404
-    while (true) {
-      const res = await dynamoDbClient.scan(params)
-      const items = res.Items
-      // If dynamo returned 0 items and this is first iteration of the loop, return
-      // HTTP not found code (404)
-      if (!items) {
-        break
-      } else {
-        responseCode = 200
-        // Ranging only applies to dimensions that are numeric
-        // in nature only. Yet we do this here for all for sake of simplicity,
-        // namely generating a RangeMap needlessly if the dimension in question
-        // is not numeric in nature.
-        const interval = Number.parseInt((event.queryStringParameters && event.queryStringParameters.interval) || '10')
-        const max = Number.parseInt((event.queryStringParameters && event.queryStringParameters.max) || '90')
-        const start = Number.parseInt((event.queryStringParameters && event.queryStringParameters.start) || interval.toString())
-        const ranges: RangeMap = new RangeMap(interval, max, start)
-        ret = Array.from(items.reduce((prev: Map<string | number, Dimension>, cur: DocumentClient.AttributeMap) => {
-          const val = Number.isInteger(cur[dimension]) && isNumeric ? cur[dimension] : paramCase(`${cur[dimension]}`)
-          let obj: Dimension | undefined
-          if (!(obj = prev.get(val))) {
-            obj = {
-              count: 0,
-              title: cur[dimension],
-              value: val,
-              range: undefined,
-              rank: -1
-            }
-            prev.set(val, obj as Dimension)
 
-            // Ranging applies to dimensions numeric in nature only (E.g. Age) and where
-            // caller indeed wants to treat those as range-able (numeric=true in query string params)
-            if (Number.isInteger(val) && isNumeric) {
-              const rangeInfo = ranges.get(val)
-              obj.range = rangeInfo?.range
-              obj.rank = rangeInfo?.rank as number
-            }
+    const callback = (items: DocumentClient.ItemList) => {
+      responseCode = 200
+      // Ranging only applies to dimensions that are numeric
+      // in nature only. Yet we do this here for all for sake of simplicity,
+      // namely generating a RangeMap needlessly if the dimension in question
+      // is not numeric in nature.
+      const interval = Number.parseInt((event.queryStringParameters && event.queryStringParameters.interval) || '10')
+      const max = Number.parseInt((event.queryStringParameters && event.queryStringParameters.max) || '90')
+      const start = Number.parseInt((event.queryStringParameters && event.queryStringParameters.start) || interval.toString())
+      const ranges: RangeMap = new RangeMap(interval, max, start)
+      ret = Array.from(items.reduce((prev: Map<string | number, Dimension>, cur: DocumentClient.AttributeMap) => {
+        const val = Number.isInteger(cur[dimension]) && isNumeric ? cur[dimension] : paramCase(`${cur[dimension]}`)
+        let obj: Dimension | undefined
+        if (!(obj = prev.get(val))) {
+          obj = {
+            count: 0,
+            title: cur[dimension],
+            value: val,
+            range: undefined,
+            rank: -1
           }
-          ++obj.count
-          return prev
-        }, new Map<string | number, Dimension>(ret.map((obj) => [obj.value, obj]))).values())
-          .sort((a, b): number => (b as Dimension).rank - (a as Dimension).rank || rank(dimension, (a as Dimension).title) - rank(dimension, (b as Dimension).title)) as Dimension[]
-      }
+          prev.set(val, obj as Dimension)
+
+          // Ranging applies to dimensions numeric in nature only (E.g. Age) and where
+          // caller indeed wants to treat those as range-able (numeric=true in query string params)
+          if (Number.isInteger(val) && isNumeric) {
+            const rangeInfo = ranges.get(val)
+            obj.range = rangeInfo?.range
+            obj.rank = rangeInfo?.rank as number
+          }
+        }
+        ++obj.count
+        return prev
+      }, new Map<string | number, Dimension>(ret.map((obj) => [obj.value, obj]))).values())
+        .sort((a, b): number => (b as Dimension).rank - (a as Dimension).rank || rank(dimension, (a as Dimension).title) - rank(dimension, (b as Dimension).title)) as Dimension[]
+    }
+    await this.handleSearch(params, callback)
+    return new HttpResponse(responseCode, '', {
+      body: ret
+    })
+  }
+
+  private async handleSearch(params: DocumentClient.QueryInput, callback: (items: DocumentClient.ItemList) => void) {
+    while (true) {
+      const res: DocumentClient.ScanOutput = await dynamoDbClient.scan(params)
+      console.debug(`JMQ: handleSearch() params is ${JSON.stringify(params)}, res.Items is ${JSON.stringify(res)}`)
 
       const lastEvaluatedKey = res.LastEvaluatedKey
+      if (res.Items && res.Items.length) {
+        const items: DocumentClient.ItemList = res.Items
+        console.log(`JMQ: items is ${JSON.stringify(items)}`)
+        callback(items)
+      }
+
       if (lastEvaluatedKey) {
-        params.ExclusiveStartKey = lastEvaluatedKey
+        params = { ...params, ExclusiveStartKey: lastEvaluatedKey }
       } else {
         break
       }
     }
-
-    return new HttpResponse(responseCode, '', {
-      body: ret
-    })
   }
 
   /**
@@ -176,7 +171,7 @@ class ImageSearch {
       const val = m[2]
       const valuePlaceHolder = `:${val.replace(/\W+/g, '')}`
       // Ensure numeric values are stored as JavaScript numeric type, else DynamoDB
-      // returns results because it won't coerce to numbers strings that  are numeric
+      // returns results because it won't coerce to number strings that  are numeric
       // in nature
       console.log(`JMQ: val is ${val}`)
       exprAttrValues[valuePlaceHolder] = val.match(/^\d+$/) ? parseInt(val) : val.replace(/__QUOTE__/g, "'")
@@ -184,7 +179,7 @@ class ImageSearch {
     }
 
     params.FilterExpression = dynamoFilter
-    params.ExpressionAttributeNames = { ...params.ExpressionAttributeNames || {}, ...exprAttrNames }
+    params.ExpressionAttributeNames = { ...params.ExpressionAttributeNames, ...exprAttrNames }
     params.ExpressionAttributeValues = exprAttrValues
     console.log(`JMQ: exprAttrValues is ${JSON.stringify(exprAttrValues)}`)
     console.log(`JMQ: addFilter() DynamoDB filter is ${dynamoFilter}`)
@@ -194,12 +189,16 @@ class ImageSearch {
     let curFilter = params.FilterExpression
     curFilter = curFilter ? `${(curFilter)} AND ` : ''
     params.FilterExpression = `${curFilter}#enabled = :true`
-    const attrNames = params.ExpressionAttributeNames || {}
-    const attrVals = params.ExpressionAttributeValues || {}
-    attrNames['#enabled'] = 'enabled'
-    attrVals[':true'] = 'true'
-    params.ExpressionAttributeNames = attrNames
-    params.ExpressionAttributeValues = attrVals
+    const attrNames = {
+      '#enabled': 'enabled'
+    }
+    const attrVals = {
+      ':true': 'true'
+    }
+
+    params.ExpressionAttributeNames = { ...params.ExpressionAttributeNames, ...attrNames }
+    params.ExpressionAttributeValues = { ...params.ExpressionAttributeValues, ...attrVals }
+
     console.log(`JMQ: addEnabledOnlyCondition() DynamoDB filter is ${params.FilterExpression}`)
   }
 }

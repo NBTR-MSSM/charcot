@@ -4,7 +4,7 @@ import BackEndOdpStack from './BackEndOdpStack'
 import FrontendStack from './FrontEndStack'
 import FulfillmentStack from './FulfillmentStack'
 import CommonStack from './CommonStack'
-import { SubnetFilter, Vpc } from 'aws-cdk-lib/aws-ec2'
+import { Vpc } from 'aws-cdk-lib/aws-ec2'
 
 const calculateZipBucketName = (stage: string) => {
   const bucketSuffix = stage === 'prod' ? '' : `-${stage}`

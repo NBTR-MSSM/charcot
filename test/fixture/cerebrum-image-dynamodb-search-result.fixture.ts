@@ -146,6 +146,13 @@ export const ages: DocumentClient.ScanOutput = {
   ]
 }
 
+export const agesPaginated: DocumentClient.ScanOutput = {
+  LastEvaluatedKey: {
+    foo: 'bar'
+  },
+  Items: ages.Items
+}
+
 export const agesOutput = [
   {
     count: 1,
@@ -677,3 +684,51 @@ export const diagnosesOutput = [
     rank: -1
   }
 ]
+
+export const allFieldsSearchResult: DocumentClient.ScanOutput = {
+  Items: [
+    {
+      subjectNumber: 31737,
+      uploadDate: '06/03/2022',
+      enabled: true,
+      race: 'White (nonHispanic)',
+      fileName: '31737_4_HE_1.mrxs',
+      diagnosis: "Definite Alzheimer's Disease'",
+      sex: 'Male',
+      region: 'Basal Ganglia',
+      stain: 'H&E',
+      age: 82
+    },
+    {
+      subjectNumber: 12345,
+      uploadDate: '06/03/2022',
+      enabled: true,
+      race: 'White (nonHispanic)',
+      fileName: '12345_4_HE_1.mrxs',
+      diagnosis: "Definite Alzheimer's Disease'",
+      sex: 'Male',
+      region: 'Basal Ganglia',
+      stain: 'H&E',
+      age: 88
+    },
+    {
+      subjectNumber: 67890,
+      uploadDate: '06/03/2022',
+      enabled: true,
+      race: 'White (nonHispanic)',
+      fileName: '67890_4_HE_1.mrxs',
+      diagnosis: "Definite Alzheimer's Disease'",
+      sex: 'Male',
+      region: 'Basal Ganglia',
+      stain: 'H&E',
+      age: 83
+    }
+  ]
+}
+
+export const allFieldsSearchResultPaginated: DocumentClient.ScanOutput = {
+  Items: allFieldsSearchResult.Items,
+  LastEvaluatedKey: {
+    foo: 'bar'
+  }
+}

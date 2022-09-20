@@ -20,7 +20,7 @@ const validateRequest = (queryStringParameters: APIGatewayProxyEventQueryStringP
 }
 
 /**
- * TODO: Either move this to ImageSearch or remove it entirely. It was implmented
+ * TODO: Either move this to ImageSearch or remove it entirely. It was implemented
  *       early when it wasn't exactly clear how things would pan out.
  */
 export const search: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIGatewayProxyEventV2) => {

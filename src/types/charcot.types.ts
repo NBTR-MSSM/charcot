@@ -1,4 +1,4 @@
-import { IVpc, SubnetSelection } from 'aws-cdk-lib/aws-ec2'
+import { IVpc } from 'aws-cdk-lib/aws-ec2'
 
 type CharcotFileName = string
 
