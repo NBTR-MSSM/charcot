@@ -166,7 +166,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
             initialPolicy: [
               new iam.PolicyStatement({
                 effect: iam.Effect.ALLOW,
-                actions: ['dynamodb:Query'],
+                actions: ['dynamodb:Query', 'dynamodb:Scan'],
                 resources: [cerebrumImageMetaDataTable.tableArn, `${cerebrumImageMetaDataTable.tableArn}/index/*`]
               })],
             environment: {
@@ -181,7 +181,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
             initialPolicy: [
               new iam.PolicyStatement({
                 effect: iam.Effect.ALLOW,
-                actions: ['dynamodb:Query'],
+                actions: ['dynamodb:Query', 'dynamodb:Scan'],
                 resources: [cerebrumImageMetaDataTable.tableArn, `${cerebrumImageMetaDataTable.tableArn}/index/*`]
               })],
             environment: {
@@ -202,7 +202,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
               }),
               new iam.PolicyStatement({
                 effect: iam.Effect.ALLOW,
-                actions: ['dynamodb:Query'],
+                actions: ['dynamodb:Query', 'dynamodb:Scan'],
                 resources: [cerebrumImageMetaDataTable.tableArn]
               })],
             environment: {
@@ -214,8 +214,6 @@ export default class BackEndPaidAccountStack extends sst.Stack {
         }
       }
     })
-
-    this.api.attachPermissions([cerebrumImageMetaDataTable])
 
     // Auth
     const auth = new Auth(this, 'Auth', {
