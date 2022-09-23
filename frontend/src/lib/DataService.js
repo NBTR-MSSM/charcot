@@ -1,6 +1,6 @@
 import { API } from 'aws-amplify'
 import Filter from './Filter'
-import SubjectNumberFileUpload from '../components/SubjectNumberFileUpload'
+import SubjectNumberEntry from '../components/SubjectNumberEntry'
 
 /*
  * Every time a chart needs to me modified and/or a new one added, add the corresponding config here
@@ -11,7 +11,7 @@ const DIMENSION_CONFIGS = {
     displayName: 'Subject Number',
     endpoint: '/cerebrum-images/subjectNumbers',
     statToDisplay: 'filteredCategoryCount',
-    body: <SubjectNumberFileUpload/>
+    body: <SubjectNumberEntry/>
   },
   age: {
     name: 'age',

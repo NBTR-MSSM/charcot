@@ -33,7 +33,7 @@ export default class Filter {
 
   has ({ dimension, category }) {
     const categories = this.filter[dimension]
-    return categories && categories.has(category)
+    return categories && (!category || categories.has(category))
   }
 
   isEmpty () {

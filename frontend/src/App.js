@@ -61,7 +61,6 @@ export default class App extends Component {
   }
 
   componentDidUpdate () {
-    console.log('JMQ: App did update ')
     if (this.state.redirectTo) {
       this.setState({
         redirectTo: ''
@@ -208,7 +207,7 @@ export default class App extends Component {
       authFragment = <Nav.Link onClick={this.handleLogout}>Logout</Nav.Link>
     }
 
-    console.log(`JMQ: currentPage is ${this.currentPage()}`)
+    // console.log(`JMQ: currentPage is ${this.currentPage()}`)
 
     return !this.state.isAuthenticating && (
       <div className='App container py-3'>

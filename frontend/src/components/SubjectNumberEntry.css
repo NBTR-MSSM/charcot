@@ -1,0 +1,27 @@
+.SubjectNumberEntry #clear-file-btn {
+    color: red;
+    font-weight: bolder;
+    font-style: italic;
+    font-size: .7rem;
+}
+
+.SubjectNumberEntry #subjectNumberFile {
+    font-size: .5rem;
+}
+
+.SubjectNumberEntry #subject-number-list {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    display: table;
+}
+
+.SubjectNumberEntry #sub-num-entry-mode-decision {
+    font-size: .8rem;
+    margin-bottom: 10px;
+    display: table;
+}
+
+.SubjectNumberEntry #sub-num-entry-mode-decision a {
+    text-decoration: none;
+}
+
