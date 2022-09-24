@@ -33,7 +33,7 @@ class FulfillmentController {
         return ResponseEntity.notFound().build()
       }
 
-      log.info "Retrieved order info for $orderId, downloading image slides from S3..."
+      log.info "Retrieved order info for $orderId"
       // Download all the files from S3 into temp folder 'orderId'
       executorService.execute({ ->
         List<String> fileNames = orderInfoDto.fileNames
@@ -42,13 +42,18 @@ class FulfillmentController {
         int totalZips = bucketToFileList.size()
         bucketToFileList.each { Integer bucketNumber, List<String> filesToZip ->
           def startAll = System.currentTimeMillis()
+
+          // Download the files to zip
           filesToZip.each { String fileName ->
             def startCurrent = System.currentTimeMillis()
-            fulfillmentService.downloadS3Object(orderId, fileName)
-            fulfillmentService.downloadS3Object(orderId, fileName.replace('.mrxs', '/'))
+            fulfillmentService.downloadS3Object(orderInfoDto, fileName)
+            fulfillmentService.downloadS3Object(orderInfoDto, fileName.replace('.mrxs', '/'))
             log.info "Took ${System.currentTimeMillis() - startCurrent} milliseconds to download $fileName for request $orderId"
           }
           log.info "Took ${System.currentTimeMillis() - startAll} milliseconds to download all the image slides for request $orderId"
+
+          // Create the manifest file
+          fulfillmentService.createManifestFile(orderInfoDto, filesToZip)
 
           // Create zip
           String zipName = totalZips > 1 ? "$orderId-$zipCnt-of-${totalZips}.zip" : "${orderId}.zip"
@@ -58,7 +63,7 @@ class FulfillmentController {
 
           // Upload zip to S3
           def startUpload = System.currentTimeMillis()
-          fulfillmentService.uploadObjectToS3(orderInfoDto, zipName)
+          fulfillmentService.uploadObjectToS3(zipName)
           log.info "Took ${System.currentTimeMillis() - startUpload} milliseconds to upload zip for request $orderId"
 
           // Generate a signed URL
@@ -69,7 +74,7 @@ class FulfillmentController {
 
           // cleanup in preparation for next batch, this way
           // we free up space so as to to avoid blowing disk space on the host
-          fulfillmentService.cleanUp(orderId, zipName)
+          fulfillmentService.cleanUp(orderInfoDto, zipName)
 
           ++zipCnt
         }

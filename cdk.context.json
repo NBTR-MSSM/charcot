@@ -470,5 +470,30 @@
         ]
       }
     ]
+  },
+  "vpc-provider:account=045387143127:filter.vpc-id=vpc-070ce99cb78860905:region=us-east-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-070ce99cb78860905",
+    "vpcCidrBlock": "10.1.0.0/17",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "charcot-ingress",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-08864fe9e41044bd6",
+            "cidr": "10.1.0.0/18",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-02e77a83cb3e404a1"
+          },
+          {
+            "subnetId": "subnet-0d9284cc50609b18b",
+            "cidr": "10.1.64.0/18",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-07f409ca5414c7c46"
+          }
+        ]
+      }
+    ]
   }
 }

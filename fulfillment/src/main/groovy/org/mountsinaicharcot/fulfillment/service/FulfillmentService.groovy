@@ -39,6 +39,9 @@ class FulfillmentService {
   @Value('${charcot.dynamodb.order.table.name}')
   String dynamoDbOrderTableName
 
+  @Value('${charcot.dynamodb.image.metadata.table.name}')
+  String dynamoDbImageMetadataTableName
+
   // This is the source bucket where the image files are stored
   @Value('${charcot.s3.odp.bucket.name}')
   String s3OdpBucketName
@@ -56,9 +59,14 @@ class FulfillmentService {
   @Value('${charcot.ses.from.email}')
   String fromEmail
 
-  final static String workFolder = '/root'
+  final static String workFolder = '/tmp'
 
   final static Long FILE_BUCKET_SIZE = 50000000000
+
+  final static List<String> numberAttributes = ['subjectNumber', 'age']
+
+  final static List<String> stringAttributes = ['race', 'diagnosis', 'sex', 'region', 'stain', 'fileName']
+
 
   OrderInfoDto retrieveOrderInfo(String orderId) {
     GetItemRequest request = new GetItemRequest()
@@ -73,25 +81,26 @@ class FulfillmentService {
     }
 
     OrderInfoDto orderInfoDto = new OrderInfoDto()
-    orderInfoDto.fileNames = items.fileNames.l.collect { AttributeValue fileNameAttribute -> fileNameAttribute.s
-    }
+    orderInfoDto.fileNames = items.fileNames.l.collect { AttributeValue fileNameAttribute -> fileNameAttribute.s }
     orderInfoDto.email = items.email.s
     orderInfoDto.orderId = orderId
+    orderInfoDto.outputPath = "$workFolder/$orderId"
     orderInfoDto
   }
 
-  void downloadS3Object(String orderId, String key) {
+  void downloadS3Object(OrderInfoDto orderInfoDto, String key) {
     log.info "Downloading $key..."
+    String orderId = orderInfoDto.orderId
     AmazonS3 s3 = AmazonS3ClientBuilder.standard().build()
     List<String> keysToDownload = []
     if (key.endsWith('/')) {
-      new File(Paths.get("$workFolder/", orderId, key).toString()).mkdirs()
+      new File(Paths.get(orderInfoDto.outputPath, key).toString()).mkdirs()
       ObjectListing objectListing = s3.listObjects(s3OdpBucketName, key)
       keysToDownload += objectListing.objectSummaries.collect {
         it.key
       }
     } else {
-      new File(Paths.get(workFolder, orderId).toString()).mkdir()
+      new File(Paths.get(orderInfoDto.outputPath).toString()).mkdir()
       keysToDownload << key
     }
 
@@ -99,7 +108,7 @@ class FulfillmentService {
     keysToDownload.each { String keyToDownload ->
       FileDownload download =
               transferManager.downloadFile({ b ->
-                b.destination(Paths.get("$workFolder/", orderId, keyToDownload)).getObjectRequest({ req -> req.bucket(s3OdpBucketName).key(keyToDownload)
+                b.destination(Paths.get(orderInfoDto.outputPath, keyToDownload)).getObjectRequest({ req -> req.bucket(s3OdpBucketName).key(keyToDownload)
                 })
               })
       download.completionFuture().join()
@@ -107,12 +116,37 @@ class FulfillmentService {
     log.info "Download of $key complete"
   }
 
+  void createManifestFile(OrderInfoDto orderInfoDto, List<String> fileNames) {
+    String manifestFilePath = Paths.get(orderInfoDto.outputPath, 'manifest.csv').toString()
+    log.info "Creating manifest file at $manifestFilePath"
+    AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
+    File csvFile = new File(manifestFilePath)
+    csvFile.parentFile.mkdirs()
+    // Write out the header
+    csvFile << (numberAttributes + stringAttributes).join(',') << "\n"
+    fileNames.each { String fileName ->
+      GetItemRequest request = new GetItemRequest()
+              .withKey([fileName: new AttributeValue(fileName)])
+              .withTableName(dynamoDbImageMetadataTableName)
+      Map<String, AttributeValue> items = dynamoDB.getItem(request).getItem()
+      List<String> record = []
+      numberAttributes.each {
+        record << items[it].n
+      }
+      stringAttributes.each {
+        record << items[it].s
+      }
+      csvFile << record.join(',') << "\n"
+    }
+    log.info "Done creating manifest file at $manifestFilePath"
+  }
+
   void createZip(OrderInfoDto orderInfoDto, String zipName) {
     String orderId = orderInfoDto.orderId
     runCommand("zip -r -0 ${zipName - '.zip'} ./$orderId/".toString())
   }
 
-  void uploadObjectToS3(OrderInfoDto orderInfoDto, String zipName) {
+  void uploadObjectToS3(String zipName) {
     runCommand('df -kh')
     String zipPath = "$workFolder/$zipName"
     log.info "Uploading Zip $zipPath to $s3ZipBucketName S3 bucket"
@@ -165,8 +199,8 @@ class FulfillmentService {
     log.info "Sent email for request $orderInfoDto.orderId and zip link $zipLink"
   }
 
-  void cleanUp(String orderId, String zipName) {
-    String targetFolder = "$workFolder/$orderId"
+  void cleanUp(OrderInfoDto orderInfoDto, String zipName) {
+    String targetFolder = orderInfoDto.outputPath
     String targetZip = "$workFolder/$zipName"
     log.info "Cleaning up $targetFolder and $targetZip"
     FileUtils.deleteDirectory(new File(targetFolder))

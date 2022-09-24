@@ -4,6 +4,11 @@ charcot:
       table:
         name:
           prod-charcot-cerebrum-image-order
+    image:
+      metadata:
+        table:
+          name:
+            prod-charcot-cerebrum-image-metadata
   s3:
     zip:
       bucket:
