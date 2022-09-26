@@ -71,6 +71,11 @@ export default class FulfillmentStack extends sst.Stack {
     }))
     service.taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
+      actions: ['dynamodb:GetItem'],
+      resources: [args.cerebrumImageMetadataTableArn as string]
+    }))
+    service.taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
       actions: ['s3:GetObject'],
       resources: [`arn:aws:s3:::${cerebrumImageOdpBucketNameProdStage}/*`]
     }))

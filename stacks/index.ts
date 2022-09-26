@@ -33,6 +33,7 @@ export default function main(app: sst.App): void {
 
     fulfillmentStack = new FulfillmentStack(app, 'fulfillment', {}, {
       cerebrumImageOrderTableArn: backEndPaidAccountStack.cerebrumImageOrderTableArn,
+      cerebrumImageMetadataTableArn: backEndPaidAccountStack.cerebrumImageMetadataTableArn,
       vpc,
       zipBucketName
     })

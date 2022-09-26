@@ -18,6 +18,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
   userPoolClientId: string
   cognitoIdentityPoolId?: string
   cerebrumImageOrderTableArn: string
+  cerebrumImageMetadataTableArn: string
 
   constructor(scope: sst.App, id: string, props: sst.StackProps, args: StackArguments) {
     super(scope, id, props)
@@ -241,6 +242,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     this.cognitoIdentityPoolId = auth.cognitoIdentityPoolId
     this.userPoolClientId = auth.userPoolClientId
     this.cerebrumImageOrderTableArn = cerebrumImageOrderTable.tableArn
+    this.cerebrumImageMetadataTableArn = cerebrumImageMetaDataTable.tableArn
     this.addOutputs({
       ApiEndpoint: this.api.customDomainUrl || this.api.url,
       Region: this.region,
@@ -248,7 +250,8 @@ export default class BackEndPaidAccountStack extends sst.Stack {
       CognitoIdentityPoolId: this.cognitoIdentityPoolId!,
       UserPoolClientId: this.userPoolClientId,
       HandleCerebrumImageTransferRoleArn: this.handleCerebrumImageTransferRoleArn,
-      CerebrumImageOrderTableArn: this.cerebrumImageOrderTableArn
+      CerebrumImageOrderTableArn: this.cerebrumImageOrderTableArn,
+      CerebrumImageMetadataTableArn: this.cerebrumImageMetadataTableArn
     })
   }
 }

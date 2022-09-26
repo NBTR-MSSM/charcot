@@ -50,6 +50,7 @@ export interface Dimension {
 export interface StackArguments {
   apiEndPoint?: string,
   cerebrumImageOrderTableArn?: string,
+  cerebrumImageMetadataTableArn?: string,
   fulfillmentServiceTaskRoleArn?: string,
   handleCerebrumImageTransferRoleArn?: string,
   userPoolId?: string,
