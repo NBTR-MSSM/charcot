@@ -25,8 +25,8 @@ export default class FulfillmentStack extends sst.Stack {
 
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'CharcotFulfillmentServiceTaskDefinition', {
       ephemeralStorageGiB: 200,
-      cpu: 4096,
-      memoryLimitMiB: 30720
+      cpu: 1024,
+      memoryLimitMiB: 4096
     })
 
     const containerDefinition = new ecs.ContainerDefinition(this, 'CharcotFulfillmentServiceContainerDefinition', {
@@ -59,7 +59,7 @@ export default class FulfillmentStack extends sst.Stack {
       assignPublicIp: true, // TODO: Hide it from the world?
       certificate: Certificate.fromCertificateArn(this, 'MyCert', 'arn:aws:acm:us-east-1:045387143127:certificate/1004f57f-a544-476d-8a31-5b878a71c276'),
       cluster,
-      desiredCount: 5
+      desiredCount: 3
     })
 
     // Add policy statements so that ECS tasks can perform/carry out the pertinent actions
