@@ -185,7 +185,7 @@ class SubjectNumberEntry extends Component {
         placement="right"
         overlay={
           <Tooltip id="tooltip-file-upload">
-            The file should contain a <strong>single</strong> subject number per line, example:<br/>
+            Only text files accepted. The file should contain a <strong>single</strong> subject number per line, example:<br/>
               12345<br/>
               67893<br/>
               34<br/>
