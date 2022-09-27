@@ -78,7 +78,7 @@ try {
     }
     if (cleanup) {
       console.log('Executing post remove cleanup commands...')
-      await $`./script/cleanup.sh ${stage}`
+      await $`./script/cleanup.sh ${stage} ${paidAccountProfile} ${odpAccountProfile}`
     }
   } else {
     // We're in "deploy" mode
