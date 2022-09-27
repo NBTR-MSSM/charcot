@@ -19,39 +19,34 @@ export default function main(app: sst.App): void {
 
   const stage = app.stage
   const zipBucketName = calculateZipBucketName(stage)
-  let backEndPaidAccountStack: BackEndPaidAccountStack
-  let fulfillmentStack: FulfillmentStack
-  if (stage === 'debug' || app.account === '045387143127') {
-    const commonStack = new CommonStack(app, 'common', {})
 
-    const vpc = process.env.VpcId ? Vpc.fromLookup(commonStack, 'VPC', { vpcId: process.env.VpcId }) : commonStack.vpc
+  const commonStack = new CommonStack(app, 'common', {})
+  const vpc = process.env.VpcId ? Vpc.fromLookup(commonStack, 'VPC', { vpcId: process.env.VpcId }) : commonStack.vpc
 
-    backEndPaidAccountStack = new BackEndPaidAccountStack(app, 'backend-paid-account', {}, {
-      zipBucketName,
-      vpc
-    })
+  const backEndPaidAccountStack = new BackEndPaidAccountStack(app, 'backend-paid-account', {}, {
+    zipBucketName,
+    vpc
+  })
 
-    fulfillmentStack = new FulfillmentStack(app, 'fulfillment', {}, {
-      cerebrumImageOrderTableArn: backEndPaidAccountStack.cerebrumImageOrderTableArn,
-      cerebrumImageMetadataTableArn: backEndPaidAccountStack.cerebrumImageMetadataTableArn,
-      vpc,
-      zipBucketName
-    })
+  const fulfillmentStack = new FulfillmentStack(app, 'fulfillment', {}, {
+    cerebrumImageOrderTableArn: process.env.CerebrumImageOrderTableArn || backEndPaidAccountStack.cerebrumImageOrderTableArn,
+    cerebrumImageMetadataTableArn: process.env.CerebrumImageMetadataTableArn || backEndPaidAccountStack.cerebrumImageMetadataTableArn,
+    vpc,
+    zipBucketName
+  })
 
-    // eslint-disable-next-line no-new
-    new FrontendStack(app, 'frontend', {}, {
-      apiEndPoint: process.env.ApiEndpoint || backEndPaidAccountStack.api.url,
-      userPoolId: process.env.UserPoolId || backEndPaidAccountStack.userPoolId,
-      userPoolClientId: process.env.UserPoolClientId || backEndPaidAccountStack.userPoolClientId,
-      cognitoIdentityPoolId: process.env.CognitoIdentityPoolId || backEndPaidAccountStack.cognitoIdentityPoolId
-    })
-  }
-  if (stage === 'debug' || app.account === '950869325006') {
-    // eslint-disable-next-line no-new
-    new BackEndOdpStack(app, 'backend-odp', {}, {
-      fulfillmentServiceTaskRoleArn: process.env.FulfillmentServiceTaskRoleArn || fulfillmentStack!.fulfillmentServiceTaskRoleArn,
-      handleCerebrumImageTransferRoleArn: process.env.HandleCerebrumImageTransferRoleArn || backEndPaidAccountStack!.handleCerebrumImageTransferRoleArn,
-      zipBucketName
-    })
-  }
+  // eslint-disable-next-line no-new
+  new FrontendStack(app, 'frontend', {}, {
+    apiEndPoint: process.env.ApiEndpoint || backEndPaidAccountStack.api.url,
+    userPoolId: process.env.UserPoolId || backEndPaidAccountStack.userPoolId,
+    userPoolClientId: process.env.UserPoolClientId || backEndPaidAccountStack.userPoolClientId,
+    cognitoIdentityPoolId: process.env.CognitoIdentityPoolId || backEndPaidAccountStack.cognitoIdentityPoolId
+  })
+
+  // eslint-disable-next-line no-new
+  new BackEndOdpStack(app, 'backend-odp', {}, {
+    fulfillmentServiceTaskRoleArn: process.env.FulfillmentServiceTaskRoleArn || fulfillmentStack!.fulfillmentServiceTaskRoleArn,
+    handleCerebrumImageTransferRoleArn: process.env.HandleCerebrumImageTransferRoleArn || backEndPaidAccountStack!.handleCerebrumImageTransferRoleArn,
+    zipBucketName
+  })
 }
