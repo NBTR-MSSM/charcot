@@ -1,4 +1,9 @@
 charcot:
+  sqs:
+    order:
+      queue:
+        url:
+          https://sqs.us-east-1.amazonaws.com/045387143127/debug-charcot-cerebrum-image-order-queue
   dynamodb:
     order:
       table:

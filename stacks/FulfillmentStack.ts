@@ -6,7 +6,9 @@ import { Duration } from 'aws-cdk-lib'
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager'
 import { StackArguments } from '../src/types/charcot.types'
 import * as iam from 'aws-cdk-lib/aws-iam'
-import ecs = require('aws-cdk-lib/aws-ecs')
+import * as sqs from 'aws-cdk-lib/aws-sqs'
+import * as ecs from 'aws-cdk-lib/aws-ecs'
+import { AdjustmentType } from 'aws-cdk-lib/aws-applicationautoscaling'
 import ecs_patterns = require('aws-cdk-lib/aws-ecs-patterns')
 import path = require('path')
 
@@ -58,8 +60,32 @@ export default class FulfillmentStack extends sst.Stack {
       serviceName: `${stage}-charcot-fulfillment`,
       assignPublicIp: true, // TODO: Hide it from the world?
       certificate: Certificate.fromCertificateArn(this, 'MyCert', 'arn:aws:acm:us-east-1:045387143127:certificate/1004f57f-a544-476d-8a31-5b878a71c276'),
-      cluster,
-      desiredCount: 3
+      desiredCount: 1,
+      cluster
+    })
+
+    const scalableTaskCount = service.service.autoScaleTaskCount({
+      maxCapacity: 5,
+      minCapacity: 1
+    })
+
+    const orderQueue = sqs.Queue.fromQueueArn(this, 'orderQueue', args.cerebrumImageOrderQueueArn as string)
+    /*
+     * Keep 5 instances running as long as there are in-flightt requests
+     */
+    scalableTaskCount.scaleOnMetric('fulfillmentScaleOutPolicy', {
+      metric: orderQueue.metricApproximateNumberOfMessagesNotVisible(),
+      // adjustmentType: AdjustmentType.EXACT_CAPACITY,
+      scalingSteps: [
+        {
+          lower: 1,
+          change: +4
+        },
+        {
+          upper: 0,
+          change: -4
+        }
+      ]
     })
 
     // Add policy statements so that ECS tasks can perform/carry out the pertinent actions
@@ -68,6 +94,11 @@ export default class FulfillmentStack extends sst.Stack {
       effect: iam.Effect.ALLOW,
       actions: ['dynamodb:GetItem'],
       resources: [args.cerebrumImageOrderTableArn as string]
+    }))
+    service.taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['sqs:ReceiveMessage', 'sqs:DeleteMessage'],
+      resources: [args.cerebrumImageOrderQueueArn as string]
     }))
     service.taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,

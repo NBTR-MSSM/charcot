@@ -7,6 +7,7 @@ import { StackArguments } from '../src/types/charcot.types'
 import { StringAttribute } from 'aws-cdk-lib/aws-cognito'
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager'
 import * as route53 from 'aws-cdk-lib/aws-route53'
+import { Duration } from 'aws-cdk-lib'
 
 /**
  * This stack defines the Charcot backend AWS paid account of Mt Sinai portion of the app
@@ -19,9 +20,20 @@ export default class BackEndPaidAccountStack extends sst.Stack {
   cognitoIdentityPoolId?: string
   cerebrumImageOrderTableArn: string
   cerebrumImageMetadataTableArn: string
+  cerebrumImageOrderQueueArn: string
 
   constructor(scope: sst.App, id: string, props: sst.StackProps, args: StackArguments) {
     super(scope, id, props)
+
+    // SQS Queue(s)
+    const cerebrumImageOrderQueue = new sst.Queue(this, process.env.CEREBRUM_IMAGE_ORDER_QUEUE_NAME as string, {
+      cdk: {
+        queue: {
+          visibilityTimeout: Duration.hours(12),
+          receiveMessageWaitTime: Duration.seconds(20)
+        }
+      }
+    })
 
     // DynamoDB Tables
     const cerebrumImageMetaDataTable = new sst.Table(this, process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string, {
@@ -205,9 +217,15 @@ export default class BackEndPaidAccountStack extends sst.Stack {
                 effect: iam.Effect.ALLOW,
                 actions: ['dynamodb:Query', 'dynamodb:Scan'],
                 resources: [cerebrumImageMetaDataTable.tableArn]
+              }),
+              new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['sqs:SendMessage'],
+                resources: [cerebrumImageOrderQueue.queueArn]
               })],
             environment: {
               CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName,
+              CEREBRUM_IMAGE_ORDER_QUEUE_URL: cerebrumImageOrderQueue.queueUrl,
               CEREBRUM_IMAGE_METADATA_TABLE_NAME: cerebrumImageMetaDataTable.tableName,
               FULFILLMENT_HOST: process.env.FULFILLMENT_HOST as string
             }
@@ -243,6 +261,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     this.userPoolClientId = auth.userPoolClientId
     this.cerebrumImageOrderTableArn = cerebrumImageOrderTable.tableArn
     this.cerebrumImageMetadataTableArn = cerebrumImageMetaDataTable.tableArn
+    this.cerebrumImageOrderQueueArn = cerebrumImageOrderQueue.queueArn
     this.addOutputs({
       ApiEndpoint: this.api.customDomainUrl || this.api.url,
       Region: this.region,
@@ -251,7 +270,10 @@ export default class BackEndPaidAccountStack extends sst.Stack {
       UserPoolClientId: this.userPoolClientId,
       HandleCerebrumImageTransferRoleArn: this.handleCerebrumImageTransferRoleArn,
       CerebrumImageOrderTableArn: this.cerebrumImageOrderTableArn,
-      CerebrumImageMetadataTableArn: this.cerebrumImageMetadataTableArn
+      CerebrumImageMetadataTableArn: this.cerebrumImageMetadataTableArn,
+      CerebrumImageOrderQueueArn: this.cerebrumImageOrderQueueArn,
+      CerebrumImageOrderQueueUrl: cerebrumImageOrderQueue.queueUrl,
+      CerebrumImageOrderQueueName: cerebrumImageOrderQueue.queueName
     })
   }
 }

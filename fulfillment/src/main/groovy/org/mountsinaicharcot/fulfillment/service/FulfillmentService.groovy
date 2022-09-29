@@ -17,11 +17,17 @@ import com.amazonaws.services.simpleemail.model.Content
 import com.amazonaws.services.simpleemail.model.Destination
 import com.amazonaws.services.simpleemail.model.Message
 import com.amazonaws.services.simpleemail.model.SendEmailRequest
+import com.amazonaws.services.sqs.AmazonSQS
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder
+import com.amazonaws.services.sqs.model.Message as SQSMessage
+import com.amazonaws.services.sqs.model.ReceiveMessageRequest
+import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.joda.time.DateTime
 import org.mountsinaicharcot.fulfillment.dto.OrderInfoDto
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.CommandLineRunner
 import org.springframework.stereotype.Service
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.transfer.s3.FileDownload
@@ -35,7 +41,10 @@ import java.nio.file.Paths
 
 @Service
 @Slf4j
-class FulfillmentService {
+class FulfillmentService implements CommandLineRunner {
+  @Value('${charcot.sqs.order.queue.url}')
+  String sqsOrderQueueUrl
+
   @Value('${charcot.dynamodb.order.table.name}')
   String dynamoDbOrderTableName
 
@@ -67,6 +76,92 @@ class FulfillmentService {
 
   final static List<String> stringAttributes = ['race', 'diagnosis', 'sex', 'region', 'stain', 'fileName']
 
+  /**
+   * After Spring aplication context sttarts up, set up an infinite loop of polling SQS for new messages
+   */
+  void run(String... args) throws Exception {
+    log.info "Entering queue poll loop"
+    while (true) {
+      String orderId
+      try {
+        Map<String, String> orderInfo = retrieveNextOrderId()
+        if (!orderInfo) {
+          continue
+        }
+        fulfill(retrieveOrderInfo(orderInfo.orderId), orderInfo.sqsReceiptHandle)
+      } catch (Exception e) {
+        log.error "Problem fulfilling $orderId", e
+      }
+    }
+  }
+
+  void fulfill(OrderInfoDto orderInfoDto, String sqsReceiptHandle = null) {
+    String orderId = orderInfoDto.orderId
+    log.info "Fulfilling order $orderId"
+
+    List<String> fileNames = orderInfoDto.fileNames
+    int zipCnt = 1
+    Map<Integer, List<String>> bucketToFileList = partitionFileListIntoBucketsUpToSize(fileNames)
+    int totalZips = bucketToFileList.size()
+    bucketToFileList.each { Integer bucketNumber, List<String> filesToZip ->
+      def startAll = System.currentTimeMillis()
+
+      // Download the files to zip
+      filesToZip.each { String fileName ->
+        def startCurrent = System.currentTimeMillis()
+        downloadS3Object(orderInfoDto, fileName)
+        downloadS3Object(orderInfoDto, fileName.replace('.mrxs', '/'))
+        log.info "Took ${System.currentTimeMillis() - startCurrent} milliseconds to download $fileName for request $orderId"
+      }
+      log.info "Took ${System.currentTimeMillis() - startAll} milliseconds to download all the image slides for request $orderId"
+
+      // Create the manifest file
+      createManifestFile(orderInfoDto, filesToZip)
+
+      // Create zip
+      String zipName = totalZips > 1 ? "$orderId-$zipCnt-of-${totalZips}.zip" : "${orderId}.zip"
+      def startZip = System.currentTimeMillis()
+      createZip(orderInfoDto, zipName)
+      log.info "Took ${System.currentTimeMillis() - startZip} milliseconds to create zip for request $orderId"
+
+      // Upload zip to S3
+      def startUpload = System.currentTimeMillis()
+      uploadObjectToS3(zipName)
+      log.info "Took ${System.currentTimeMillis() - startUpload} milliseconds to upload zip for request $orderId"
+
+      // Generate a signed URL
+      String zipLink = generateSignedZipUrl(orderInfoDto, zipName)
+
+      // Send email
+      sendEmail(orderInfoDto, zipLink, zipCnt, totalZips)
+
+      // cleanup in preparation for next batch, this way
+      // we free up space so as to to avoid blowing disk space on the host
+      cleanUp(orderInfoDto, zipName)
+
+      ++zipCnt
+    }
+    markOrderAsProcessed(sqsReceiptHandle)
+  }
+
+  Map<String, String> retrieveNextOrderId() {
+    AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
+    ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest()
+            .withQueueUrl(sqsOrderQueueUrl)
+            .withMaxNumberOfMessages(1).withWaitTimeSeconds()
+    List<SQSMessage> messages = sqs.receiveMessage(receiveMessageRequest).getMessages()
+    if (messages) {
+      SQSMessage message = messages[0]
+      return [orderId         : (new JsonSlurper().parseText(message.body.toString()) as Map<String, Object>).orderId,
+              sqsReceiptHandle: message.receiptHandle]
+    }
+    return null
+  }
+
+  void markOrderAsProcessed(String sqsReceiptHandle) {
+    AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
+    sqs.deleteMessage(sqsOrderQueueUrl, sqsReceiptHandle)
+  }
 
   OrderInfoDto retrieveOrderInfo(String orderId) {
     GetItemRequest request = new GetItemRequest()

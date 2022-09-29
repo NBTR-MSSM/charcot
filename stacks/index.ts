@@ -37,6 +37,7 @@ export default function main(app: sst.App): void {
 
   const fulfillmentStack = new FulfillmentStack(app, 'fulfillment', {}, {
     cerebrumImageOrderTableArn: process.env.CerebrumImageOrderTableArn || backEndPaidAccountStack.cerebrumImageOrderTableArn,
+    cerebrumImageOrderQueueArn: process.env.CerebrumImageOrderQueueArn || backEndPaidAccountStack.cerebrumImageOrderQueueArn,
     cerebrumImageMetadataTableArn: process.env.CerebrumImageMetadataTableArn || backEndPaidAccountStack.cerebrumImageMetadataTableArn,
     vpc,
     zipBucketName
