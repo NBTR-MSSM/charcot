@@ -117,9 +117,7 @@ async function updateOdpCerebrumImageBucketPolicy ({
                                                      imageTransferLambdaRoleArn,
                                                      fulfillmentLambdaRoleArn
                                                    }) {
-  const policyTmpl = '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":"[IMAGE_TRANSFER_LAMBDA_ROLE_ARN]"},"Action":"s3:PutObject","Resource":"arn:aws:s3:::[BUCKET]/*"},{"Effect":"Allow","Principal":{"AWS":"[FULFILLMENT_SVC_ROLE_ARN]"},"Action":"s3:GetObject","Resource":"arn:aws:s3:::[BUCKET]/*"},{"Effect":"Allow","Principal":{"AWS":"[FULFILLMENT_SVC_ROLE_ARN]"},"Action":"s3:ListBucket","Resource":"arn:aws:s3:::[BUCKET]"}]}'
-  const policyAmendments = JSON.parse(policyTmpl.replace(/\[BUCKET\]/g, bucket).replace(/\[IMAGE_TRANSFER_LAMBDA_ROLE_ARN\]/g, imageTransferLambdaRoleArn)
-    .replace(/\[FULFILLMENT_SVC_ROLE_ARN\]/g, fulfillmentLambdaRoleArn))
+  const policyAmendments = `{"Version":"2012-10-17","Statement":[{"Sid":"charcot-image-transfer-put-object","Effect":"Allow","Principal":{"AWS":"${imageTransferLambdaRoleArn}"},"Action":"s3:PutObject","Resource":"arn:aws:s3:::${bucket}/*"},{"Sid":"charcot-fulfillment-get-object","Effect":"Allow","Principal":{"AWS":"${fulfillmentLambdaRoleArn}"},"Action":"s3:GetObject","Resource":"arn:aws:s3:::${bucket}/*"},{"Sid":"charcot-fulfillment-list-bucket","Effect":"Allow","Principal":{"AWS":"${fulfillmentLambdaRoleArn}"},"Action":"s3:ListBucket","Resource":"arn:aws:s3:::${bucket}"}]}`
 
   // First get the current bucket policy...
   await $`AWS_PROFILE=${awsProfile} aws s3api get-bucket-policy --bucket ${bucket} --output text > /tmp/policy.json`
@@ -127,10 +125,16 @@ async function updateOdpCerebrumImageBucketPolicy ({
 
   const newPolicy = currentBucketPolicy
 
-  // Do this to make this operation idempotent. The Set will dedup
-  // so we don't insert duplicates when deploy is run multiple times.
+  /*
+   * Do this to make this operation idempotent. The Set will dedup
+   * so we don't insert duplicates when deploy is run multiple times.
+   * Note: AWS replaces the policy principal with a token in scenarios where the principal resource has been deleted,
+   *   hence the reason for filtering out based on the 'sid' to avoid errors during policy update. See https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html,
+   *   search for "When this happens, the principal ID appears in resource-based policies because AWS can no longer map it back to a valid ARN"
+
+   */
   const policyStatements = new Set()
-  for (const statement of currentBucketPolicy.Statement.concat(policyAmendments.Statement)) {
+  for (const statement of currentBucketPolicy.Statement.filter(e => !e.Sid || !e.Sid.startsWith('charcot-')).concat(policyAmendments.Statement)) {
     policyStatements.add(JSON.stringify(statement))
   }
 
