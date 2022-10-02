@@ -8,7 +8,6 @@ import { StackArguments } from '../src/types/charcot.types'
 import * as iam from 'aws-cdk-lib/aws-iam'
 import * as sqs from 'aws-cdk-lib/aws-sqs'
 import * as ecs from 'aws-cdk-lib/aws-ecs'
-import { AdjustmentType } from 'aws-cdk-lib/aws-applicationautoscaling'
 import ecs_patterns = require('aws-cdk-lib/aws-ecs-patterns')
 import path = require('path')
 

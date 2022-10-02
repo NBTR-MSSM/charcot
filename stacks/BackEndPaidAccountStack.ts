@@ -25,10 +25,17 @@ export default class BackEndPaidAccountStack extends sst.Stack {
   constructor(scope: sst.App, id: string, props: sst.StackProps, args: StackArguments) {
     super(scope, id, props)
 
-    // SQS Queue(s)
+    /*
+     * SQS Queue(s)
+     * The delivery delay is set to give ECS ample time to scale out so that workers are already started before
+     * the first message is received. W/o the delay, yes scale out will take place, but by that time the one
+     * worker will end up during most of the work. Thus the delivery delay results in even distribution among
+     * the existing and the scale out newly added workers
+     */
     const cerebrumImageOrderQueue = new sst.Queue(this, process.env.CEREBRUM_IMAGE_ORDER_QUEUE_NAME as string, {
       cdk: {
         queue: {
+          deliveryDelay: Duration.minutes(5),
           visibilityTimeout: Duration.hours(12),
           receiveMessageWaitTime: Duration.seconds(20)
         }
@@ -240,11 +247,31 @@ export default class BackEndPaidAccountStack extends sst.Stack {
       cdk: {
         userPool: {
           customAttributes: {
-            degree: new StringAttribute({ minLen: 1, maxLen: 256, mutable: true }),
-            institutionName: new StringAttribute({ minLen: 1, maxLen: 256, mutable: true }),
-            institutionAddress: new StringAttribute({ minLen: 1, maxLen: 256, mutable: true }),
-            areasOfInterest: new StringAttribute({ minLen: 1, maxLen: 256, mutable: true }),
-            intendedUse: new StringAttribute({ minLen: 1, maxLen: 500, mutable: true })
+            degree: new StringAttribute({
+              minLen: 1,
+              maxLen: 256,
+              mutable: true
+            }),
+            institutionName: new StringAttribute({
+              minLen: 1,
+              maxLen: 256,
+              mutable: true
+            }),
+            institutionAddress: new StringAttribute({
+              minLen: 1,
+              maxLen: 256,
+              mutable: true
+            }),
+            areasOfInterest: new StringAttribute({
+              minLen: 1,
+              maxLen: 256,
+              mutable: true
+            }),
+            intendedUse: new StringAttribute({
+              minLen: 1,
+              maxLen: 500,
+              mutable: true
+            })
           }
         }
       }

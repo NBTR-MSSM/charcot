@@ -77,20 +77,20 @@ class FulfillmentService implements CommandLineRunner {
   final static List<String> stringAttributes = ['race', 'diagnosis', 'sex', 'region', 'stain', 'fileName']
 
   /**
-   * After Spring aplication context sttarts up, set up an infinite loop of polling SQS for new messages
+   * After Spring application context starts up, set up an infinite loop of polling SQS for new messages
    */
   void run(String... args) throws Exception {
     log.info "Entering queue poll loop"
     while (true) {
-      String orderId
+      Map<String, String> orderInfo
       try {
-        Map<String, String> orderInfo = retrieveNextOrderId()
+        orderInfo = retrieveNextOrderId()
         if (!orderInfo) {
           continue
         }
         fulfill(retrieveOrderInfo(orderInfo.orderId), orderInfo.sqsReceiptHandle)
       } catch (Exception e) {
-        log.error "Problem fulfilling $orderId", e
+        log.error "Problem fulfilling $orderInfo.orderId", e
       }
     }
   }
