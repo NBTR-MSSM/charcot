@@ -8,32 +8,37 @@ import Login from './containers/Login'
 import Signup from './containers/Signup'
 import Confirmation from './containers/Confirmation'
 import Splash from './containers/Splash'
+import Transaction from './containers/Transaction'
+import { AppContext } from './lib/context'
 
-export default class CharcotRoutes extends Component {
-  render () {
+class CharcotRoutes extends Component {
+  render() {
     return (
       <Switch>
-        <Route exact path='/'>
+        <Route exact path="/">
           <Splash/>
         </Route>
-        <Route exact path='/home'>
+        <Route exact path="/home">
           <Home/>
         </Route>
-        <Route exact path='/search'>
+        <Route exact path="/search">
           <Search filter={this.props.filter}/>
         </Route>
-        <Route exact path='/review'>
+        <Route exact path="/review">
           <Review filter={this.props.filter}/>
         </Route>
-        <Route exact path='/signup'>
-          <Signup />
+        <Route exact path="/signup">
+          <Signup/>
         </Route>
-        <Route exact path='/login'>
-          <Login />
+        <Route exact path="/login">
+          <Login/>
         </Route>
-        <Route exact path='/confirmation'>
-          <Confirmation />
+        <Route exact path="/confirmation">
+          <Confirmation/>
         </Route>
+        {this.context.isAdmin && (<Route exact path="/transaction">
+          <Transaction/>
+        </Route>)}
         {/* Finally, catch all unmatched routes */}
         <Route>
           <NotFound/>
@@ -41,3 +46,7 @@ export default class CharcotRoutes extends Component {
       </Switch>)
   }
 }
+
+CharcotRoutes.contextType = AppContext
+
+export default CharcotRoutes

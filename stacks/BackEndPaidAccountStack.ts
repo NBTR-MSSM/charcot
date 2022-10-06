@@ -8,6 +8,7 @@ import { StringAttribute } from 'aws-cdk-lib/aws-cognito'
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager'
 import * as route53 from 'aws-cdk-lib/aws-route53'
 import { Duration } from 'aws-cdk-lib'
+import { Construct } from 'constructs'
 
 /**
  * This stack defines the Charcot backend AWS paid account of Mt Sinai portion of the app
@@ -24,6 +25,9 @@ export default class BackEndPaidAccountStack extends sst.Stack {
 
   constructor(scope: sst.App, id: string, props: sst.StackProps, args: StackArguments) {
     super(scope, id, props)
+
+    // Auth
+    const auth = cognitoUserPool(this)
 
     /*
      * SQS Queue(s)
@@ -42,7 +46,9 @@ export default class BackEndPaidAccountStack extends sst.Stack {
       }
     })
 
-    // DynamoDB Tables
+    /*
+     * DynamoDB Tables
+     */
     const cerebrumImageMetaDataTable = new sst.Table(this, process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string, {
       fields: {
         fileName: 'string',
@@ -73,7 +79,9 @@ export default class BackEndPaidAccountStack extends sst.Stack {
         orderId: 'string',
         email: 'string',
         created: 'string',
-        filter: 'string'
+        filter: 'string',
+        status: 'string',
+        fulfilled: 'number'
       },
       primaryIndex: { partitionKey: 'orderId' }
     })
@@ -85,6 +93,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     const handleCerebrumImageSearchFunctionName = `${process.env.HANDLE_CEREBRUM_IMAGE_SEARCH_FUNCTION_NAME}-${stage}`
     const handleCerebrumImageDimensionFunctionName = `${process.env.HANDLE_CEREBRUM_IMAGE_DIMENSION_FUNCTION_NAME}-${stage}`
     const createCerebrumImageOrderFunctionName = `${process.env.CREATE_CEREBRUM_IMAGE_ORDER_FUNCTION_NAME}-${stage}`
+    const retrieveCerebrumImageOrderFunctionName = `${process.env.RETRIEVE_CEREBRUM_IMAGE_ORDER_FUNCTION_NAME}-${stage}`
 
     // Mt Sinai had no concept of stages prior to Charcot, so need the below for backward compatibility
     // with their stage-less S3 buckets which were in place already before Charcot. Renaming
@@ -209,6 +218,27 @@ export default class BackEndPaidAccountStack extends sst.Stack {
             }
           }
         },
+        'GET /cerebrum-image-orders': {
+          function: {
+            functionName: retrieveCerebrumImageOrderFunctionName,
+            handler: 'src/lambda/cerebrum-image-order.retrieve',
+            initialPolicy: [
+              new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['dynamodb:Scan'],
+                resources: [cerebrumImageOrderTable.tableArn]
+              }),
+              new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['cognito-idp:AdminGetUser'],
+                resources: [auth.userPoolArn]
+              })],
+            environment: {
+              CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName,
+              CEREBRUM_COGNITO_USER_POOL_ID: auth.userPoolId
+            }
+          }
+        },
         'POST /cerebrum-image-orders': {
           authorizer: 'iam',
           function: {
@@ -241,42 +271,6 @@ export default class BackEndPaidAccountStack extends sst.Stack {
       }
     })
 
-    // Auth
-    const auth = new Auth(this, 'Auth', {
-      login: ['email'],
-      cdk: {
-        userPool: {
-          customAttributes: {
-            degree: new StringAttribute({
-              minLen: 1,
-              maxLen: 256,
-              mutable: true
-            }),
-            institutionName: new StringAttribute({
-              minLen: 1,
-              maxLen: 256,
-              mutable: true
-            }),
-            institutionAddress: new StringAttribute({
-              minLen: 1,
-              maxLen: 256,
-              mutable: true
-            }),
-            areasOfInterest: new StringAttribute({
-              minLen: 1,
-              maxLen: 256,
-              mutable: true
-            }),
-            intendedUse: new StringAttribute({
-              minLen: 1,
-              maxLen: 500,
-              mutable: true
-            })
-          }
-        }
-      }
-    })
-
     // TODO: Is this needed? What happens if I were to remove? Would logged in users
     //       be able too hit this endpoint, but not anon ones????? (head scratch)
     //       Experiment,
@@ -304,3 +298,38 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     })
   }
 }
+
+const cognitoUserPool = (scope: Construct) => new Auth(scope, 'Auth', {
+  login: ['email'],
+  cdk: {
+    userPool: {
+      customAttributes: {
+        degree: new StringAttribute({
+          minLen: 1,
+          maxLen: 256,
+          mutable: true
+        }),
+        institutionName: new StringAttribute({
+          minLen: 1,
+          maxLen: 256,
+          mutable: true
+        }),
+        institutionAddress: new StringAttribute({
+          minLen: 1,
+          maxLen: 256,
+          mutable: true
+        }),
+        areasOfInterest: new StringAttribute({
+          minLen: 1,
+          maxLen: 256,
+          mutable: true
+        }),
+        intendedUse: new StringAttribute({
+          minLen: 1,
+          maxLen: 500,
+          mutable: true
+        })
+      }
+    }
+  }
+})

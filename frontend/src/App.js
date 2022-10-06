@@ -19,15 +19,23 @@ const savedState = {
   filter: new Filter()
 }
 
+const adminUsers = [
+  'vahram.haroutunian@mssm.edu',
+  'maxwell.bustamante@mssm.edu',
+  'joquijada2010@gmail.com',
+  'jose.quijada@mssm.edu'
+]
+
 /**
  * TODO: Move all the various handlers that are passed down the component hierarchy via props to AppContext,
  *       and clean up all those unnecessary props.
  */
 export default class App extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = {
       isAuthenticated: false,
+      isAdmin: false,
       isAuthenticating: true,
       email: '',
       filter: new Filter(),
@@ -48,7 +56,7 @@ export default class App extends Component {
     }
   }
 
-  async componentDidMount () {
+  async componentDidMount() {
     await this.onLoad()
   }
 
@@ -60,7 +68,7 @@ export default class App extends Component {
     })
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     if (this.state.redirectTo) {
       this.setState({
         redirectTo: ''
@@ -95,7 +103,8 @@ export default class App extends Component {
     this.setState(
       {
         email,
-        isAuthenticated: true
+        isAuthenticated: true,
+        isAdmin: adminUsers.filter(e => e === email).length > 0
       }
     )
   }
@@ -112,7 +121,8 @@ export default class App extends Component {
     await Auth.signOut()
     this.setState(
       {
-        isAuthenticated: false
+        isAuthenticated: false,
+        isAdmin: false
       }
     )
     this.redirect({ to: '/login' })
@@ -122,9 +132,15 @@ export default class App extends Component {
    * Updates the filter with the selected dimension/category and
    * refreshes the state
    */
-  handleCategorySelect = async ({ dimension, category }) => {
+  handleCategorySelect = async ({
+    dimension,
+    category
+  }) => {
     const filter = this.state.filter
-    filter.add({ dimension, category })
+    filter.add({
+      dimension,
+      category
+    })
     await this.updateChartDataState({ filter })
   }
 
@@ -132,9 +148,15 @@ export default class App extends Component {
    * Does the opposite of 'Search.handleSelect'
    * and refreshes the state.
    */
-  handleCategoryUnselect = async ({ dimension, category }) => {
+  handleCategoryUnselect = async ({
+    dimension,
+    category
+  }) => {
     const filter = this.state.filter
-    filter.remove({ dimension, category })
+    filter.remove({
+      dimension,
+      category
+    })
     await this.updateChartDataState({ filter })
   }
 
@@ -156,7 +178,7 @@ export default class App extends Component {
    * Triggers state changes that effect the charts (I.e. cause chart components
    * to re-render themselves)
    */
-  async updateChartDataState ({ filter }) {
+  async updateChartDataState({ filter }) {
     const dimensionData = await dataService.fetchAll({
       filter
     })
@@ -175,7 +197,7 @@ export default class App extends Component {
    * https://stackoverflow.com/questions/52393172/comparing-prevprops-in-componentdidupdate,
    * search for "when you go to do a comparison you are comparing the two exact same arrays ALWAYS"
    */
-  render () {
+  render() {
     /*
      * This is a (somewhat convoluted) way to handle redirect back to page of origin
      * during signup/login and any other scenario where applicable. The componentDidUpdate()
@@ -210,7 +232,7 @@ export default class App extends Component {
     // console.log(`JMQ: currentPage is ${this.currentPage()}`)
 
     return !this.state.isAuthenticating && (
-      <div className='App container py-3'>
+      <div className="App container py-3">
         <AppContext.Provider value={this.state}>
           <Stack hidden={this.currentPage() === '/'} direction="horizontal" gap={3}>
             {leftNav}
@@ -228,6 +250,11 @@ export default class App extends Component {
                       <Nav.Link>Search</Nav.Link>
                     </LinkContainer>
                     {authFragment}
+                    {this.state.isAuthenticated && this.state.isAdmin && (
+                      <LinkContainer to="/transaction">
+                        <Nav.Link>Transactions</Nav.Link>
+                      </LinkContainer>
+                    )}
                   </Nav>
                 </Navbar.Collapse>
               </Navbar>

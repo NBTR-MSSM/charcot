@@ -14,6 +14,9 @@ class Search extends Component {
     this.context.pushToHistory()
   }
 
+  /**
+   * TODO: Convert to bootstrap <Table>, https://react-bootstrap.github.io/components/table/
+   */
   render () {
     let filterComponent = ''
     if (!this.props.filter.isEmpty()) {

@@ -16,15 +16,9 @@ export interface CerebrumImageMetaData {
   total: number
 }
 
-export interface CerebrumImageMetaDataCreateResult {
-  image: CerebrumImageMetaData
-  success: boolean
-  message: string
-}
-
 export interface CerebrumImageOrder {
   orderId: string
-  created: string
+  created: number
   fileNames: CharcotFileName[]
   filter: Filter | undefined,
   email: string

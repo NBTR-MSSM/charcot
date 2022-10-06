@@ -3,6 +3,7 @@ import Filter from './Filter'
 
 export const AppContext = createContext({
   isAuthenticated: false,
+  isAdmin: false,
   email: '',
   filter: new Filter(),
   dimensionData: {

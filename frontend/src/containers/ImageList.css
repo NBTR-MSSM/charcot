@@ -1,9 +1,0 @@
-.ImageList table, td {
-    border: 1px solid;
-    text-align: center;
-    padding: 10px;
-}
-
-.ImageList table thead td {
-    background-color: lightsteelblue;
-}

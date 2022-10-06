@@ -10,10 +10,6 @@ const config = {
     REGION: process.env.REACT_APP_REGION,
     URL: process.env.REACT_APP_API_URL
   }
-  /* s3: {
-  REGION: process.env.REACT_APP_REGION,
-  BUCKET: process.env.REACT_APP_BUCKET,
-}, */
 }
 
 export default config

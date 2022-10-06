@@ -1,13 +1,14 @@
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
-import { dynamoDbClient, HttpResponse } from '@exsoinn/aws-sdk-wrappers'
+import { HttpResponse } from '@exsoinn/aws-sdk-wrappers'
 import { Dimension, Filter } from '../types/charcot.types'
 import RangeMap from '../common/range-map'
 import { paramCase } from 'change-case'
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
 import { singular } from 'pluralize'
 import { rank } from '../common/rank'
+import Search from './search'
 
-class ImageSearch {
+class ImageSearch extends Search {
   async search(filter: Filter): Promise<Record<string, any>> {
     const params: DocumentClient.QueryInput = {
       TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string
@@ -89,26 +90,6 @@ class ImageSearch {
     return new HttpResponse(responseCode, '', {
       body: ret
     })
-  }
-
-  private async handleSearch(params: DocumentClient.QueryInput, callback: (items: DocumentClient.ItemList) => void) {
-    while (true) {
-      const res: DocumentClient.ScanOutput = await dynamoDbClient.scan(params)
-      console.debug(`JMQ: handleSearch() params is ${JSON.stringify(params)}, res.Items is ${JSON.stringify(res)}`)
-
-      const lastEvaluatedKey = res.LastEvaluatedKey
-      if (res.Items && res.Items.length) {
-        const items: DocumentClient.ItemList = res.Items
-        console.log(`JMQ: items is ${JSON.stringify(items)}`)
-        callback(items)
-      }
-
-      if (lastEvaluatedKey) {
-        params = { ...params, ExclusiveStartKey: lastEvaluatedKey }
-      } else {
-        break
-      }
-    }
   }
 
   /**

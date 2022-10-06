@@ -1,9 +1,10 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyHandlerV2 } from 'aws-lambda'
-import { dynamoDbClient, HttpResponse, lambdaWrapper, sqsClient } from '@exsoinn/aws-sdk-wrappers'
+import { HttpResponse, dynamoDbClient, lambdaWrapper, sqsClient } from '@exsoinn/aws-sdk-wrappers'
 import { CerebrumImageOrder, Filter } from '../types/charcot.types'
 import { v4 as uuidGenerator } from 'uuid'
 import imageSearch from '../service/image-search'
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
+import orderSearch from '../service/order-search'
 
 const parseOrder = async (event: APIGatewayProxyEventV2): Promise<CerebrumImageOrder | undefined> => {
   const order = event.body
@@ -21,7 +22,7 @@ const parseOrder = async (event: APIGatewayProxyEventV2): Promise<CerebrumImageO
     email: orderObj.email as string,
     fileNames: orderObj.fileNames || await fetchFileNames(filter),
     filter,
-    created: new Date().toISOString()
+    created: new Date().getTime()
   }
 }
 
@@ -31,6 +32,11 @@ const fetchFileNames = async (filter: Filter): Promise<string[]> => {
   console.log(`JMQ: items is ${JSON.stringify(items)}`)
   return items.map((e) => e.fileName)
 }
+
+export const retrieve: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIGatewayProxyEventV2) => {
+  console.log(`JMQ: retrieve ${JSON.stringify(event)}`)
+  return orderSearch.retrieve(event)
+})
 
 export const create: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIGatewayProxyEventV2) => {
   try {
