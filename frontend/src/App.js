@@ -22,6 +22,7 @@ const savedState = {
 const adminUsers = [
   'vahram.haroutunian@mssm.edu',
   'maxwell.bustamante@mssm.edu',
+  'joshua.arneson@mssm.edu',
   'joquijada2010@gmail.com',
   'jose.quijada@mssm.edu'
 ]
