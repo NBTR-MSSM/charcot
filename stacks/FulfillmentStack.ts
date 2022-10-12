@@ -25,6 +25,10 @@ export default class FulfillmentStack extends sst.Stack {
     })
 
     const taskDefinition = new ecs.FargateTaskDefinition(this, 'CharcotFulfillmentServiceTaskDefinition', {
+      runtimePlatform: {
+        operatingSystemFamily: ecs.OperatingSystemFamily.LINUX,
+        cpuArchitecture: ecs.CpuArchitecture.ARM64
+      },
       ephemeralStorageGiB: 200,
       cpu: 2048,
       memoryLimitMiB: 16384
