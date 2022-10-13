@@ -34,7 +34,6 @@ const fetchFileNames = async (filter: Filter): Promise<string[]> => {
 }
 
 export const retrieve: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIGatewayProxyEventV2) => {
-  console.log(`JMQ: retrieve ${JSON.stringify(event)}`)
   return orderSearch.retrieve(event)
 })
 

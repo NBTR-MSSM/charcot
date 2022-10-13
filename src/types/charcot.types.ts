@@ -38,7 +38,7 @@ export interface Dimension {
  * The StackProps type does not accept arbitrary arguments like
  * https://serverless-stack.com/chapters/add-an-api-to-create-a-note.html examples claim
  * (it gives type error), so rolled my own to be able to connect stacks via outputs/inputs
- * during deployment. This will be useed until further notice, planning to write to SST devs
+ * during deployment. This will be used until further notice, planning to write to SST devs
  * to find out what's up, like are their examples outdated or something???
  */
 export interface StackArguments {

@@ -29,7 +29,7 @@ const DIMENSION_CONFIGS = {
 /**
  * Calculate what the tick interval of the bars should
  * by taking average of the counts, then seeing if it's
- * imn the 10's, or the 100's, or the 1000's, etc.
+ * in the 10's, or the 100's, or the 1000's, etc.
  * and coming up with a sensible interval. For example
  * if average is 1100, then tick interval is 1000.
  */

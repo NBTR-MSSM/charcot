@@ -14,10 +14,10 @@ class ImageSearch extends Search {
       TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string
     }
     this.addFilter(filter, params)
-    console.log(`JMQ: search() params is ${JSON.stringify(params)}`)
+    // console.log(`JMQ: search() params is ${JSON.stringify(params)}`)
     let responseCode = 404
     let retItems: DocumentClient.ItemList = []
-    const callback = (items: DocumentClient.ItemList) => {
+    const callback = (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => {
       retItems = retItems.concat(items)
       responseCode = 200
     }
@@ -45,12 +45,12 @@ class ImageSearch extends Search {
     }
     this.addFilter((event.queryStringParameters && event.queryStringParameters.filter) as Filter, params)
     this.addEnabledOnlyCondition(params)
-    console.log(`JMQ: dimension() params is ${JSON.stringify(params)}`)
+    // console.log(`JMQ: dimension() params is ${JSON.stringify(params)}`)
 
     let ret: Dimension[] = []
     let responseCode = 404
 
-    const callback = (items: DocumentClient.ItemList) => {
+    const callback = (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => {
       responseCode = 200
       // Ranging only applies to dimensions that are numeric
       // in nature only. Yet we do this here for all for sake of simplicity,
@@ -64,6 +64,7 @@ class ImageSearch extends Search {
         const val = Number.isInteger(cur[dimension]) && isNumeric ? cur[dimension] : paramCase(`${cur[dimension]}`)
         let obj: Dimension | undefined
         if (!(obj = prev.get(val))) {
+          // Seeing this item for the first time
           obj = {
             count: 0,
             title: cur[dimension],
@@ -154,7 +155,7 @@ class ImageSearch extends Search {
       // Ensure numeric values are stored as JavaScript numeric type, else DynamoDB
       // returns results because it won't coerce to number strings that  are numeric
       // in nature
-      console.log(`JMQ: val is ${val}`)
+      // console.log(`JMQ: val is ${val}`)
       exprAttrValues[valuePlaceHolder] = val.match(/^\d+$/) ? parseInt(val) : val.replace(/__QUOTE__/g, "'")
       dynamoFilter = dynamoFilter.replace(`'${val}'`, valuePlaceHolder)
     }
@@ -162,8 +163,8 @@ class ImageSearch extends Search {
     params.FilterExpression = dynamoFilter
     params.ExpressionAttributeNames = { ...params.ExpressionAttributeNames, ...exprAttrNames }
     params.ExpressionAttributeValues = exprAttrValues
-    console.log(`JMQ: exprAttrValues is ${JSON.stringify(exprAttrValues)}`)
-    console.log(`JMQ: addFilter() DynamoDB filter is ${dynamoFilter}`)
+    // console.log(`JMQ: exprAttrValues is ${JSON.stringify(exprAttrValues)}`)
+    // console.log(`JMQ: addFilter() DynamoDB filter is ${dynamoFilter}`)
   }
 
   private addEnabledOnlyCondition(params: DocumentClient.QueryInput) {
@@ -179,8 +180,7 @@ class ImageSearch extends Search {
 
     params.ExpressionAttributeNames = { ...params.ExpressionAttributeNames, ...attrNames }
     params.ExpressionAttributeValues = { ...params.ExpressionAttributeValues, ...attrVals }
-
-    console.log(`JMQ: addEnabledOnlyCondition() DynamoDB filter is ${params.FilterExpression}`)
+    // console.log(`JMQ: addEnabledOnlyCondition() DynamoDB filter is ${params.FilterExpression}`)
   }
 }
 
