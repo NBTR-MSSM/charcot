@@ -117,7 +117,7 @@ async function updateOdpCerebrumImageBucketPolicy ({
                                                      imageTransferLambdaRoleArn,
                                                      fulfillmentLambdaRoleArn
                                                    }) {
-  const policyAmendments = `{"Version":"2012-10-17","Statement":[{"Sid":"charcot-image-transfer-put-object","Effect":"Allow","Principal":{"AWS":"${imageTransferLambdaRoleArn}"},"Action":"s3:PutObject","Resource":"arn:aws:s3:::${bucket}/*"},{"Sid":"charcot-fulfillment-get-object","Effect":"Allow","Principal":{"AWS":"${fulfillmentLambdaRoleArn}"},"Action":"s3:GetObject","Resource":"arn:aws:s3:::${bucket}/*"},{"Sid":"charcot-fulfillment-list-bucket","Effect":"Allow","Principal":{"AWS":"${fulfillmentLambdaRoleArn}"},"Action":"s3:ListBucket","Resource":"arn:aws:s3:::${bucket}"}]}`
+  const policyAmendments = JSON.parse(`{"Version":"2012-10-17","Statement":[{"Sid":"charcot-image-transfer-put-object","Effect":"Allow","Principal":{"AWS":"${imageTransferLambdaRoleArn}"},"Action":"s3:PutObject","Resource":"arn:aws:s3:::${bucket}/*"},{"Sid":"charcot-fulfillment-get-object","Effect":"Allow","Principal":{"AWS":"${fulfillmentLambdaRoleArn}"},"Action":"s3:GetObject","Resource":"arn:aws:s3:::${bucket}/*"},{"Sid":"charcot-fulfillment-list-bucket","Effect":"Allow","Principal":{"AWS":"${fulfillmentLambdaRoleArn}"},"Action":"s3:ListBucket","Resource":"arn:aws:s3:::${bucket}"}]}`)
 
   // First get the current bucket policy...
   await $`AWS_PROFILE=${awsProfile} aws s3api get-bucket-policy --bucket ${bucket} --output text > /tmp/policy.json`
