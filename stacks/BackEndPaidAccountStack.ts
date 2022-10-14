@@ -78,12 +78,15 @@ export default class BackEndPaidAccountStack extends sst.Stack {
       fields: {
         orderId: 'string',
         email: 'string',
-        created: 'string',
+        created: 'number',
         filter: 'string',
         status: 'string',
         fulfilled: 'number'
       },
-      primaryIndex: { partitionKey: 'orderId' }
+      primaryIndex: { partitionKey: 'orderId' },
+      globalIndexes: {
+        createdIndex: { partitionKey: 'created' }
+      }
     })
 
     const stage = this.stage
