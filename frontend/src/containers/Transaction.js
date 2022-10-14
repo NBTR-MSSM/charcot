@@ -13,7 +13,7 @@ class Transaction extends Component {
       orders: [],
       page: 1,
       isLoading: false,
-      pageSize: 5,
+      pageSize: 15,
       totalPages: 0
     }
   }
