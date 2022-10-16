@@ -5,6 +5,7 @@ import { API } from 'aws-amplify'
 import TransactionItem from '../components/TransactionItem'
 import { Modal, Spinner, Table } from 'react-bootstrap'
 import Pagination from 'react-bootstrap/Pagination'
+import { BsSortDownAlt, BsSortUpAlt } from 'react-icons/bs'
 
 class Transaction extends Component {
   constructor(props) {
@@ -14,7 +15,10 @@ class Transaction extends Component {
       page: 1,
       isLoading: false,
       pageSize: 15,
-      totalPages: 0
+      totalPages: 0,
+      sortBy: 'created',
+      sortOrder: 'desc',
+      orderCount: 0
     }
   }
 
@@ -39,7 +43,7 @@ class Transaction extends Component {
   }
 
   async componentDidUpdate(prevProps, prevState, snapshot) {
-    if (this.state.page !== prevState.page) {
+    if (this.state.page !== prevState.page || this.state.sortBy !== prevState.sortBy || this.state.sortOrder !== prevState.sortOrder) {
       console.log('transaction updated')
       this.updateIsLoadingState()
       await this.retrieveOrders()
@@ -51,12 +55,15 @@ class Transaction extends Component {
     const res = await API.get('charcot', '/cerebrum-image-orders', {
       queryStringParameters: {
         pageSize: this.state.pageSize,
-        page: this.state.page
+        page: this.state.page,
+        sortBy: this.state.sortBy,
+        sortOrder: this.state.sortOrder
       }
     })
     this.setState({
       orders: res.orders,
-      totalPages: res.totalPages
+      totalPages: res.totalPages,
+      orderCount: res.orderCount
     })
   }
 
@@ -107,6 +114,16 @@ class Transaction extends Component {
     })
   }
 
+  handleSort = (event) => {
+    event.preventDefault()
+    const { name: sortBy } = event.target
+    const sortOrder = this.state.sortOrder === 'desc' ? 'asc' : 'desc'
+    this.setState({
+      sortBy,
+      sortOrder
+    })
+  }
+
   renderPagination = () => {
     const items = []
     for (let number = 1; number <= this.state.totalPages; number++) {
@@ -130,8 +147,17 @@ class Transaction extends Component {
           <Pagination.Next onClick={this.handlePageChange}/>
           <Pagination.Last onClick={this.handlePageChange}/>
         </Pagination>
+        <span className="totalRecords">Total records:</span> {this.state.orderCount}
       </div>
     )
+  }
+
+  renderSortIcon = (field) => {
+    if (field !== this.state.sortBy) {
+      return <></>
+    }
+
+    return this.state.sortOrder === 'desc' ? <BsSortDownAlt/> : <BsSortUpAlt/>
   }
 
   renderLoaded = () => (
@@ -140,9 +166,9 @@ class Transaction extends Component {
       <Table striped bordered hover>
         <thead>
         <tr>
-          <th>Request ID</th>
-          <th>Request Date</th>
-          <th>Email</th>
+          <th><a href="" onClick={this.handleSort} name="orderId">{this.renderSortIcon('orderId')}Request ID</a></th>
+          <th><a href="" onClick={this.handleSort} name="created">{this.renderSortIcon('created')}Request Date</a></th>
+          <th><a href="" onClick={this.handleSort} name="email">{this.renderSortIcon('email')}Email</a></th>
           <th>Criteria</th>
           <th>User Info</th>
         </tr>

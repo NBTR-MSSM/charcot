@@ -21,7 +21,26 @@ const populateUserData = async (transaction: DocumentClient.AttributeMap) => {
 }
 
 const sort = (items: DocumentClient.ItemList, sortBy: string, sortOrder: string) => {
-  items.sort((a, b) => sortOrder === 'desc' ? b[sortBy] - a[sortBy] : a[sortBy] - b[sortBy])
+  items.sort((a, b) => {
+    // Determine if we're sorting numeric or string values
+    if (sortBy === 'created') {
+      return sortOrder === 'desc' ? b[sortBy] - a[sortBy] : a[sortBy] - b[sortBy]
+    } else {
+      let strOne = a[sortBy]
+      let strTwo = b[sortBy]
+      if (sortOrder === 'desc') {
+        strOne = b[sortBy]
+        strTwo = a[sortBy]
+      }
+      if (strOne < strTwo) {
+        return -1
+      } else if (strOne > strTwo) {
+        return 1
+      } else {
+        return 0
+      }
+    }
+  })
 }
 
 /**
@@ -56,7 +75,7 @@ class OrderSearch extends Search {
       })
     }
 
-    // console.log(`JMQ: pageSize is ${pageSize}, orderCount is ${orderCount}, totalPages is ${totalPages}, page is ${page}`)
+    console.log(`JMQ: pageSize is ${pageSize}, orderCount is ${orderCount}, totalPages is ${totalPages}, page is ${page}, sortBy is ${sortBy}, sortOrder is ${sortOrder}`)
 
     const params: DocumentClient.QueryInput = {
       TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string
@@ -84,7 +103,6 @@ class OrderSearch extends Search {
     retItems = goToPage(retItems, page, pageSize)
 
     return new HttpResponse(200, '', {
-      // lastEvaluatedKey,
       orderCount,
       pageSize,
       totalPages,

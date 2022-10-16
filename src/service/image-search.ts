@@ -85,7 +85,7 @@ class ImageSearch extends Search {
         ++obj.count
         return prev
       }, new Map<string | number, Dimension>(ret.map((obj) => [obj.value, obj]))).values())
-        .sort((a, b): number => (b as Dimension).rank - (a as Dimension).rank || rank(dimension, (a as Dimension).title) - rank(dimension, (b as Dimension).title)) as Dimension[]
+        .sort((a, b): number => b.rank - a.rank || rank(dimension, a.title) - rank(dimension, b.title))
     }
     await this.handleSearch(params, callback)
     return new HttpResponse(responseCode, '', {
