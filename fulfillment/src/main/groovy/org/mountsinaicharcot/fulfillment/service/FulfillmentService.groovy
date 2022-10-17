@@ -68,6 +68,9 @@ class FulfillmentService implements CommandLineRunner {
   @Value('${charcot.ses.from.email}')
   String fromEmail
 
+  @Value('${spring.profiles.active}')
+  String activeProfile;
+
   final static String workFolder = '/tmp'
 
   final static Long FILE_BUCKET_SIZE = 50000000000
@@ -96,6 +99,7 @@ class FulfillmentService implements CommandLineRunner {
   }
 
   void fulfill(OrderInfoDto orderInfoDto, String sqsReceiptHandle = null) {
+    systemStats()
     String orderId = orderInfoDto.orderId
     log.info "Fulfilling order $orderId"
 
@@ -242,7 +246,7 @@ class FulfillmentService implements CommandLineRunner {
   }
 
   void uploadObjectToS3(String zipName) {
-    runCommand('df -kh')
+    systemStats()
     String zipPath = "$workFolder/$zipName"
     log.info "Uploading Zip $zipPath to $s3ZipBucketName S3 bucket"
     S3TransferManager transferManager = S3TransferManager.builder().s3ClientConfiguration({ S3ClientConfiguration.Builder cfg ->
@@ -300,7 +304,26 @@ class FulfillmentService implements CommandLineRunner {
     log.info "Cleaning up $targetFolder and $targetZip"
     FileUtils.deleteDirectory(new File(targetFolder))
     FileUtils.delete(new File(targetZip))
-    runCommand('df -kh')
+    systemStats()
+  }
+
+  void systemStats() {
+    diskStats()
+    memStats()
+    fdStats()
+  }
+
+  void diskStats() {
+    log.info "Disk Free Stats\n${'df -kh'.execute().text}"
+  }
+
+  void memStats() {
+    // runCommand($/vm_stat | perl -ne '/page size of (\d+)/ and $$size=$1; /Pages\s+([^:]+)[^\d]+(\d+)/ and printf("%-16s % 16.2f Mi\n", "$1:", $2 * $$size / 1048576);'/$)
+    log.info "Memory Stats\n${'cat /proc/meminfo'.execute().text}"
+  }
+
+  void fdStats() {
+    log.info "File Descriptor Stats: ${("ls -l /proc/${ProcessHandle.current().pid()}/fd".execute().text =~ /\d+ ->/).size()}"
   }
 
   private void runCommand(String command) {
