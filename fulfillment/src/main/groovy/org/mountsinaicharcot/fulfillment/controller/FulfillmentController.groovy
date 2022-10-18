@@ -36,7 +36,7 @@ class FulfillmentController {
       executorService.execute({ ->
         fulfillmentService.fulfill(orderInfoDto)
       })
-      ResponseEntity.accepted().body("Request $orderId has been accepted for pocessing")
+      ResponseEntity.accepted().body("Request $orderId has been accepted for processing")
     } catch (Exception e) {
       log.error "An problem occurred fulfilling $orderId", e
       ResponseEntity.internalServerError().body("There was a problem: $e")

@@ -34,7 +34,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
      * The delivery delay is set to give ECS ample time to scale out so that workers are already started before
      * the first message is received. W/o the delay, yes scale out will take place, but by that time the one
      * worker will end up during most of the work. Thus the delivery delay results in even distribution among
-     * the existing and the scale out newly added workers
+     * the existing and the just newly added workers from the scale out
      */
     const cerebrumImageOrderQueue = new sst.Queue(this, process.env.CEREBRUM_IMAGE_ORDER_QUEUE_NAME as string, {
       cdk: {
