@@ -15,7 +15,7 @@ process.env.IS_DEPLOY_SCRIPT = 1
  * deploy all stacks to the same account. This simplifies things when it comes to debugging, for
  * we can then use a single node process to test flows that would otherwise do cross-account access,
  * for example image transfer lambda.
- *
+ * FIXME: Query CloudFormation to get outputs instead of relying on environment variables. See how I did it in niko-stack
  */
 const argv = yargs(process.argv.slice(2))
   .usage('Usage: deploy.mjs <action> [options]')
