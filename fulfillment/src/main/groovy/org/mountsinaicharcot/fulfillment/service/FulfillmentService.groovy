@@ -203,14 +203,15 @@ class FulfillmentService implements CommandLineRunner {
       keysToDownload << key
     }
 
-    S3TransferManager transferManager = S3TransferManager.create()
-    keysToDownload.each { String keyToDownload ->
-      FileDownload download =
-              transferManager.downloadFile({ b ->
-                b.destination(Paths.get(orderInfoDto.outputPath, keyToDownload)).getObjectRequest({ req -> req.bucket(s3OdpBucketName).key(keyToDownload)
+    try (S3TransferManager transferManager = S3TransferManager.create()) {
+      keysToDownload.each { String keyToDownload ->
+        FileDownload download =
+                transferManager.downloadFile({ b ->
+                  b.destination(Paths.get(orderInfoDto.outputPath, keyToDownload)).getObjectRequest({ req -> req.bucket(s3OdpBucketName).key(keyToDownload)
+                  })
                 })
-              })
-      download.completionFuture().join()
+        download.completionFuture().join()
+      }
     }
     log.info "Download of $key complete"
   }
@@ -249,19 +250,19 @@ class FulfillmentService implements CommandLineRunner {
     systemStats()
     String zipPath = "$workFolder/$zipName"
     log.info "Uploading Zip $zipPath to $s3ZipBucketName S3 bucket"
-    S3TransferManager transferManager = S3TransferManager.builder().s3ClientConfiguration({ S3ClientConfiguration.Builder cfg ->
+    try (S3TransferManager transferManager = S3TransferManager.builder().s3ClientConfiguration({ S3ClientConfiguration.Builder cfg ->
       cfg.minimumPartSizeInBytes(50000000)
       if (local) {
         cfg.credentialsProvider(ProfileCredentialsProvider.create(odpProfileName))
       }
-    }).build()
-
-    FileUpload upload = transferManager.uploadFile({ UploadFileRequest.Builder b ->
-      b.source(Paths.get(zipPath))
-              .putObjectRequest({ req -> req.bucket(s3ZipBucketName).key(zipName)
-              })
-    })
-    upload.completionFuture().join()
+    }).build()) {
+      FileUpload upload = transferManager.uploadFile({ UploadFileRequest.Builder b ->
+        b.source(Paths.get(zipPath))
+                .putObjectRequest({ req -> req.bucket(s3ZipBucketName).key(zipName)
+                })
+      })
+      upload.completionFuture().join()
+    }
     log.info "Uploaded Zip $zipPath to $s3ZipBucketName S3 bucket"
   }
 
