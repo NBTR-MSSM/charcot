@@ -44,8 +44,8 @@ class Signup extends Component {
 
   signupAttributes = () => {
     const {
-      familyName,
-      givenName,
+      firstName,
+      lastName,
       degree,
       institutionName,
       institutionAddress,
@@ -53,8 +53,8 @@ class Signup extends Component {
       intendedUse
     } = this.state
     const obj = {}
-    obj.family_name = familyName
-    obj.given_name = givenName
+    obj.family_name = lastName
+    obj.given_name = firstName
     obj['custom:degree'] = degree
     obj['custom:institutionName'] = institutionName
     obj['custom:institutionAddress'] = institutionAddress

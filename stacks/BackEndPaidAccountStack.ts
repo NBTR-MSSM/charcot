@@ -26,6 +26,8 @@ export default class BackEndPaidAccountStack extends sst.Stack {
   constructor(scope: sst.App, id: string, props: sst.StackProps, args: StackArguments) {
     super(scope, id, props)
 
+    const stage = this.stage
+
     // Auth
     const auth = cognitoUserPool(this)
 
@@ -39,8 +41,9 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     const cerebrumImageOrderQueue = new sst.Queue(this, process.env.CEREBRUM_IMAGE_ORDER_QUEUE_NAME as string, {
       cdk: {
         queue: {
-          deliveryDelay: Duration.minutes(5),
-          visibilityTimeout: Duration.hours(12),
+          deliveryDelay: stage === 'debug' ? Duration.seconds(0) : Duration.minutes(15),
+          // Fulfillment has 15 minutes to extend processing time (I.e. visibility timeout
+          visibilityTimeout: Duration.minutes(15),
           receiveMessageWaitTime: Duration.seconds(20)
         }
       }
@@ -81,15 +84,14 @@ export default class BackEndPaidAccountStack extends sst.Stack {
         created: 'number',
         filter: 'string',
         status: 'string',
-        fulfilled: 'number'
+        fulfilled: 'number',
+        remark: 'string'
       },
       primaryIndex: { partitionKey: 'orderId' },
       globalIndexes: {
         createdIndex: { partitionKey: 'created' }
       }
     })
-
-    const stage = this.stage
 
     const handleCerebrumImageTransferFunctionName = `${process.env.HANDLE_CEREBRUM_IMAGE_TRANSFER_FUNCTION_NAME}-${stage}`
     const createCerebrumImageMetadataFunctionName = `${process.env.CREATE_CEREBRUM_IMAGE_METADATA_FUNCTION_NAME}-${stage}`
@@ -163,11 +165,6 @@ export default class BackEndPaidAccountStack extends sst.Stack {
      *   'It seems you are configuring custom domains for you URL. And SST is not able to find the hosted zone "mountsinaicharcot.org" in your AWS Route 53 account. Please double check and make sure the zone exists, or pass in a different zone.'
      */
     this.api = new sst.Api(this, 'Api', {
-      defaults: {
-        /* function: {
-          vpc: args.vpc
-        } */
-      },
       customDomain: {
         domainName: `${stage === 'prod' ? 'api.mountsinaicharcot.org' : `api-${stage}.mountsinaicharcot.org`}`,
         cdk: {

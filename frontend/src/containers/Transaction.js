@@ -134,8 +134,9 @@ class Transaction extends Component {
       )
     }
 
+    const totalRecords = <span><span className="totalRecords">Total records:</span> {this.state.orderCount}</span>
     if (items.length < 2) {
-      return <></>
+      return totalRecords
     }
 
     return (
@@ -147,7 +148,7 @@ class Transaction extends Component {
           <Pagination.Next onClick={this.handlePageChange}/>
           <Pagination.Last onClick={this.handlePageChange}/>
         </Pagination>
-        <span className="totalRecords">Total records:</span> {this.state.orderCount}
+        {totalRecords}
       </div>
     )
   }
@@ -166,11 +167,12 @@ class Transaction extends Component {
       <Table striped bordered hover>
         <thead>
         <tr>
-          <th><a href="" onClick={this.handleSort} name="orderId">{this.renderSortIcon('orderId')}Request ID</a></th>
           <th><a href="" onClick={this.handleSort} name="created">{this.renderSortIcon('created')}Request Date</a></th>
+          <th><a href="" onClick={this.handleSort} name="requester">{this.renderSortIcon('requester')}Requester</a></th>
+          <th><a href="" onClick={this.handleSort} name="institutionName">{this.renderSortIcon('institutionName')}Institution</a></th>
           <th><a href="" onClick={this.handleSort} name="email">{this.renderSortIcon('email')}Email</a></th>
           <th>Criteria</th>
-          <th>User Info</th>
+          <th>Status</th>
         </tr>
         </thead>
         <tbody>

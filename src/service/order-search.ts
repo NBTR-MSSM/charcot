@@ -9,14 +9,19 @@ const populateUserData = async (transaction: DocumentClient.AttributeMap) => {
     UserPoolId: process.env.CEREBRUM_COGNITO_USER_POOL_ID as string,
     Username: transaction.email
   }).promise()
+  console.log(`JMQ: userData is ${JSON.stringify(userData)}`)
   const userAttrs: Record<string, string> = {}
+  const firstClassAttributes = ['given_name', 'family_name', 'custom:institutionName']
   for (const attr of userData.UserAttributes || []) {
     const name = attr.Name
-    if (!name.startsWith('custom:')) {
-      continue
+    const value = attr.Value
+    if (firstClassAttributes.includes(name)) {
+      transaction[name.replace('custom:', '')] = value
     }
-    userAttrs[capitalCase(name.replace('custom:', ''))] = attr.Value as string
+
+    userAttrs[capitalCase(name.replace('custom:', ''))] = value as string
   }
+  transaction.requester = `${transaction.given_name} ${transaction.family_name}`
   transaction.userAttributes = userAttrs
 }
 

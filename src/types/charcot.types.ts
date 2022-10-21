@@ -20,17 +20,20 @@ export interface CerebrumImageOrder {
   orderId: string
   created: number
   fileNames: CharcotFileName[]
-  filter: Filter | undefined,
+  filesProcessed?: CharcotFileName[]
+  filter?: Filter
   email: string
+  status: string
+  remark?: string
 }
 
 export type Range = string
 
 export interface Dimension {
-  value: string | number,
-  title: string,
-  count: number,
-  range: Range | undefined,
+  value: string | number
+  title: string
+  count: number
+  range: Range | undefined
   rank: number
 }
 
@@ -42,21 +45,21 @@ export interface Dimension {
  * to find out what's up, like are their examples outdated or something???
  */
 export interface StackArguments {
-  apiEndPoint?: string,
-  cerebrumImageOrderTableArn?: string,
-  cerebrumImageOrderQueueArn?: string,
-  cerebrumImageMetadataTableArn?: string,
-  fulfillmentServiceTaskRoleArn?: string,
-  handleCerebrumImageTransferRoleArn?: string,
-  userPoolId?: string,
-  userPoolClientId?: string,
-  cognitoIdentityPoolId?: string,
-  vpc?: IVpc,
-  vpcId?: string,
+  apiEndPoint?: string
+  cerebrumImageOrderTableArn?: string
+  cerebrumImageOrderQueueArn?: string
+  cerebrumImageMetadataTableArn?: string
+  fulfillmentServiceTaskRoleArn?: string
+  handleCerebrumImageTransferRoleArn?: string
+  userPoolId?: string
+  userPoolClientId?: string
+  cognitoIdentityPoolId?: string
+  vpc?: IVpc
+  vpcId?: string
   zipBucketName?: string
 }
 
-export type RangeInfo = {
-  range: Range,
+export interface RangeInfo {
+  range: Range
   rank: number
 }

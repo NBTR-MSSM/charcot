@@ -22,7 +22,9 @@ const parseOrder = async (event: APIGatewayProxyEventV2): Promise<CerebrumImageO
     email: orderObj.email as string,
     fileNames: orderObj.fileNames || await fetchFileNames(filter),
     filter,
-    created: new Date().getTime()
+    created: new Date().getTime(),
+    status: 'received',
+    remark: 'Your request has been received by Mount Sinai Charcot'
   }
 }
 

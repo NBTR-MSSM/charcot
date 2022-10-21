@@ -4,8 +4,12 @@ import com.amazonaws.auth.profile.ProfileCredentialsProvider as ProfileCredentia
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
+import com.amazonaws.services.dynamodbv2.document.AttributeUpdate
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
+import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest
+import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest
+import com.amazonaws.services.dynamodbv2.model.UpdateItemResult
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model.ObjectListing
@@ -91,9 +95,11 @@ class FulfillmentService implements CommandLineRunner {
         if (!orderInfo) {
           continue
         }
+        extendRequestVisibilityTimeout(orderInfo.sqsReceiptHandle)
         fulfill(retrieveOrderInfo(orderInfo.orderId), orderInfo.sqsReceiptHandle)
       } catch (Exception e) {
         log.error "Problem fulfilling $orderInfo.orderId", e
+        orderInfo && updateOrderStatus(orderInfo.orderId, 'failed')
       }
     }
   }
@@ -102,6 +108,7 @@ class FulfillmentService implements CommandLineRunner {
     systemStats()
     String orderId = orderInfoDto.orderId
     log.info "Fulfilling order $orderId"
+    updateOrderStatus(orderId, 'processing')
 
     List<String> fileNames = orderInfoDto.fileNames
     int zipCnt = 1
@@ -144,8 +151,11 @@ class FulfillmentService implements CommandLineRunner {
       cleanUp(orderInfoDto, zipName)
 
       ++zipCnt
+
+      // Record this batch of processed files in order table
+      updateProcessedFiles(orderId, filesToZip)
     }
-    markOrderAsProcessed(sqsReceiptHandle)
+    markOrderAsProcessed(orderId, sqsReceiptHandle)
   }
 
   Map<String, String> retrieveNextOrderId() {
@@ -162,9 +172,32 @@ class FulfillmentService implements CommandLineRunner {
     return null
   }
 
-  void markOrderAsProcessed(String sqsReceiptHandle) {
+  void extendRequestVisibilityTimeout(String receiptHandle) {
+    AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
+    sqs.changeMessageVisibility(sqsOrderQueueUrl, receiptHandle, 2700)
+  }
+
+  void markOrderAsProcessed(String orderId, String sqsReceiptHandle) {
     AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
     sqs.deleteMessage(sqsOrderQueueUrl, sqsReceiptHandle)
+    updateOrderStatus(orderId, 'processed')
+  }
+
+  void updateOrderStatus(String orderId, String status, String remark = null) {
+    AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
+    Map<String, AttributeValueUpdate> attributeUpdates = [status: new AttributeValueUpdate().withValue(new AttributeValue().withS(status))]
+    remark && attributeUpdates.put('remark', new AttributeValueUpdate().withValue(new AttributeValue().withS(remark)))
+    UpdateItemResult updateItemResult = dynamoDB.updateItem(dynamoDbOrderTableName,
+            [orderId: new AttributeValue().withS(orderId)], attributeUpdates)
+    log.info "Update request $orderId status to $status, ${updateItemResult.toString()}"
+  }
+
+  void updateProcessedFiles(String orderId, List<String> files) {
+    AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
+    UpdateItemResult updateItemResult = dynamoDB.updateItem(dynamoDbOrderTableName,
+            [orderId: new AttributeValue().withS(orderId)],
+            [filesProcessed: new AttributeValueUpdate().withValue(new AttributeValue().withL(files.collect { new AttributeValue().withS(it)}))])
+    log.info "Update request $orderId processed files to $files, ${updateItemResult.toString()}"
   }
 
   OrderInfoDto retrieveOrderInfo(String orderId) {

@@ -95,12 +95,12 @@ export default class FulfillmentStack extends sst.Stack {
     const cerebrumImageOdpBucketNameProdStage = process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME
     service.taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
-      actions: ['dynamodb:GetItem'],
+      actions: ['dynamodb:GetItem', 'dynamodb:UpdateItem'],
       resources: [args.cerebrumImageOrderTableArn as string]
     }))
     service.taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
-      actions: ['sqs:ReceiveMessage', 'sqs:DeleteMessage'],
+      actions: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:ChangeMessageVisibility'],
       resources: [args.cerebrumImageOrderQueueArn as string]
     }))
     service.taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
