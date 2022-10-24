@@ -1,39 +1,24 @@
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
 import Search from './search'
-import { HttpResponse, cognitoIdentityServiceProvider } from '@exsoinn/aws-sdk-wrappers'
-import { capitalCase } from 'change-case'
+import { HttpResponse } from '@exsoinn/aws-sdk-wrappers'
+import userManagement from './user-management'
 
 const populateUserData = async (transaction: DocumentClient.AttributeMap) => {
-  const userData = await cognitoIdentityServiceProvider.adminGetUser({
-    UserPoolId: process.env.CEREBRUM_COGNITO_USER_POOL_ID as string,
-    Username: transaction.email
-  }).promise()
-  // console.log(`JMQ: userData is ${JSON.stringify(userData)}`)
+  const response = await userManagement.retrieve(transaction.email)
+  const user = JSON.parse(response.toAwsApiGatewayFormat().body)
+
   const userAttrs: Record<string, string> = {}
-  const firstClassAttributes = ['given_name', 'family_name', 'custom:institutionName']
-  for (const attr of userData.UserAttributes || []) {
-    const name = attr.Name
-    const value = attr.Value
+  const firstClassAttributes = ['requester', 'family_name', 'institutionName']
+  for (const attr of Object.entries(user)) {
+    const name = attr[0]
+    const value = attr[1]
     if (firstClassAttributes.includes(name)) {
-      transaction[name.replace('custom:', '')] = value
+      transaction[name] = value
     }
-
-    userAttrs[capitalCase(name.replace('custom:', ''))] = value as string
+    userAttrs[name] = value as string
   }
 
-  // FIXME: Temporary solution to fill in missing name nad last name,
-  //   remove once these are populated in cognito user pool
-  if (!transaction.given_name) {
-    const email = transaction.email as string
-    const name = email.substring(0, email.indexOf('@')).split('.')
-
-    if (name && name.length === 2) {
-      transaction.given_name = capitalCase(name[0])
-      transaction.family_name = capitalCase(name[1])
-    }
-  }
-  transaction.requester = `${transaction.given_name} ${transaction.family_name}`
   transaction.userAttributes = userAttrs
 }
 

@@ -10,6 +10,7 @@ import Confirmation from './containers/Confirmation'
 import Splash from './containers/Splash'
 import Transaction from './containers/Transaction'
 import { AppContext } from './lib/context'
+import EditUser from './containers/EditUser'
 
 class CharcotRoutes extends Component {
   render() {
@@ -36,9 +37,16 @@ class CharcotRoutes extends Component {
         <Route exact path="/confirmation">
           <Confirmation/>
         </Route>
-        {this.context.isAdmin && (<Route exact path="/transaction">
-          <Transaction/>
-        </Route>)}
+        {this.context.isAdmin && (
+          <>
+            <Route exact path="/transaction">
+              <Transaction/>
+            </Route>
+            <Route exact path="/edit-user">
+              <EditUser/>
+            </Route>
+          </>
+        )}
         {/* Finally, catch all unmatched routes */}
         <Route>
           <NotFound/>

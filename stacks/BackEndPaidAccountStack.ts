@@ -93,13 +93,6 @@ export default class BackEndPaidAccountStack extends sst.Stack {
       }
     })
 
-    const handleCerebrumImageTransferFunctionName = `${process.env.HANDLE_CEREBRUM_IMAGE_TRANSFER_FUNCTION_NAME}-${stage}`
-    const createCerebrumImageMetadataFunctionName = `${process.env.CREATE_CEREBRUM_IMAGE_METADATA_FUNCTION_NAME}-${stage}`
-    const handleCerebrumImageSearchFunctionName = `${process.env.HANDLE_CEREBRUM_IMAGE_SEARCH_FUNCTION_NAME}-${stage}`
-    const handleCerebrumImageDimensionFunctionName = `${process.env.HANDLE_CEREBRUM_IMAGE_DIMENSION_FUNCTION_NAME}-${stage}`
-    const createCerebrumImageOrderFunctionName = `${process.env.CREATE_CEREBRUM_IMAGE_ORDER_FUNCTION_NAME}-${stage}`
-    const retrieveCerebrumImageOrderFunctionName = `${process.env.RETRIEVE_CEREBRUM_IMAGE_ORDER_FUNCTION_NAME}-${stage}`
-
     // Mt Sinai had no concept of stages prior to Charcot, so need the below for backward compatibility
     // with their stage-less S3 buckets which were in place already before Charcot. Renaming
     // those existing buckets is not an option
@@ -109,7 +102,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
 
     // Buckets and notification target functions
     const handleCerebrumImageTransfer = new sst.Function(this, 'HandleCerebrumImageTransfer', {
-      functionName: handleCerebrumImageTransferFunctionName,
+      functionName: `handle-cerebrum-image-transfer-${stage}`,
       handler: 'src/lambda/cerebrum-image-transfer.handle',
       memorySize: 128,
       initialPolicy: [
@@ -175,7 +168,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
       routes: {
         'POST /cerebrum-images': {
           function: {
-            functionName: createCerebrumImageMetadataFunctionName,
+            functionName: `create-cerebrum-image-metadata-${stage}`,
             handler: 'src/lambda/cerebrum-image-metadata.create',
             initialPolicy: [
               new iam.PolicyStatement({
@@ -190,7 +183,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
         },
         'GET /cerebrum-images': {
           function: {
-            functionName: handleCerebrumImageSearchFunctionName,
+            functionName: `handle-cerebrum-image-search-${stage}`,
             handler: 'src/lambda/cerebrum-image-search.search',
             initialPolicy: [
               new iam.PolicyStatement({
@@ -205,7 +198,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
         },
         'GET /cerebrum-images/{dimension}': {
           function: {
-            functionName: handleCerebrumImageDimensionFunctionName,
+            functionName: `handle-cerebrum-image-dimension-${stage}`,
             handler: 'src/lambda/cerebrum-image-search.dimension',
             initialPolicy: [
               new iam.PolicyStatement({
@@ -218,9 +211,39 @@ export default class BackEndPaidAccountStack extends sst.Stack {
             }
           }
         },
+        'GET /cerebrum-image-users/{email}': {
+          function: {
+            functionName: `retrieve-cerebrum-image-user-${stage}`,
+            handler: 'src/lambda/cerebrum-image-user.retrieve',
+            initialPolicy: [
+              new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['cognito-idp:AdminGetUser'],
+                resources: [auth.userPoolArn]
+              })],
+            environment: {
+              CEREBRUM_COGNITO_USER_POOL_ID: auth.userPoolId
+            }
+          }
+        },
+        'PUT /cerebrum-image-users/{email}': {
+          function: {
+            functionName: `update-cerebrum-image-user-${stage}`,
+            handler: 'src/lambda/cerebrum-image-user.update',
+            initialPolicy: [
+              new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['cognito-idp:AdminUpdateUserAttributes'],
+                resources: [auth.userPoolArn]
+              })],
+            environment: {
+              CEREBRUM_COGNITO_USER_POOL_ID: auth.userPoolId
+            }
+          }
+        },
         'GET /cerebrum-image-orders': {
           function: {
-            functionName: retrieveCerebrumImageOrderFunctionName,
+            functionName: `retrieve-cerebrum-image-order-${stage}`,
             handler: 'src/lambda/cerebrum-image-order.retrieve',
             initialPolicy: [
               new iam.PolicyStatement({
@@ -242,7 +265,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
         'POST /cerebrum-image-orders': {
           authorizer: 'iam',
           function: {
-            functionName: createCerebrumImageOrderFunctionName,
+            functionName: `create-cerebrum-image-order-${stage}`,
             handler: 'src/lambda/cerebrum-image-order.create',
             initialPolicy: [
               new iam.PolicyStatement({

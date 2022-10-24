@@ -1,56 +1,13 @@
-// import React, { Component } from 'react'
-import './Signup.css'
-
-import ProfileManagement from './ProfileManagement'
-import { Auth } from 'aws-amplify'
-import { onError } from '../lib/error'
+import React, { Component } from 'react'
+import Form from 'react-bootstrap/Form'
 import LoaderButton from '../components/LoaderButton'
-import React from 'react'
+import { AppContext } from '../lib/context'
+import { onError } from '../lib/error'
+import './Signup.css'
+import { Auth } from 'aws-amplify'
 
-class Signup extends ProfileManagement {
-  handleProfileChangeSubmit = async (event) => {
-    event.preventDefault()
-    this.setState({
-      isLoading: true
-    })
-    const {
-      email,
-      password
-    } = this.state
-    try {
-      const newUser = await Auth.signUp({
-        username: email,
-        password,
-        attributes: {
-          ...this.userAttributes()
-        }
-      })
-      this.setState({
-        newUser
-      })
-    } catch (e) {
-      onError(e)
-    }
-    this.setState({
-      isLoading: false
-    })
-  }
-
-  renderProfileChangeSubmitButton() {
-    return (
-      <LoaderButton
-        block="true"
-        size="lg"
-        type="submit"
-        variant="success"
-        isLoading={this.state.isLoading}
-        disabled={!this.validateForm()}>
-        Signup
-      </LoaderButton>
-    )
-  }
-
-  /* constructor (props) {
+class ProfileManagement extends Component {
+  constructor(props) {
     super(props)
     this.state = {
       email: '',
@@ -67,9 +24,9 @@ class Signup extends ProfileManagement {
       newUser: '',
       isLoading: false
     }
-  } */
+  }
 
-  /* componentDidMount () {
+  componentDidMount() {
     this.context.pushToHistory()
   }
 
@@ -85,7 +42,7 @@ class Signup extends ProfileManagement {
     return this.state.confirmationCode.length > 0
   }
 
-  signupAttributes = () => {
+  userAttributes = () => {
     const {
       firstName,
       lastName,
@@ -106,30 +63,8 @@ class Signup extends ProfileManagement {
     return obj
   }
 
-  handleSubmit = async (event) => {
-    event.preventDefault()
-    this.setState({
-      isLoading: true
-    })
-    const { email, password } = this.state
-    try {
-      const newUser = await Auth.signUp({
-        username: email,
-        password,
-        attributes: {
-          ...this.signupAttributes()
-        }
-      })
-      this.setState({
-        isLoading: true,
-        newUser
-      })
-    } catch (e) {
-      onError(e)
-    }
-    this.setState({
-      isLoading: false
-    })
+  handleProfileChangeSubmit = async (event) => {
+    throw new Error('Must implement handleProfileChangeSubmit!')
   }
 
   handleConfirmationSubmit = async (event) => {
@@ -137,7 +72,11 @@ class Signup extends ProfileManagement {
     this.setState({
       isLoading: true
     })
-    const { confirmationCode, email, password } = this.state
+    const {
+      confirmationCode,
+      email,
+      password
+    } = this.state
 
     try {
       await Auth.confirmSignUp(email, confirmationCode)
@@ -156,7 +95,10 @@ class Signup extends ProfileManagement {
 
   handleFormChange = (event) => {
     const newState = {}
-    const { id, value } = event.target
+    const {
+      id,
+      value
+    } = event.target
     newState[id] = value
     this.setState(newState)
   }
@@ -187,9 +129,9 @@ class Signup extends ProfileManagement {
     )
   }
 
-  renderForm = () => {
+  renderProfileChangeForm = () => {
     return (
-      <Form onSubmit={this.handleSubmit}>
+      <Form onSubmit={this.handleProfileChangeSubmit}>
         <Form.Group controlId="email" size="lg">
           <Form.Label>Email</Form.Label>
           <Form.Control
@@ -215,18 +157,18 @@ class Signup extends ProfileManagement {
             value={this.state.confirmPassword}
           />
         </Form.Group>
-        <Form.Group controlId='firstName' size="lg">
+        <Form.Group controlId="firstName" size="lg">
           <Form.Label>First Name</Form.Label>
           <Form.Control
-            type='text'
+            type="text"
             value={this.state.firstName}
             onChange={this.handleFormChange}
           />
         </Form.Group>
-        <Form.Group controlId='lastName' size="lg">
+        <Form.Group controlId="lastName" size="lg">
           <Form.Label>Last Name</Form.Label>
           <Form.Control
-            type='text'
+            type="text"
             value={this.state.lastName}
             onChange={this.handleFormChange}
           />
@@ -234,7 +176,7 @@ class Signup extends ProfileManagement {
         <Form.Group controlId="degree" size="lg">
           <Form.Label>Degree</Form.Label>
           <Form.Control
-            type='text'
+            type="text"
             value={this.state.degree}
             onChange={this.handleFormChange}
           />
@@ -242,7 +184,7 @@ class Signup extends ProfileManagement {
         <Form.Group controlId="institutionName" size="lg">
           <Form.Label>Institution Name</Form.Label>
           <Form.Control
-            type='text'
+            type="text"
             value={this.state.institutionName}
             onChange={this.handleFormChange}
           />
@@ -257,7 +199,7 @@ class Signup extends ProfileManagement {
         <Form.Group controlId="areasOfInterest" size="lg">
           <Form.Label>Areas of Scientific Interest</Form.Label>
           <Form.Control
-            type='text'
+            type="text"
             value={this.state.areasOfInterest}
             onChange={this.handleFormChange}
           />
@@ -269,28 +211,24 @@ class Signup extends ProfileManagement {
                         value={this.state.intendedUse}
                         onChange={this.handleFormChange}/>
         </Form.Group>
-        <LoaderButton
-          block="true"
-          size="lg"
-          type="submit"
-          variant="success"
-          isLoading={this.state.isLoading}
-          disabled={!this.validateForm()}>
-          Signup
-        </LoaderButton>
+        {this.renderProfileChangeSubmitButton()}
       </Form>
     )
   }
 
-  render () {
+  renderProfileChangeSubmitButton() {
+    throw new Error('Must implement renderProfileChangeSubmitButton!')
+  }
+
+  render() {
     return (
       <div className="Signup">
-        {this.state.newUser ? this.renderConfirmationForm() : this.renderForm()}
+        {this.state.newUser ? this.renderConfirmationForm() : this.renderProfileChangeForm()}
       </div>
     )
-  } */
+  }
 }
 
-/* Signup.contextType = AppContext */
+ProfileManagement.contextType = AppContext
 
-export default Signup
+export default ProfileManagement

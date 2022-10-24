@@ -12,17 +12,7 @@ export default abstract class Search {
         callback(res, items)
       }
 
-      /*
-       * In case caller specified a limit, check if we haven't
-       * met it yet. Remember DynamoDB returns a total of 1MB worth
-       * of data, so results can be broken up into multiple ages
-       * regardless of how small or big DocumentClient.QueryInput.Limit is.
-       * See https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB.html#scan-property,
-       * search for " if the processed dataset size exceeds 1 MB before DynamoDB reaches this limit".
-       * Also when DocumentClient.QueryInput.Limit is specified, DynamoDB will always
-       * return a LastEvaluatedKey
-       */
-      if (lastEvaluatedKey) { // && (!limit || totalItems < limit)) {
+      if (lastEvaluatedKey) {
         params = {
           ...params,
           ExclusiveStartKey: lastEvaluatedKey

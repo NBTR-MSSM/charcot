@@ -19,12 +19,16 @@ const savedState = {
   filter: new Filter()
 }
 
+/*
+ * FIXME: Use cognito groups to manage privileges, [REF|https://docs.amplify.aws/cli/auth/admin/#example|"let path = '/addUserToGroup';"]
+ */
 const adminUsers = [
   'vahram.haroutunian@mssm.edu',
   'maxwell.bustamante@mssm.edu',
   'joshua.arneson@mssm.edu',
   'joquijada2010@gmail.com',
-  'jose.quijada@mssm.edu'
+  'jose.quijada@mssm.edu',
+  'joquijada2022@gmail.com'
 ]
 
 /**
@@ -38,6 +42,7 @@ export default class App extends Component {
       isAuthenticated: false,
       isAdmin: false,
       isAuthenticating: true,
+      otherUserEmail: '',
       email: '',
       filter: new Filter(),
       dimensionData: {
@@ -46,6 +51,7 @@ export default class App extends Component {
       handleCategorySelect: this.handleCategorySelect,
       handleCategoryUnselect: this.handleCategoryUnselect,
       handleClearFilter: this.handleClearFilter,
+      handleSetOtherUserEmail: this.handleSetOtherUserEmail,
       handleLogin: this.handleLogin,
       handleLogout: this.handleLogout,
       redirect: this.redirect,
@@ -105,9 +111,15 @@ export default class App extends Component {
       {
         email,
         isAuthenticated: true,
-        isAdmin: adminUsers.filter(e => e === email).length > 0
+        isAdmin: adminUsers.includes(email)
       }
     )
+  }
+
+  handleSetOtherUserEmail = (email) => {
+    this.setState({
+      otherUserEmail: email
+    })
   }
 
   redirect = ({ to }) => {

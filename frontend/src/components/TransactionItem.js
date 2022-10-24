@@ -3,7 +3,7 @@ import { AppContext } from '../lib/context'
 import { Card, OverlayTrigger } from 'react-bootstrap'
 import { BsInfoCircleFill } from 'react-icons/bs'
 
-const attributeOrder = ['Degree', 'Institution Name', 'Institution Address', 'Areas Of Interest', 'Intended Use']
+const attributeOrder = ['degree', 'institutionName', 'institutionAddress', 'areasOfInterest', 'intendedUse']
 
 class TransactionItem extends Component {
   // <td>{attributeOrder.map(attrName => <span className="userAttribute"><span className="userAttributeName">{attrName}</span>: {item.userAttributes[attrName]}</span>)}</td>
@@ -16,6 +16,13 @@ class TransactionItem extends Component {
       </span>
         {attributeOrder.map(attrName => <span key={`${attrName}-${item.orderId}`} className="userAttribute"><span
           className="userAttributeName">{attrName}</span>: {item.userAttributes[attrName]}</span>)}
+        <a href="" onClick={
+          (e) => {
+            e.preventDefault()
+            this.context.handleSetOtherUserEmail(item.email)
+            this.context.redirect({ to: '/edit-user' })
+          }
+        }>Update</a>
       </Card>
     )
 

@@ -5,7 +5,7 @@ import { API } from 'aws-amplify'
 import TransactionItem from '../components/TransactionItem'
 import { Modal, Spinner, Table } from 'react-bootstrap'
 import Pagination from 'react-bootstrap/Pagination'
-import { BsSortDownAlt, BsSortUpAlt } from 'react-icons/bs'
+import { BsSortDownAlt, BsSortUpAlt, BsArrowRepeat } from 'react-icons/bs'
 
 class Transaction extends Component {
   constructor(props) {
@@ -14,7 +14,8 @@ class Transaction extends Component {
       orders: [],
       page: 1,
       isLoading: false,
-      pageSize: 15,
+      // pageSize: 15,
+      pageSize: 3,
       totalPages: 0,
       sortBy: 'created',
       sortOrder: 'desc',
@@ -25,33 +26,20 @@ class Transaction extends Component {
   async componentDidMount() {
     console.log('transaction mounted')
     this.context.pushToHistory()
-    this.updateIsLoadingState()
     await this.retrieveOrders()
-    this.updateIsLoadedState()
-  }
-
-  updateIsLoadingState = () => {
-    this.setState({
-      isLoading: true
-    })
-  }
-
-  updateIsLoadedState = () => {
-    this.setState({
-      isLoading: false
-    })
   }
 
   async componentDidUpdate(prevProps, prevState, snapshot) {
     if (this.state.page !== prevState.page || this.state.sortBy !== prevState.sortBy || this.state.sortOrder !== prevState.sortOrder) {
       console.log('transaction updated')
-      this.updateIsLoadingState()
       await this.retrieveOrders()
-      this.updateIsLoadedState()
     }
   }
 
   retrieveOrders = async () => {
+    this.setState({
+      isLoading: true
+    })
     const res = await API.get('charcot', '/cerebrum-image-orders', {
       queryStringParameters: {
         pageSize: this.state.pageSize,
@@ -60,10 +48,12 @@ class Transaction extends Component {
         sortOrder: this.state.sortOrder
       }
     })
+    console.log(`JMQ: orders is ${JSON.stringify(res)}`)
     this.setState({
       orders: res.orders,
       totalPages: res.totalPages,
-      orderCount: res.orderCount
+      orderCount: res.orderCount,
+      isLoading: false
     })
   }
 
@@ -149,6 +139,10 @@ class Transaction extends Component {
           <Pagination.Last onClick={this.handlePageChange}/>
         </Pagination>
         {totalRecords}
+        <span className="reload"><a href="" onClick={async (e) => {
+          e.preventDefault()
+          await this.retrieveOrders()
+        }}><BsArrowRepeat size="30px"/></a></span>
       </div>
     )
   }
@@ -169,7 +163,8 @@ class Transaction extends Component {
         <tr>
           <th><a href="" onClick={this.handleSort} name="created">{this.renderSortIcon('created')}Request Date</a></th>
           <th><a href="" onClick={this.handleSort} name="requester">{this.renderSortIcon('requester')}Requester</a></th>
-          <th><a href="" onClick={this.handleSort} name="institutionName">{this.renderSortIcon('institutionName')}Institution</a></th>
+          <th><a href="" onClick={this.handleSort}
+                 name="institutionName">{this.renderSortIcon('institutionName')}Institution</a></th>
           <th><a href="" onClick={this.handleSort} name="email">{this.renderSortIcon('email')}Email</a></th>
           <th>Criteria</th>
           <th>Status</th>

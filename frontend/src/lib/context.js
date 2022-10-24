@@ -3,6 +3,7 @@ import Filter from './Filter'
 
 export const AppContext = createContext({
   isAuthenticated: false,
+  otherUserEmail: '',
   isAdmin: false,
   email: '',
   filter: new Filter(),
@@ -26,5 +27,7 @@ export const AppContext = createContext({
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   pushToHistory: () => {},
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  handleClearFilter: () => {}
+  handleClearFilter: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  handleSetOtherUserEmail: () => {}
 })
