@@ -9,7 +9,7 @@ const populateUserData = async (transaction: DocumentClient.AttributeMap) => {
     UserPoolId: process.env.CEREBRUM_COGNITO_USER_POOL_ID as string,
     Username: transaction.email
   }).promise()
-  console.log(`JMQ: userData is ${JSON.stringify(userData)}`)
+  // console.log(`JMQ: userData is ${JSON.stringify(userData)}`)
   const userAttrs: Record<string, string> = {}
   const firstClassAttributes = ['given_name', 'family_name', 'custom:institutionName']
   for (const attr of userData.UserAttributes || []) {
@@ -20,6 +20,18 @@ const populateUserData = async (transaction: DocumentClient.AttributeMap) => {
     }
 
     userAttrs[capitalCase(name.replace('custom:', ''))] = value as string
+  }
+
+  // FIXME: Temporary solution to fill in missing name nad last name,
+  //   remove once these are populated in cognito user pool
+  if (!transaction.given_name) {
+    const email = transaction.email as string
+    const name = email.substring(0, email.indexOf('@')).split('.')
+
+    if (name && name.length === 2) {
+      transaction.given_name = capitalCase(name[0])
+      transaction.family_name = capitalCase(name[1])
+    }
   }
   transaction.requester = `${transaction.given_name} ${transaction.family_name}`
   transaction.userAttributes = userAttrs
@@ -80,7 +92,7 @@ class OrderSearch extends Search {
       })
     }
 
-    console.log(`JMQ: pageSize is ${pageSize}, orderCount is ${orderCount}, totalPages is ${totalPages}, page is ${page}, sortBy is ${sortBy}, sortOrder is ${sortOrder}`)
+    // console.log(`JMQ: pageSize is ${pageSize}, orderCount is ${orderCount}, totalPages is ${totalPages}, page is ${page}, sortBy is ${sortBy}, sortOrder is ${sortOrder}`)
 
     const params: DocumentClient.QueryInput = {
       TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string

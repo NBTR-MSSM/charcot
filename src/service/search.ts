@@ -8,7 +8,7 @@ export default abstract class Search {
       const lastEvaluatedKey = res.LastEvaluatedKey
       if ((res.Items && res.Items.length) || params.Select === 'COUNT') {
         const items: DocumentClient.ItemList = res.Items ? res.Items : []
-        console.log(`JMQ: items is ${JSON.stringify(items)}`)
+        // console.log(`JMQ: items is ${JSON.stringify(items)}`)
         callback(res, items)
       }
 
