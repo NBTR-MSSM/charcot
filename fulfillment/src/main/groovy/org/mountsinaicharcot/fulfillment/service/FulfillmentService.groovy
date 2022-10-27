@@ -4,11 +4,9 @@ import com.amazonaws.auth.profile.ProfileCredentialsProvider as ProfileCredentia
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
-import com.amazonaws.services.dynamodbv2.document.AttributeUpdate
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest
-import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest
 import com.amazonaws.services.dynamodbv2.model.UpdateItemResult
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
@@ -25,6 +23,8 @@ import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder
 import com.amazonaws.services.sqs.model.Message as SQSMessage
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest
+import com.amazonaws.services.sqs.model.SendMessageRequest
+import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
@@ -89,17 +89,31 @@ class FulfillmentService implements CommandLineRunner {
   void run(String... args) throws Exception {
     log.info "Entering queue poll loop"
     while (true) {
-      Map<String, String> orderInfo
+      Map<String, String> orderInfoFromSqs
       try {
-        orderInfo = retrieveNextOrderId()
-        if (!orderInfo) {
+        orderInfoFromSqs = retrieveNextOrderId()
+        if (!orderInfoFromSqs) {
           continue
         }
-        extendRequestVisibilityTimeout(orderInfo.sqsReceiptHandle)
-        fulfill(retrieveOrderInfo(orderInfo.orderId), orderInfo.sqsReceiptHandle)
+        def orderInfoDto = retrieveOrderInfo(orderInfoFromSqs.orderId)
+        if (orderInfoDto.status != 'received') {
+          /*
+           * Put it right back into the queue, another worker already processed
+           * or processing this order. If the request is large, the AWS SQS max visibility timeout window
+           * of 12 hours can/will be exhausted and another worker will see the message again, which would
+           * result in duplicate work on this order. Our escape hatch for that is to rely on order status
+           * to know whenever the worker is done processing the order.
+           */
+          AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
+          SendMessageRequest sendMessageRequest = new SendMessageRequest()
+                  .withQueueUrl(sqsOrderQueueUrl).withMessageBody(new JsonBuilder([orderId: orderInfoFromSqs.orderId]).toString())
+          sqs.sendMessage(sendMessageRequest)
+          continue
+        }
+        fulfill(orderInfoDto, orderInfoFromSqs.sqsReceiptHandle)
       } catch (Exception e) {
-        log.error "Problem fulfilling $orderInfo.orderId", e
-        orderInfo && updateOrderStatus(orderInfo.orderId, 'failed')
+        log.error "Problem fulfilling $orderInfoFromSqs.orderId", e
+        orderInfoFromSqs && updateOrderStatus(orderInfoFromSqs.orderId, 'failed', e.toString())
       }
     }
   }
@@ -162,7 +176,7 @@ class FulfillmentService implements CommandLineRunner {
     AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
     ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest()
             .withQueueUrl(sqsOrderQueueUrl)
-            .withMaxNumberOfMessages(1).withWaitTimeSeconds()
+            .withMaxNumberOfMessages(1)
     List<SQSMessage> messages = sqs.receiveMessage(receiveMessageRequest).getMessages()
     if (messages) {
       SQSMessage message = messages[0]
@@ -170,11 +184,6 @@ class FulfillmentService implements CommandLineRunner {
               sqsReceiptHandle: message.receiptHandle]
     }
     return null
-  }
-
-  void extendRequestVisibilityTimeout(String receiptHandle) {
-    AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
-    sqs.changeMessageVisibility(sqsOrderQueueUrl, receiptHandle, 2700)
   }
 
   void markOrderAsProcessed(String orderId, String sqsReceiptHandle) {
@@ -196,7 +205,8 @@ class FulfillmentService implements CommandLineRunner {
     AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
     UpdateItemResult updateItemResult = dynamoDB.updateItem(dynamoDbOrderTableName,
             [orderId: new AttributeValue().withS(orderId)],
-            [filesProcessed: new AttributeValueUpdate().withValue(new AttributeValue().withL(files.collect { new AttributeValue().withS(it)}))])
+            // FIXME: Is this replacing instead of adding to the list of already processed files???
+            [filesProcessed: new AttributeValueUpdate().withValue(new AttributeValue().withL(files.collect { new AttributeValue().withS(it) }))])
     log.info "Update request $orderId processed files to $files, ${updateItemResult.toString()}"
   }
 
@@ -206,17 +216,18 @@ class FulfillmentService implements CommandLineRunner {
             .withTableName(dynamoDbOrderTableName)
 
     AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
-    Map<String, AttributeValue> items = dynamoDB.getItem(request).getItem()
+    Map<String, AttributeValue> item = dynamoDB.getItem(request).getItem()
 
-    if (!items) {
+    if (!item) {
       return null
     }
 
     OrderInfoDto orderInfoDto = new OrderInfoDto()
-    orderInfoDto.fileNames = items.fileNames.l.collect { AttributeValue fileNameAttribute -> fileNameAttribute.s }
-    orderInfoDto.email = items.email.s
+    orderInfoDto.fileNames = item.fileNames.l.collect { AttributeValue fileNameAttribute -> fileNameAttribute.s }
+    orderInfoDto.email = item.email.s
     orderInfoDto.orderId = orderId
     orderInfoDto.outputPath = "$workFolder/$orderId"
+    orderInfoDto.status = item.status.s
     orderInfoDto
   }
 

@@ -33,17 +33,14 @@ export default class BackEndPaidAccountStack extends sst.Stack {
 
     /*
      * SQS Queue(s)
-     * The delivery delay is set to give ECS ample time to scale out so that workers are already started before
-     * the first message is received. W/o the delay, yes scale out will take place, but by that time the one
-     * worker will end up during most of the work. Thus the delivery delay results in even distribution among
-     * the existing and the just newly added workers from the scale out
      */
     const cerebrumImageOrderQueue = new sst.Queue(this, process.env.CEREBRUM_IMAGE_ORDER_QUEUE_NAME as string, {
       cdk: {
         queue: {
-          deliveryDelay: stage === 'debug' ? Duration.seconds(0) : Duration.minutes(15),
-          // Fulfillment has 15 minutes to extend processing time (I.e. visibility timeout
-          visibilityTimeout: Duration.minutes(15),
+          // Give maximum of 12 hours to process a request, some of them can be large and in fact
+          // can take ponger then 12 hours. See the fulfillment module for notes on how we
+          // handle request which take longer then maximum to process.
+          visibilityTimeout: Duration.hours(12),
           receiveMessageWaitTime: Duration.seconds(20)
         }
       }

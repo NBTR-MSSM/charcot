@@ -5,4 +5,5 @@ class OrderInfoDto {
   List<String> fileNames
   String email
   String outputPath
+  String status
 }
