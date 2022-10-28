@@ -1,0 +1,20 @@
+@media all and (min-width: 480px) {
+    .ProfileManagement {
+        padding: 60px 0;
+    }
+
+    .ProfileManagement form {
+        margin: 0 auto;
+        max-width: 320px;
+    }
+
+    .ProfileManagement .changePassword {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .ProfileManagement .cancel {
+        margin-top: 10px;
+        margin-left: 5px;
+    }
+}

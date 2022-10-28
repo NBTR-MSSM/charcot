@@ -3,7 +3,7 @@ import Form from 'react-bootstrap/Form'
 import LoaderButton from '../components/LoaderButton'
 import { AppContext } from '../lib/context'
 import { onError } from '../lib/error'
-import './Signup.css'
+import './ProfileManagement.css'
 import { Auth } from 'aws-amplify'
 
 class ProfileManagement extends Component {
@@ -30,7 +30,7 @@ class ProfileManagement extends Component {
     this.context.pushToHistory()
   }
 
-  validateForm = () => {
+  validateForm() {
     return (
       this.state.email.length > 0 &&
       this.state.password.length > 0 &&
@@ -129,34 +129,44 @@ class ProfileManagement extends Component {
     )
   }
 
+  renderPasswordFields() {
+    return (<>
+      <Form.Group controlId="password" size="lg">
+        <Form.Label>Password</Form.Label>
+        <Form.Control
+          type="password"
+          value={this.state.password}
+          onChange={this.handleFormChange}
+        />
+      </Form.Group>
+      <Form.Group controlId="confirmPassword" size="lg">
+        <Form.Label>Confirm Password</Form.Label>
+        <Form.Control
+          type="password"
+          onChange={this.handleFormChange}
+          value={this.state.confirmPassword}
+        />
+      </Form.Group>
+    </>)
+  }
+
+  renderEmailField() {
+    return <Form.Group controlId="email" size="lg">
+      <Form.Label>Email</Form.Label>
+      <Form.Control
+        autoFocus
+        type="email"
+        value={this.state.email}
+        onChange={this.handleFormChange}
+      />
+    </Form.Group>
+  }
+
   renderProfileChangeForm = () => {
     return (
       <Form onSubmit={this.handleProfileChangeSubmit}>
-        <Form.Group controlId="email" size="lg">
-          <Form.Label>Email</Form.Label>
-          <Form.Control
-            autoFocus
-            type="email"
-            value={this.state.email}
-            onChange={this.handleFormChange}
-          />
-        </Form.Group>
-        <Form.Group controlId="password" size="lg">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            value={this.state.password}
-            onChange={this.handleFormChange}
-          />
-        </Form.Group>
-        <Form.Group controlId="confirmPassword" size="lg">
-          <Form.Label>Confirm Password</Form.Label>
-          <Form.Control
-            type="password"
-            onChange={this.handleFormChange}
-            value={this.state.confirmPassword}
-          />
-        </Form.Group>
+        {this.renderEmailField()}
+        {this.renderPasswordFields()}
         <Form.Group controlId="firstName" size="lg">
           <Form.Label>First Name</Form.Label>
           <Form.Control
@@ -222,7 +232,7 @@ class ProfileManagement extends Component {
 
   render() {
     return (
-      <div className="Signup">
+      <div className="ProfileManagement">
         {this.state.newUser ? this.renderConfirmationForm() : this.renderProfileChangeForm()}
       </div>
     )

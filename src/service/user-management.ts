@@ -47,7 +47,8 @@ class UserManagement {
   async update(event: APIGatewayProxyEventV2) {
     console.log(`JMQ: update() event is ${JSON.stringify(event)}`)
     const email = (event.pathParameters && event.pathParameters.email) as string
-    const attributes: CognitoIdentityServiceProvider.AttributeListType = Object.entries(JSON.parse(event.body!)).map(e => ({
+    const updateRequest: Record<string, string> = JSON.parse(event.body!)
+    const attributes: CognitoIdentityServiceProvider.AttributeListType = Object.entries(updateRequest).filter(e => e[0] !== 'password').map(e => ({
       Name: e[0],
       Value: e[1] as string
     }))
@@ -57,6 +58,16 @@ class UserManagement {
       Username: email,
       UserAttributes: attributes
     }).promise()
+
+    // Update the password if one was provided
+    if (updateRequest.password) {
+      await cognitoIdentityServiceProvider.adminSetUserPassword({
+        UserPoolId: process.env.CEREBRUM_COGNITO_USER_POOL_ID as string,
+        Username: email,
+        Password: updateRequest.password,
+        Permanent: true
+      }).promise()
+    }
   }
 }
 

@@ -6,7 +6,6 @@ import { BsInfoCircleFill } from 'react-icons/bs'
 const attributeOrder = ['degree', 'institutionName', 'institutionAddress', 'areasOfInterest', 'intendedUse']
 
 class TransactionItem extends Component {
-  // <td>{attributeOrder.map(attrName => <span className="userAttribute"><span className="userAttributeName">{attrName}</span>: {item.userAttributes[attrName]}</span>)}</td>
   render() {
     const item = this.props.item
     const userAttributesPopover = (

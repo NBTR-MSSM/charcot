@@ -14,8 +14,7 @@ class Transaction extends Component {
       orders: [],
       page: 1,
       isLoading: false,
-      // pageSize: 15,
-      pageSize: 3,
+      pageSize: 15,
       totalPages: 0,
       sortBy: 'created',
       sortOrder: 'desc',
@@ -125,8 +124,13 @@ class Transaction extends Component {
     }
 
     const totalRecords = <span><span className="totalRecords">Total records:</span> {this.state.orderCount}</span>
+    const reload = <span className="reload"><a href="" onClick={async (e) => {
+      e.preventDefault()
+      await this.retrieveOrders()
+    }}><BsArrowRepeat size="30px"/></a></span>
+
     if (items.length < 2) {
-      return totalRecords
+      return <>{totalRecords}{reload}</>
     }
 
     return (
@@ -139,10 +143,7 @@ class Transaction extends Component {
           <Pagination.Last onClick={this.handlePageChange}/>
         </Pagination>
         {totalRecords}
-        <span className="reload"><a href="" onClick={async (e) => {
-          e.preventDefault()
-          await this.retrieveOrders()
-        }}><BsArrowRepeat size="30px"/></a></span>
+        {reload}
       </div>
     )
   }

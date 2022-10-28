@@ -230,7 +230,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
             initialPolicy: [
               new iam.PolicyStatement({
                 effect: iam.Effect.ALLOW,
-                actions: ['cognito-idp:AdminUpdateUserAttributes'],
+                actions: ['cognito-idp:AdminUpdateUserAttributes', 'cognito-idp:AdminSetUserPassword'],
                 resources: [auth.userPoolArn]
               })],
             environment: {
