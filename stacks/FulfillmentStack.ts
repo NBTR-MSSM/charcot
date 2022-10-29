@@ -100,7 +100,7 @@ export default class FulfillmentStack extends sst.Stack {
     }))
     service.taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
-      actions: ['sqs:ReceiveMessage', 'sqs:DeleteMessage', 'sqs:SendMessage'],
+      actions: ['sqs:ReceiveMessage', 'sqs:DeleteMessage'],
       resources: [args.cerebrumImageOrderQueueArn as string]
     }))
     service.taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({

@@ -110,7 +110,8 @@ class EditUser extends ProfileManagement {
   }
 
   renderSuccessConfirmationModal = () => {
-    return <ConfirmationModal email={this.context.otherUserEmail}
+    return <ConfirmationModal header="Update Complete"
+                              body={`Updates successfully saved for ${this.context.otherUserEmail}`}
                               show={this.state.isShowSuccessfulUpdateConfirmation}
                               handleExit={() => this.context.redirect({ to: '/transaction' })}
                               handleClose={() => this.setState({ isShowSuccessfulUpdateConfirmation: false })}/>

@@ -53,7 +53,6 @@ export const search: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIG
     }
 
     // TODO: Bark with HTTP 401 if unable to determine indexName at the very least.
-    // TODO: User authentication (user/passwd?, federated via AD?)
 
     const params: DocumentClient.QueryInput = {
       TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string,

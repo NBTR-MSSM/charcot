@@ -1,9 +1,15 @@
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
 import Search from './search'
-import { HttpResponse } from '@exsoinn/aws-sdk-wrappers'
+import { dynamoDbClient, HttpResponse } from '@exsoinn/aws-sdk-wrappers'
 import userManagement from './user-management'
 
+const cancelEligibleStatuses = new Set().add('received').add('processing')
+
+/**
+ * Enriches the order transaction passed in with information
+ * to the user that created the order.
+ */
 const populateUserData = async (transaction: DocumentClient.AttributeMap) => {
   const response = await userManagement.retrieve(transaction.email)
   const user = JSON.parse(response.toAwsApiGatewayFormat().body)
@@ -61,53 +67,72 @@ const goToPage = (items: DocumentClient.ItemList, page: number, pageSize: number
 }
 
 class OrderSearch extends Search {
-  async retrieve(event: APIGatewayProxyEventV2): Promise<Record<string, any>> {
-    const pageSize = Number.parseInt((event.queryStringParameters && event.queryStringParameters.pageSize) || '10')
-    const page = Number.parseInt((event.queryStringParameters && event.queryStringParameters.page) || '1')
-    const sortBy = (event.queryStringParameters && event.queryStringParameters.sortBy) || 'created'
-    const sortOrder = (event.queryStringParameters && event.queryStringParameters.sortOrder) || 'desc'
-    const orderCount = await this.obtainOrderCount(event)
-    const totalPages = Math.ceil(orderCount / pageSize)
-
-    if (page > totalPages && totalPages > 0) {
-      return new HttpResponse(404, `Page ${page} is out of bounds (only ${totalPages} available at ${pageSize} items per page)`)
-    } else if (totalPages === 0) {
-      return new HttpResponse(200, 'No records found', {
-        orders: []
-      })
-    }
-
-    // console.log(`JMQ: pageSize is ${pageSize}, orderCount is ${orderCount}, totalPages is ${totalPages}, page is ${page}, sortBy is ${sortBy}, sortOrder is ${sortOrder}`)
-
-    const params: DocumentClient.QueryInput = {
-      TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string
-    }
-
-    /*
-     * Side Note: It seems inefficient to have to load all DynamoDB results in memory and sort,
-     * but unfortunately DynamoDB scan operation doesn't support sorting.
-     */
+  /**
+   * Retrieves orders and paginates as appropriate
+   */
+  async retrieve(event: APIGatewayProxyEventV2 | string): Promise<Record<string, any>> {
     let retItems: DocumentClient.ItemList = []
-    const callback = (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => {
-      retItems = retItems.concat(items)
-      // console.log(`JMQ: retItems is ${JSON.stringify(retItems)}`)
+    let retBody = {}
+    if (typeof event !== 'string') {
+      const pageSize = Number.parseInt((event.queryStringParameters && event.queryStringParameters.pageSize) || '10')
+      const page = Number.parseInt((event.queryStringParameters && event.queryStringParameters.page) || '1')
+      const sortBy = (event.queryStringParameters && event.queryStringParameters.sortBy) || 'created'
+      const sortOrder = (event.queryStringParameters && event.queryStringParameters.sortOrder) || 'desc'
+      const orderCount = await this.obtainOrderCount(event)
+      const totalPages = Math.ceil(orderCount / pageSize)
+
+      if (page > totalPages && totalPages > 0) {
+        return new HttpResponse(404, `Page ${page} is out of bounds (only ${totalPages} available at ${pageSize} items per page)`)
+      } else if (totalPages === 0) {
+        return new HttpResponse(200, 'No records found', {
+          orders: []
+        })
+      }
+
+      // console.log(`JMQ: pageSize is ${pageSize}, orderCount is ${orderCount}, totalPages is ${totalPages}, page is ${page}, sortBy is ${sortBy}, sortOrder is ${sortOrder}`)
+
+      const params: DocumentClient.QueryInput = {
+        TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string
+      }
+
+      /*
+       * Side Note: It seems inefficient to have to load all DynamoDB results into memory in order to sort,
+       * but unfortunately DynamoDB scan operation doesn't support sorting.
+       */
+      const callback = (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => {
+        retItems = retItems.concat(items)
+        // console.log(`JMQ: retItems is ${JSON.stringify(retItems)}`)
+      }
+
+      await this.handleSearch(params, callback)
+
+      // apply sorting
+      sort(retItems, sortBy, sortOrder)
+
+      retItems = goToPage(retItems, page, pageSize)
+      retBody = {
+        orderCount,
+        pageSize,
+        totalPages
+      }
+    } else {
+      const res = await dynamoDbClient.get({
+        TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME,
+        Key: { orderId: event }
+      })
+      if (res.Item) {
+        retItems.push(res.Item)
+      }
     }
 
-    await this.handleSearch(params, callback)
-
+    // Enrich each order record
     for (const item of retItems) {
       await populateUserData(item)
+      item.isCancellable = cancelEligibleStatuses.has(item.status)
     }
 
-    // apply sorting
-    sort(retItems, sortBy, sortOrder)
-
-    retItems = goToPage(retItems, page, pageSize)
-
     return new HttpResponse(200, '', {
-      orderCount,
-      pageSize,
-      totalPages,
+      ...retBody,
       orders: retItems
     })
   }

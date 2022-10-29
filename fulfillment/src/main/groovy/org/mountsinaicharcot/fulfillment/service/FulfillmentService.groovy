@@ -23,8 +23,6 @@ import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder
 import com.amazonaws.services.sqs.model.Message as SQSMessage
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest
-import com.amazonaws.services.sqs.model.SendMessageRequest
-import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
@@ -98,24 +96,29 @@ class FulfillmentService implements CommandLineRunner {
         def orderInfoDto = retrieveOrderInfo(orderInfoFromSqs.orderId)
         if (orderInfoDto.status != 'received') {
           /*
-           * Put it right back into the queue, another worker already processed
-           * or processing this order. If the request is large, the AWS SQS max visibility timeout window
-           * of 12 hours can/will be exhausted and another worker will see the message again, which would
-           * result in duplicate work on this order. Our escape hatch for that is to rely on order status
-           * to know whenever the worker is done processing the order.
+           * Another worker already processed or processing this order. If the request is large,
+           * the AWS SQS max visibility timeout window of 12 hours can/will be exhausted and another worker will see
+           * the message again, which would result in duplicate work on this order. Our escape hatch for
+           * that is to rely on order status to know whenever the worker is done processing the order. Also this fetch has
+           * the effect of extending the visibility timeout by another 12 hours, which is a good thing.
            */
-          AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
-          SendMessageRequest sendMessageRequest = new SendMessageRequest()
-                  .withQueueUrl(sqsOrderQueueUrl).withMessageBody(new JsonBuilder([orderId: orderInfoFromSqs.orderId]).toString())
-          sqs.sendMessage(sendMessageRequest)
           continue
         }
         fulfill(orderInfoDto, orderInfoFromSqs.sqsReceiptHandle)
       } catch (Exception e) {
         log.error "Problem fulfilling $orderInfoFromSqs.orderId", e
-        orderInfoFromSqs && updateOrderStatus(orderInfoFromSqs.orderId, 'failed', e.toString())
+        updateOrderStatus(orderInfoFromSqs.orderId, 'failed', e.toString())
       }
     }
+  }
+
+  boolean cancelIfRequested(String orderId) {
+    def orderInfoDto = retrieveOrderInfo(orderId)
+    if (orderInfoDto.status == 'cancel-requested') {
+      updateOrderStatus(orderId, 'canceled')
+      return true
+    }
+    false
   }
 
   void fulfill(OrderInfoDto orderInfoDto, String sqsReceiptHandle = null) {
@@ -128,15 +131,24 @@ class FulfillmentService implements CommandLineRunner {
     int zipCnt = 1
     Map<Integer, List<String>> bucketToFileList = partitionFileListIntoBucketsUpToSize(fileNames)
     int totalZips = bucketToFileList.size()
-    bucketToFileList.each { Integer bucketNumber, List<String> filesToZip ->
+    def canceled = bucketToFileList.find { Integer bucketNumber, List<String> filesToZip ->
       def startAll = System.currentTimeMillis()
 
       // Download the files to zip
-      filesToZip.each { String fileName ->
+      if (filesToZip.find { String fileName ->
+        // Check order status frequently to see if cancel has been requested. We want to be
+        // as timely as possible in honoring such requests to avoid wasteful processing
+        if (cancelIfRequested(orderId)) {
+          return true
+        }
         def startCurrent = System.currentTimeMillis()
         downloadS3Object(orderInfoDto, fileName)
         downloadS3Object(orderInfoDto, fileName.replace('.mrxs', '/'))
         log.info "Took ${System.currentTimeMillis() - startCurrent} milliseconds to download $fileName for request $orderId"
+        false
+      }) {
+        log.info "Order $orderId canceled"
+        return true
       }
       log.info "Took ${System.currentTimeMillis() - startAll} milliseconds to download all the image slides for request $orderId"
 
@@ -168,8 +180,10 @@ class FulfillmentService implements CommandLineRunner {
 
       // Record this batch of processed files in order table
       updateProcessedFiles(orderId, filesToZip)
+      false
     }
-    markOrderAsProcessed(orderId, sqsReceiptHandle)
+
+    markOrderAsProcessed(orderId, sqsReceiptHandle, !canceled)
   }
 
   Map<String, String> retrieveNextOrderId() {
@@ -186,10 +200,10 @@ class FulfillmentService implements CommandLineRunner {
     return null
   }
 
-  void markOrderAsProcessed(String orderId, String sqsReceiptHandle) {
+  void markOrderAsProcessed(String orderId, String sqsReceiptHandle, boolean updateStatus = true) {
     AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
     sqs.deleteMessage(sqsOrderQueueUrl, sqsReceiptHandle)
-    updateOrderStatus(orderId, 'processed')
+    updateStatus && updateOrderStatus(orderId, 'processed', 'Request processed successfully.')
   }
 
   void updateOrderStatus(String orderId, String status, String remark = null) {

@@ -287,6 +287,28 @@ export default class BackEndPaidAccountStack extends sst.Stack {
               FULFILLMENT_HOST: process.env.FULFILLMENT_HOST as string
             }
           }
+        },
+        'DELETE /cerebrum-image-orders/{orderId}': {
+          function: {
+            functionName: `cancel-cerebrum-image-order-${stage}`,
+            handler: 'src/lambda/cerebrum-image-order.cancel',
+            initialPolicy: [
+              new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['dynamodb:UpdateItem', 'dynamodb:GetItem'],
+                resources: [cerebrumImageOrderTable.tableArn]
+              }),
+              new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: ['cognito-idp:AdminGetUser'],
+                resources: [auth.userPoolArn]
+              })
+            ],
+            environment: {
+              CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName,
+              CEREBRUM_COGNITO_USER_POOL_ID: auth.userPoolId
+            }
+          }
         }
       }
     })
