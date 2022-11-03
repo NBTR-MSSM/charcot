@@ -27,6 +27,9 @@ import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.joda.time.DateTime
+import org.joda.time.DateTimeZone
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.format.DateTimeFormatter
 import org.mountsinaicharcot.fulfillment.dto.OrderInfoDto
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.CommandLineRunner
@@ -121,11 +124,22 @@ class FulfillmentService implements CommandLineRunner {
     false
   }
 
+  private String currentTime() {
+    DateTimeZone utc = DateTimeZone.forID('GMT')
+    DateTime dt = new DateTime(utc)
+    println dt
+    DateTimeFormatter fmt = DateTimeFormat.forPattern('E, d MMM, yyyy HH:mm:ssz')
+    StringBuilder now = new StringBuilder()
+    fmt.printTo(now, dt)
+    now.toString()
+  }
+
   void fulfill(OrderInfoDto orderInfoDto, String sqsReceiptHandle = null) {
     systemStats()
     String orderId = orderInfoDto.orderId
     log.info "Fulfilling order $orderId"
-    updateOrderStatus(orderId, 'processing')
+    String processingMsg = "Request $orderId began being processed by Mount Sinai Charcot on ${currentTime()}"
+    updateOrderStatus(orderId, 'processing', processingMsg)
 
     List<String> fileNames = orderInfoDto.fileNames
     int zipCnt = 1
@@ -180,6 +194,7 @@ class FulfillmentService implements CommandLineRunner {
 
       // Record this batch of processed files in order table
       updateProcessedFiles(orderId, filesToZip)
+      updateOrderStatus(orderId, 'processing', "$processingMsg, ${bucketNumber+1} of $totalZips zip files sent to requester.")
       false
     }
 
@@ -203,7 +218,7 @@ class FulfillmentService implements CommandLineRunner {
   void markOrderAsProcessed(String orderId, String sqsReceiptHandle, boolean updateStatus = true) {
     AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
     sqs.deleteMessage(sqsOrderQueueUrl, sqsReceiptHandle)
-    updateStatus && updateOrderStatus(orderId, 'processed', 'Request processed successfully.')
+    updateStatus && updateOrderStatus(orderId, 'processed', "Request processed successfully on ${currentTime()}")
   }
 
   void updateOrderStatus(String orderId, String status, String remark = null) {
@@ -433,8 +448,8 @@ class FulfillmentService implements CommandLineRunner {
         log.info "Starting new bucket $bucketNum with $file because $cumulativeObjectsSize exceeds $FILE_BUCKET_SIZE"
         cumulativeObjectsSize = 0
       } else {
-        log.info "Added $file to bucket $bucketNum, size thus far us $cumulativeObjectsSize"
         bucketToImages.get(bucketNum, []) << file
+        log.info "Added $file to bucket $bucketNum, size thus far us $cumulativeObjectsSize"
       }
 
       bucketToImages

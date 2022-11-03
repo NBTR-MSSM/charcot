@@ -69,7 +69,7 @@ class OrderManagement {
     if (orders && orders.length > 0) {
       const order = orders[0]
       if (!order.isCancellable) {
-        return new HttpResponse(401, `Request in status ${order.status} cannot be cancelled`)
+        return new HttpResponse(401, `Request in status ${order.status} cannot be canceled`)
       }
       const requester = (event.queryStringParameters && event.queryStringParameters.requester) as string
       console.log(`JMQ: request ${orderId} for cancel`)
@@ -83,7 +83,7 @@ class OrderManagement {
         },
         ExpressionAttributeValues: {
           ':status': 'cancel-requested',
-          ':remark': `Cancel requested by ${requester}`
+          ':remark': `Cancel requested by ${requester} on ${new Date().toUTCString()}`
         }
       })
     } else {
