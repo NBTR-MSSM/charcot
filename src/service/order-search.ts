@@ -75,14 +75,14 @@ class OrderSearch extends Search {
     let retBody = {}
     if (typeof event !== 'string') {
       const pageSize = Number.parseInt((event.queryStringParameters && event.queryStringParameters.pageSize) || '10')
-      const page = Number.parseInt((event.queryStringParameters && event.queryStringParameters.page) || '1')
+      const page = Number.parseInt((event.queryStringParameters && event.queryStringParameters.page) || '-1')
       const sortBy = (event.queryStringParameters && event.queryStringParameters.sortBy) || 'created'
       const sortOrder = (event.queryStringParameters && event.queryStringParameters.sortOrder) || 'desc'
       const orderCount = await this.obtainOrderCount(event)
       const totalPages = Math.ceil(orderCount / pageSize)
 
       if (page > totalPages && totalPages > 0) {
-        return new HttpResponse(404, `Page ${page} is out of bounds (only ${totalPages} available at ${pageSize} items per page)`)
+        return new HttpResponse(401, `Page ${page} is out of bounds (only ${totalPages} available at ${pageSize} items per page)`)
       } else if (totalPages === 0) {
         return new HttpResponse(200, 'No records found', {
           orders: []
@@ -109,7 +109,11 @@ class OrderSearch extends Search {
       // apply sorting
       sort(retItems, sortBy, sortOrder)
 
-      retItems = goToPage(retItems, page, pageSize)
+      // If page is 0 or a negative value, grab all the records
+      if (page > 0) {
+        retItems = goToPage(retItems, page, pageSize)
+      }
+
       retBody = {
         orderCount,
         pageSize,

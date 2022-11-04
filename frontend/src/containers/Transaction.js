@@ -6,12 +6,16 @@ import TransactionItem from '../components/TransactionItem'
 import { Modal, Spinner, Table } from 'react-bootstrap'
 import Pagination from 'react-bootstrap/Pagination'
 import { BsSortDownAlt, BsSortUpAlt, BsArrowRepeat } from 'react-icons/bs'
+import { DateTimeFormatter, LocalDateTime } from 'js-joda'
+
+const formattedDateTime = () => LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyyMMdd-HH-mm-ss'))
 
 class Transaction extends Component {
   constructor(props) {
     super(props)
     this.state = {
       orders: [],
+      ordersSerialized: [],
       page: 1,
       isLoading: false,
       pageSize: 15,
@@ -35,21 +39,54 @@ class Transaction extends Component {
     }
   }
 
-  retrieveOrders = async () => {
-    this.setState({
-      isLoading: true
-    })
-    const res = await API.get('charcot', '/cerebrum-image-orders', {
+  createDownloadUrl = () => {
+    // eslint-disable-next-line no-undef
+    return window.URL.createObjectURL(new Blob([this.state.ordersSerialized.join('\n')], { type: 'text/plain' }))
+  }
+
+  retrieveOrdersAsDelimiterSeparatedRecords = async () => {
+    let ret = ['orderId,created,institutionName,email,filter,status,remark']
+    const res = await this.fetchOrders({ page: -1 })
+    ret = ret.concat(res.orders.map(order => {
+      const {
+        orderId,
+        created,
+        institutionName,
+        email,
+        filter,
+        status,
+        remark
+      } = order
+      return `${orderId},${created},${institutionName},${email},${filter},${status},${remark}`
+    }))
+    return ret
+  }
+
+  fetchOrders = async (queryParams) => {
+    return await API.get('charcot', '/cerebrum-image-orders', {
       queryStringParameters: {
         pageSize: this.state.pageSize,
         page: this.state.page,
         sortBy: this.state.sortBy,
-        sortOrder: this.state.sortOrder
+        sortOrder: this.state.sortOrder,
+        ...queryParams
       }
     })
-    console.log(`JMQ: orders is ${JSON.stringify(res)}`)
+  }
+
+  retrieveOrders = async () => {
+    this.setState({
+      isLoading: true
+    })
+    const res = await this.fetchOrders({})
+
+    /*
+     * TODO: Keep an eye on performance and if impacted, retrieve for-download orders ('ordersSerialized') on demand only,
+     *  as opposed to everytime we render
+     */
     this.setState({
       orders: res.orders,
+      ordersSerialized: await this.retrieveOrdersAsDelimiterSeparatedRecords(),
       totalPages: res.totalPages,
       orderCount: res.orderCount,
       isLoading: false
@@ -97,7 +134,6 @@ class Transaction extends Component {
       // It's a number
     }
 
-    console.log(`JMQ: event is ${page}`)
     this.setState({
       page: Number.parseInt(page)
     })
@@ -123,7 +159,14 @@ class Transaction extends Component {
       )
     }
 
-    const totalRecords = <span><span className="totalRecords">Total records:</span> {this.state.orderCount}</span>
+    const totalRecords = (
+      <span>
+        <span className="totalRecords">Total records: </span>
+        <a href={this.createDownloadUrl()}
+           download={`charcot-transactions-${formattedDateTime()}.csv`}>{this.state.orderCount} (Click to download as a plaintext CSV file)</a>
+      </span>
+    )
+
     const reload = <span className="reload"><a href="" onClick={async (e) => {
       e.preventDefault()
       await this.retrieveOrders()
@@ -156,9 +199,10 @@ class Transaction extends Component {
     return this.state.sortOrder === 'desc' ? <BsSortDownAlt/> : <BsSortUpAlt/>
   }
 
-  renderLoaded = () => (
-    <>
-      {this.renderPagination()}
+  renderLoaded = () => {
+    const pagination = this.renderPagination()
+    return (<>
+      {pagination}
       <Table striped bordered hover>
         <thead>
         <tr>
@@ -175,9 +219,9 @@ class Transaction extends Component {
         {this.state.orders.map((e) => (<TransactionItem key={e.orderId} item={e}/>))}
         </tbody>
       </Table>
-      {this.renderPagination()}
-    </>
-  )
+      {pagination}
+    </>)
+  }
 
   render() {
     return (<div className="Transaction">{this.state.isLoading ? this.renderLoading() : this.renderLoaded()}</div>)
