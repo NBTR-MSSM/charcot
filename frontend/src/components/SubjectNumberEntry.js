@@ -18,7 +18,7 @@ const savedState = {
 }
 
 class SubjectNumberEntry extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.fileInput = React.createRef()
     this.state = {
@@ -32,12 +32,12 @@ class SubjectNumberEntry extends Component {
     }
   }
 
-  async componentDidMount () {
+  async componentDidMount() {
     // console.log('JMQ: SubjectNumberFileUpload componentDidMount()')
     this.resetIfNecessary()
   }
 
-  componentDidUpdate () {
+  componentDidUpdate() {
     this.resetIfNecessary()
   }
 
@@ -57,13 +57,13 @@ class SubjectNumberEntry extends Component {
     const skip = new Set()
     skip.add('subjectNumberListEntry')
 
-    if (savedState.isUserPrefersFileUpload) {
+    /* if (savedState.isUserPrefersFileUpload) {
       // switching to subnum file upload
       await this.handleClear(undefined, skip)
-    } else {
-      // Switching to manual subnum entry
-      await this.handleClear(undefined, skip)
-    }
+    } else { */
+    // Switching to manual subnum entry
+    await this.handleClear(undefined, skip)
+    // }
 
     this.setState({
       isUserPrefersFileUpload: savedState.isUserPrefersFileUpload
@@ -185,14 +185,14 @@ class SubjectNumberEntry extends Component {
         placement="right"
         overlay={
           <Tooltip id="tooltip-file-upload">
-            Only text files accepted. The file should contain a <strong>single</strong> subject number per line, example:<br/>
-              12345<br/>
-              67893<br/>
-              34<br/>
-              99<br/>
+            Only text files accepted. The file should contain a <strong>single</strong> subject number per line,
+            example:<br/>
+            12345<br/>
+            67893<br/>
+            34<br/>
+            99<br/>
           </Tooltip>
-        }
-      >
+        }>
         <Form onSubmit={this.handleSubmit}>
           <Form.Group controlId="subjectNumberFile" className="mb-3">
             <Form.Control type="file" ref={this.fileInput} className="mb-3" onInput={this.handleInput}/>
@@ -245,7 +245,7 @@ class SubjectNumberEntry extends Component {
     </>
   )
 
-  render () {
+  render() {
     // console.log(`JMQ: render() state is ${JSON.stringify(this.state)}`)
     let fragmentToRender
     if (savedState.isUserPrefersFileUpload) {
