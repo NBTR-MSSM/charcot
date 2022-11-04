@@ -36,7 +36,7 @@
     "yargs": "^17.3.1"
   },
   "dependencies": {
-    "@exsoinn/aws-sdk-wrappers": "^1.11.0",
+    "@exsoinn/aws-sdk-wrappers": "^1.12.0",
     "@serverless-stack/cli": "1.4.0",
     "@serverless-stack/resources": "^1.4.0",
     "aws-cdk-lib": "2.24.0",
