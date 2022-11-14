@@ -28,6 +28,7 @@ class ImageSearch extends Search {
   }
 
   async dimension(event: APIGatewayProxyEventV2) {
+    console.log(`JMQ: event is ${JSON.stringify(event)}`)
     let dimension = (event.pathParameters && event.pathParameters.dimension) as string
     const isNumeric = event.queryStringParameters && event.queryStringParameters.numeric === 'true'
     const attrExpNames: Record<string, string> = {}

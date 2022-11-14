@@ -24,6 +24,7 @@ import com.amazonaws.services.sqs.AmazonSQSClientBuilder
 import com.amazonaws.services.sqs.model.Message as SQSMessage
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest
 import groovy.json.JsonSlurper
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.joda.time.DateTime
@@ -46,6 +47,7 @@ import java.nio.file.Paths
 
 @Service
 @Slf4j
+@CompileStatic
 class FulfillmentService implements CommandLineRunner {
   @Value('${charcot.sqs.order.queue.url}')
   String sqsOrderQueueUrl
@@ -142,21 +144,28 @@ class FulfillmentService implements CommandLineRunner {
     updateOrderStatus(orderId, 'processing', processingMsg)
 
     List<String> fileNames = orderInfoDto.fileNames
-    int zipCnt = 1
     Map<Integer, List<String>> bucketToFileList = partitionFileListIntoBucketsUpToSize(fileNames)
+    // Report on original number of buckets before any filtering of processed files takes place
     int totalZips = bucketToFileList.size()
+    orderInfoDto.filesProcessed && filterAlreadyProcessedFiles(bucketToFileList, orderInfoDto.filesProcessed)
+    int zipCnt = bucketToFileList.keySet().min() + 1
     def canceled = bucketToFileList.find { Integer bucketNumber, List<String> filesToZip ->
       def startAll = System.currentTimeMillis()
 
-      // Download the files to zip
+      /*
+       * Download the files to zip. The closure inside the if() returns true as soon as it detects
+       * a cancel request.
+       * Check order status frequently to see if cancel has been requested. We want to be
+       * as timely as possible in honoring such requests to avoid wasteful processing
+       */
       if (filesToZip.find { String fileName ->
-        // Check order status frequently to see if cancel has been requested. We want to be
-        // as timely as possible in honoring such requests to avoid wasteful processing
+        def startCurrent = System.currentTimeMillis()
+        downloadS3Object(orderInfoDto, fileName)
+        // Check if cancel requested right before we commit to downloading
+        // entire .mrxs image folder
         if (cancelIfRequested(orderId)) {
           return true
         }
-        def startCurrent = System.currentTimeMillis()
-        downloadS3Object(orderInfoDto, fileName)
         downloadS3Object(orderInfoDto, fileName.replace('.mrxs', '/'))
         log.info "Took ${System.currentTimeMillis() - startCurrent} milliseconds to download $fileName for request $orderId"
         false
@@ -192,9 +201,15 @@ class FulfillmentService implements CommandLineRunner {
 
       ++zipCnt
 
-      // Record this batch of processed files in order table
+      /*
+       * Record the batch of processed files in order table. For now just record
+       * the main .msxr file as representative of each of the sets that are part of this bucket.
+       */
       updateProcessedFiles(orderId, filesToZip)
-      updateOrderStatus(orderId, 'processing', "$processingMsg, ${bucketNumber+1} of $totalZips zip files sent to requester.")
+      if (cancelIfRequested(orderId)) {
+        return true
+      }
+      updateOrderStatus(orderId, 'processing', "$processingMsg, ${bucketNumber + 1} of $totalZips zip files sent to requester.")
       false
     }
 
@@ -209,7 +224,7 @@ class FulfillmentService implements CommandLineRunner {
     List<SQSMessage> messages = sqs.receiveMessage(receiveMessageRequest).getMessages()
     if (messages) {
       SQSMessage message = messages[0]
-      return [orderId         : (new JsonSlurper().parseText(message.body.toString()) as Map<String, Object>).orderId,
+      return [orderId         : (new JsonSlurper().parseText(message.body.toString()) as Map<String, Object>).orderId as String,
               sqsReceiptHandle: message.receiptHandle]
     }
     return null
@@ -223,7 +238,8 @@ class FulfillmentService implements CommandLineRunner {
 
   void updateOrderStatus(String orderId, String status, String remark = null) {
     AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
-    Map<String, AttributeValueUpdate> attributeUpdates = [status: new AttributeValueUpdate().withValue(new AttributeValue().withS(status))]
+    Map<String, AttributeValueUpdate> attributeUpdates = [:]
+    status && attributeUpdates.put('status', new AttributeValueUpdate().withValue(new AttributeValue().withS(status)))
     remark && attributeUpdates.put('remark', new AttributeValueUpdate().withValue(new AttributeValue().withS(remark)))
     UpdateItemResult updateItemResult = dynamoDB.updateItem(dynamoDbOrderTableName,
             [orderId: new AttributeValue().withS(orderId)], attributeUpdates)
@@ -231,11 +247,16 @@ class FulfillmentService implements CommandLineRunner {
   }
 
   void updateProcessedFiles(String orderId, List<String> files) {
+    OrderInfoDto orderInfoDto = retrieveOrderInfo(orderId)
+    // Merge current files processed with new ones, creating a set of unique values, and store
+    // back into DB, overriding existing list of files processed
+    Set<String> filesProcessed = orderInfoDto.filesProcessed.toSet() + files.toSet()
     AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
     UpdateItemResult updateItemResult = dynamoDB.updateItem(dynamoDbOrderTableName,
             [orderId: new AttributeValue().withS(orderId)],
             // FIXME: Is this replacing instead of adding to the list of already processed files???
-            [filesProcessed: new AttributeValueUpdate().withValue(new AttributeValue().withL(files.collect { new AttributeValue().withS(it) }))])
+            // No need: [REF|https://groovy-lang.org/objectorientation.html#_varargs|"If a varargs method is called with an array as an argument, then the argument will be that array instead of an array of length one containing the given array as the only element."]
+            [filesProcessed: new AttributeValueUpdate().withValue(new AttributeValue().withL(filesProcessed.collect { new AttributeValue().withS(it) }))])
     log.info "Update request $orderId processed files to $files, ${updateItemResult.toString()}"
   }
 
@@ -252,7 +273,8 @@ class FulfillmentService implements CommandLineRunner {
     }
 
     OrderInfoDto orderInfoDto = new OrderInfoDto()
-    orderInfoDto.fileNames = item.fileNames.l.collect { AttributeValue fileNameAttribute -> fileNameAttribute.s }
+    orderInfoDto.fileNames = item.fileNames.l.collect { it.s }
+    orderInfoDto.filesProcessed = item.filesProcessed.l.collect { it.s }
     orderInfoDto.email = item.email.s
     orderInfoDto.orderId = orderId
     orderInfoDto.outputPath = "$workFolder/$orderId"
@@ -428,12 +450,16 @@ class FulfillmentService implements CommandLineRunner {
     }
   }
 
+  /**
+   * Creates buckets numbered 0 through N, where each buckets contains a maximum of FILE_BUCKET_SIZE. The reason
+   * for this is that we make it deterministic the size of each Zip generated.
+   */
   Map<Integer, List<String>> partitionFileListIntoBucketsUpToSize(List<String> files) {
     log.info "Partitioning file list into buckets up to size $FILE_BUCKET_SIZE"
     AmazonS3 s3 = AmazonS3ClientBuilder.standard().build()
     Integer bucketNum = 0
     Long cumulativeObjectsSize = 0
-    files.inject([:]) { Map<Integer, List<String>> bucketToImages, String file ->
+    files.inject([:] as Map<Integer, List<String>>) { Map<Integer, List<String>> bucketToImages, String file ->
       ObjectListing objectListing = s3.listObjects(s3OdpBucketName, file.replace('.mrxs', '/'))
       cumulativeObjectsSize = objectListing.objectSummaries.inject(cumulativeObjectsSize) { Long size, S3ObjectSummary objectSummary ->
         size + s3.getObjectMetadata(s3OdpBucketName, objectSummary.key).contentLength
@@ -454,5 +480,23 @@ class FulfillmentService implements CommandLineRunner {
 
       bucketToImages
     }
+  }
+
+  /**
+   * This method exists to support resume fulfillment scenario where for example there was an unexpected error
+   * and now we manually resume this request/order form where it left off, to avoid sending duplicate Zip's
+   * to the requester.
+   */
+  private void filterAlreadyProcessedFiles(Map<Integer, List<String>> bucketToImages, List<String> alreadyProcessedFiles) {
+    Map<Integer, List<String>> newMap = bucketToImages.collectEntries { Integer bucket, List<String> files ->
+      // See if this bucket's file have all been processed
+      if (!(files - alreadyProcessedFiles)) {
+        log.info("Removing bucket $bucket because all the files there were already processed.")
+        return [:]
+      }
+      [(bucket): files]
+    }
+    bucketToImages.clear()
+    bucketToImages.putAll(newMap)
   }
 }
