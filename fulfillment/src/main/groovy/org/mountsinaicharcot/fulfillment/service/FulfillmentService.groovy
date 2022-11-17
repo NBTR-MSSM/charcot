@@ -78,7 +78,7 @@ class FulfillmentService implements CommandLineRunner {
   @Value('${spring.profiles.active}')
   String activeProfile
 
-  final static String workFolder = '/tmp'
+  final static String workFolder = './.charcot'
 
   final static Long FILE_BUCKET_SIZE = 50000000000
 
@@ -139,7 +139,7 @@ class FulfillmentService implements CommandLineRunner {
   void fulfill(OrderInfoDto orderInfoDto, String sqsReceiptHandle = null) {
     systemStats()
     String orderId = orderInfoDto.orderId
-    log.info "Fulfilling order $orderId"
+    log.info "Fulfilling order ${orderInfoDto.toString()}"
     String processingMsg = "Request $orderId began being processed by Mount Sinai Charcot on ${currentTime()}"
     updateOrderStatus(orderId, 'processing', processingMsg)
 
@@ -151,7 +151,6 @@ class FulfillmentService implements CommandLineRunner {
     int zipCnt = bucketToFileList.keySet().min() + 1
     def canceled = bucketToFileList.find { Integer bucketNumber, List<String> filesToZip ->
       def startAll = System.currentTimeMillis()
-
       /*
        * Download the files to zip. The closure inside the if() returns true as soon as it detects
        * a cancel request.
@@ -202,9 +201,9 @@ class FulfillmentService implements CommandLineRunner {
       ++zipCnt
 
       /*
-       * Record the batch of processed files in order table. For now just record
-       * the main .msxr file as representative of each of the sets that are part of this bucket.
-       */
+     * Record the batch of processed files in order table. For now just record
+     * the main .msxr file as representative of each of the sets that are part of this bucket.
+     */
       updateProcessedFiles(orderId, filesToZip)
       if (cancelIfRequested(orderId)) {
         return true
@@ -285,7 +284,6 @@ class FulfillmentService implements CommandLineRunner {
 
   void downloadS3Object(OrderInfoDto orderInfoDto, String key) {
     log.info "Downloading $key..."
-    String orderId = orderInfoDto.orderId
     AmazonS3 s3 = AmazonS3ClientBuilder.standard().build()
     List<String> keysToDownload = []
     if (key.endsWith('/')) {
@@ -295,7 +293,7 @@ class FulfillmentService implements CommandLineRunner {
         it.key
       }
     } else {
-      new File(Paths.get(orderInfoDto.outputPath).toString()).mkdir()
+      new File(Paths.get(orderInfoDto.outputPath).toString()).mkdirs()
       keysToDownload << key
     }
 

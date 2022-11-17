@@ -74,7 +74,7 @@ export default class FulfillmentStack extends sst.Stack {
 
     const orderQueue = sqs.Queue.fromQueueArn(this, 'orderQueue', args.cerebrumImageOrderQueueArn as string)
     /*
-     * Keep 5 instances running as long as there are in-flightt requests
+     * Keep 5 instances running as long as there are in-flight requests
      */
     scalableTaskCount.scaleOnMetric('fulfillmentScaleOutPolicy', {
       metric: orderQueue.metricApproximateNumberOfMessagesNotVisible(),
