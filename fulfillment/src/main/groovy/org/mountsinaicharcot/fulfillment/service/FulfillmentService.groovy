@@ -76,7 +76,7 @@ class FulfillmentService implements CommandLineRunner {
   String fromEmail
 
   @Value('${spring.profiles.active}')
-  String activeProfile;
+  String activeProfile
 
   final static String workFolder = '/tmp'
 
@@ -274,7 +274,8 @@ class FulfillmentService implements CommandLineRunner {
 
     OrderInfoDto orderInfoDto = new OrderInfoDto()
     orderInfoDto.fileNames = item.fileNames.l.collect { it.s }
-    orderInfoDto.filesProcessed = item.filesProcessed.l.collect { it.s }
+    orderInfoDto.filesProcessed = item.filesProcessed?.l?.collect { it.s }
+    orderInfoDto.filesProcessed = orderInfoDto.filesProcessed ?: []
     orderInfoDto.email = item.email.s
     orderInfoDto.orderId = orderId
     orderInfoDto.outputPath = "$workFolder/$orderId"
@@ -389,7 +390,7 @@ class FulfillmentService implements CommandLineRunner {
                                 Your requested image Zip is ready. You can access via this link: ${zipLink}.
                               """.stripIndent())))
                     .withSubject(new Content().withCharset("UTF-8")
-                            .withData("Mount Sinai Charcot Image Request Ready${totalZips > 1 ? " for Batch $zipCnt of $totalZips" : ''}"))).withSource(fromEmail)
+                            .withData("Mount Sinai Charcot Image Request ($orderInfoDto.orderId) Ready${totalZips > 1 ? " for Batch $zipCnt of $totalZips" : ''}"))).withSource(fromEmail)
     client.sendEmail(request)
     log.info "Sent email for request $orderInfoDto.orderId and zip link $zipLink"
   }
