@@ -14,6 +14,7 @@ import { AppContext } from './lib/context'
 import { Auth } from 'aws-amplify'
 import { Redirect } from 'react-router-dom'
 import { onError } from './lib/error'
+import TransactionFooter from './containers/TransactionFooter'
 
 const savedState = {
   filter: new Filter()
@@ -48,6 +49,10 @@ export default class App extends Component {
       dimensionData: {
         dimensions: []
       },
+      transactionData: {
+        requests: 0
+      },
+      handleTransactionUpdate: this.handleTransactionUpdate,
       handleCategorySelect: this.handleCategorySelect,
       handleCategoryUnselect: this.handleCategoryUnselect,
       handleClearFilter: this.handleClearFilter,
@@ -157,6 +162,14 @@ export default class App extends Component {
     await this.updateChartDataState({ filter })
   }
 
+  handleTransactionUpdate = ({ requests }) => {
+    this.setState({
+      transactionData: {
+        requests
+      }
+    })
+  }
+
   /**
    * Does the opposite of 'Search.handleSelect'
    * and refreshes the state.
@@ -228,6 +241,8 @@ export default class App extends Component {
     if (this.currentPage() === '/search' || this.currentPage() === '/review') {
       footer =
         <Footer filter={savedState.filter.clone()}/>
+    } else if (this.currentPage() === '/transaction') {
+      footer = <TransactionFooter/>
     }
 
     let authFragment = <><LinkContainer to="/signup">

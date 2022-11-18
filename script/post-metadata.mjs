@@ -20,7 +20,6 @@ const sanitize = (str) => {
 
 const sendData = async (buffer) => {
   await axiosClient.post('https://api-debug.mountsinaicharcot.org/cerebrum-images', buffer) // DEBUG
-  //await axiosClient.post('https://api-dev.mountsinaicharcot.org/cerebrum-images', buffer) // DEV
   // await axiosClient.post('https://wq2rjam09d.execute-api.us-east-1.amazonaws.com/cerebrum-images', buffer) // PROD
   console.log(`JMQ: Successfully posted ${JSON.stringify(buffer)}`)
 }

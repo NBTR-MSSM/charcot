@@ -10,6 +10,9 @@ export const AppContext = createContext({
   dimensionData: {
     dimensions: []
   },
+  transactionData: {
+    requests: 0
+  },
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   redirectToPrevious: () => {},
   // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -29,5 +32,7 @@ export const AppContext = createContext({
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   handleClearFilter: () => {},
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  handleSetOtherUserEmail: () => {}
+  handleSetOtherUserEmail: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  handleTransactionUpdate: () => {}
 })

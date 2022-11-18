@@ -91,6 +91,7 @@ class Transaction extends Component {
       orderCount: res.orderCount,
       isLoading: false
     })
+    this.context.handleTransactionUpdate({ requests: this.state.orders.length })
   }
 
   renderLoading = () => (
