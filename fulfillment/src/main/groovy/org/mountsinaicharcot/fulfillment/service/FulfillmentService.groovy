@@ -142,8 +142,7 @@ class FulfillmentService implements CommandLineRunner {
     systemStats()
     String orderId = orderInfoDto.orderId
     log.info "Fulfilling order ${orderInfoDto.toString()}"
-    String processingMsg = "Request $orderId began being processed by Mount Sinai Charcot on ${currentTime()}"
-    updateOrderStatus(orderId, 'processing', processingMsg)
+    updateOrderStatus(orderId, 'processing', "Request $orderId began being processed by Mount Sinai Charcot on ${currentTime()}")
 
     List<String> fileNames = orderInfoDto.fileNames
     Map<Integer, List<String>> bucketToFileList = partitionFileListIntoBucketsUpToSize(fileNames)
@@ -160,15 +159,22 @@ class FulfillmentService implements CommandLineRunner {
        * as timely as possible in honoring such requests to avoid wasteful processing
        */
       if (filesToZip.find { String fileName ->
-        def startCurrent = System.currentTimeMillis()
-        downloadS3Object(orderInfoDto, fileName)
-        // Check if cancel requested right before we commit to downloading
-        // entire .mrxs image folder
-        if (cancelIfRequested(orderId)) {
-          return true
+        try {
+          // Do not fail-fast if a file fails to download, just continue with the rest
+          def startCurrent = System.currentTimeMillis()
+          downloadS3Object(orderInfoDto, fileName)
+          // Check if cancel requested right before we commit to downloading
+          // entire .mrxs image folder
+          if (cancelIfRequested(orderId)) {
+            return true
+          }
+          downloadS3Object(orderInfoDto, fileName.replace('.mrxs', '/'))
+          log.info "Took ${System.currentTimeMillis() - startCurrent} milliseconds to download $fileName for request $orderId"
+        } catch (Exception e) {
+          String msg = "Problem downloading $fileName"
+          log.error msg, e
+          updateOrderStatus(orderId, null, "$msg: ${e.toString()}")
         }
-        downloadS3Object(orderInfoDto, fileName.replace('.mrxs', '/'))
-        log.info "Took ${System.currentTimeMillis() - startCurrent} milliseconds to download $fileName for request $orderId"
         false
       }) {
         log.info "Order $orderId canceled"
@@ -210,7 +216,7 @@ class FulfillmentService implements CommandLineRunner {
       if (cancelIfRequested(orderId)) {
         return true
       }
-      updateOrderStatus(orderId, 'processing', "$processingMsg, ${bucketNumber + 1} of $totalZips zip files sent to requester.")
+      updateOrderStatus(orderId, 'processing', "${bucketNumber + 1} of $totalZips zip files sent to requester.")
       false
     }
 
