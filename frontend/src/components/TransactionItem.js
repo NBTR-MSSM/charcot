@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { AppContext } from '../lib/context'
-import { Card, OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { Card, OverlayTrigger, Popover } from 'react-bootstrap'
 import { BsInfoCircleFill } from 'react-icons/bs'
 import { API } from 'aws-amplify'
 import ConfirmationModal from './ConfirmationModal'
@@ -122,11 +122,16 @@ class TransactionItem extends Component {
         <td>{item.filter}</td>
         <td>
           <OverlayTrigger
-            placement="top"
+            placement="left"
             overlay={
-              <Tooltip id={`tooltip-status-${item.orderId}`}>
+              <Popover id="popover-basic">
+                <Popover.Body>
+                  {item.remark}
+                </Popover.Body>
+              </Popover>
+              /* <Tooltip id={`tooltip-status-${item.orderId}`}>
                 {item.remark}
-              </Tooltip>
+              </Tooltip> */
             }>
             <a href="" onClick={(e) => e.preventDefault()}>{item.status}</a>
           </OverlayTrigger>

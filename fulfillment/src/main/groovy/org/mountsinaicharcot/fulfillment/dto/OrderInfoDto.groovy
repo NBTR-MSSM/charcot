@@ -10,4 +10,6 @@ class OrderInfoDto {
   String email
   String outputPath
   String status
+  String remark = null
+  String sqsReceiptHandle = null
 }

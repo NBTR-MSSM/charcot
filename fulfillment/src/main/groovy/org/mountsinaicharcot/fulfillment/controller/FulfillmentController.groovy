@@ -38,7 +38,7 @@ class FulfillmentController {
       })
       ResponseEntity.accepted().body("Request $orderId has been accepted for processing")
     } catch (Exception e) {
-      log.error "An problem occurred fulfilling $orderId", e
+      log.error "A problem occurred fulfilling $orderId", e
       ResponseEntity.internalServerError().body("There was a problem: $e")
     }
   }

@@ -99,17 +99,20 @@ class FulfillmentService implements CommandLineRunner {
           continue
         }
         def orderInfoDto = retrieveOrderInfo(orderInfoFromSqs.orderId)
+        updateSqsReceiptHande(orderInfoFromSqs.orderId, orderInfoFromSqs.sqsReceiptHandle)
         if (orderInfoDto.status != 'received') {
           /*
            * Another worker already processed or processing this order. If the request is large,
            * the AWS SQS max visibility timeout window of 12 hours can/will be exhausted and another worker will see
            * the message again, which would result in duplicate work on this order. Our escape hatch for
            * that is to rely on order status to know whenever the worker is done processing the order. Also this fetch has
-           * the effect of extending the visibility timeout by another 12 hours, which is a good thing.
+           * the effect of extending the visibility timeout by another 12 hours on behalf of the worker
+           * handling this request. One caveat is that we have to record the "refreshed" receipt handle because the
+           * previous has now gone stale.
            */
           continue
         }
-        fulfill(orderInfoDto, orderInfoFromSqs.sqsReceiptHandle)
+        fulfill(orderInfoDto)
       } catch (Exception e) {
         log.error "Problem fulfilling $orderInfoFromSqs.orderId", e
         updateOrderStatus(orderInfoFromSqs.orderId, 'failed', e.toString())
@@ -129,14 +132,13 @@ class FulfillmentService implements CommandLineRunner {
   private String currentTime() {
     DateTimeZone utc = DateTimeZone.forID('GMT')
     DateTime dt = new DateTime(utc)
-    println dt
     DateTimeFormatter fmt = DateTimeFormat.forPattern('E, d MMM, yyyy HH:mm:ssz')
     StringBuilder now = new StringBuilder()
     fmt.printTo(now, dt)
     now.toString()
   }
 
-  void fulfill(OrderInfoDto orderInfoDto, String sqsReceiptHandle = null) {
+  void fulfill(OrderInfoDto orderInfoDto) {
     systemStats()
     String orderId = orderInfoDto.orderId
     log.info "Fulfilling order ${orderInfoDto.toString()}"
@@ -145,7 +147,7 @@ class FulfillmentService implements CommandLineRunner {
 
     List<String> fileNames = orderInfoDto.fileNames
     Map<Integer, List<String>> bucketToFileList = partitionFileListIntoBucketsUpToSize(fileNames)
-    // Report on original number of buckets before any filtering of processed files takes place
+    // Report on original number of buckets before any filtering of already processed files takes place
     int totalZips = bucketToFileList.size()
     orderInfoDto.filesProcessed && filterAlreadyProcessedFiles(bucketToFileList, orderInfoDto.filesProcessed)
     int zipCnt = bucketToFileList.keySet().min() + 1
@@ -202,7 +204,7 @@ class FulfillmentService implements CommandLineRunner {
 
       /*
      * Record the batch of processed files in order table. For now just record
-     * the main .msxr file as representative of each of the sets that are part of this bucket.
+     * the main .msxr file as representative of each of the sets of files in this bucket.
      */
       updateProcessedFiles(orderId, filesToZip)
       if (cancelIfRequested(orderId)) {
@@ -212,7 +214,7 @@ class FulfillmentService implements CommandLineRunner {
       false
     }
 
-    markOrderAsProcessed(orderId, sqsReceiptHandle, !canceled)
+    markOrderAsProcessed(orderId, !canceled)
   }
 
   Map<String, String> retrieveNextOrderId() {
@@ -229,9 +231,10 @@ class FulfillmentService implements CommandLineRunner {
     return null
   }
 
-  void markOrderAsProcessed(String orderId, String sqsReceiptHandle, boolean updateStatus = true) {
+  void markOrderAsProcessed(String orderId, boolean updateStatus = true) {
+    OrderInfoDto orderInfo = retrieveOrderInfo(orderId)
     AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
-    sqs.deleteMessage(sqsOrderQueueUrl, sqsReceiptHandle)
+    sqs.deleteMessage(sqsOrderQueueUrl, orderInfo.sqsReceiptHandle)
     updateStatus && updateOrderStatus(orderId, 'processed', "Request processed successfully on ${currentTime()}")
   }
 
@@ -239,10 +242,24 @@ class FulfillmentService implements CommandLineRunner {
     AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
     Map<String, AttributeValueUpdate> attributeUpdates = [:]
     status && attributeUpdates.put('status', new AttributeValueUpdate().withValue(new AttributeValue().withS(status)))
-    remark && attributeUpdates.put('remark', new AttributeValueUpdate().withValue(new AttributeValue().withS(remark)))
+    if (remark) {
+      // Prepend this remark to current list of remark, if previously any
+      OrderInfoDto orderInfo = retrieveOrderInfo(orderId)
+      String currentRemark = orderInfo.remark ?: ''
+      attributeUpdates.put('remark', new AttributeValueUpdate().withValue(new AttributeValue().withS("[${currentTime()}] $remark\n$currentRemark")))
+    }
     UpdateItemResult updateItemResult = dynamoDB.updateItem(dynamoDbOrderTableName,
             [orderId: new AttributeValue().withS(orderId)], attributeUpdates)
     log.info "Update request $orderId status to $status, ${updateItemResult.toString()}"
+  }
+
+  void updateSqsReceiptHande(String orderId, String sqsReceiptHandle) {
+    AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
+    Map<String, AttributeValueUpdate> attributeUpdates = [:]
+    attributeUpdates.put('sqsReceiptHandle', new AttributeValueUpdate().withValue(new AttributeValue().withS(sqsReceiptHandle)))
+    UpdateItemResult updateItemResult = dynamoDB.updateItem(dynamoDbOrderTableName,
+            [orderId: new AttributeValue().withS(orderId)], attributeUpdates)
+    log.info "Updated request $orderId sqsReceiptHandle to $sqsReceiptHandle, ${updateItemResult.toString()}"
   }
 
   void updateProcessedFiles(String orderId, List<String> files) {
@@ -253,8 +270,6 @@ class FulfillmentService implements CommandLineRunner {
     AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
     UpdateItemResult updateItemResult = dynamoDB.updateItem(dynamoDbOrderTableName,
             [orderId: new AttributeValue().withS(orderId)],
-            // FIXME: Is this replacing instead of adding to the list of already processed files???
-            // No need: [REF|https://groovy-lang.org/objectorientation.html#_varargs|"If a varargs method is called with an array as an argument, then the argument will be that array instead of an array of length one containing the given array as the only element."]
             [filesProcessed: new AttributeValueUpdate().withValue(new AttributeValue().withL(filesProcessed.collect { new AttributeValue().withS(it) }))])
     log.info "Update request $orderId processed files to $files, ${updateItemResult.toString()}"
   }
@@ -279,6 +294,8 @@ class FulfillmentService implements CommandLineRunner {
     orderInfoDto.orderId = orderId
     orderInfoDto.outputPath = "$workFolder/$orderId"
     orderInfoDto.status = item.status.s
+    orderInfoDto.remark = item.remark?.s
+    orderInfoDto.sqsReceiptHandle = item.sqsReceiptHandle?.s
     orderInfoDto
   }
 
