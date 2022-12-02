@@ -162,10 +162,12 @@ export default class App extends Component {
     await this.updateChartDataState({ filter })
   }
 
-  handleTransactionUpdate = ({ requests }) => {
+  handleTransactionUpdate = ({ size, requests, slides }) => {
     this.setState({
       transactionData: {
-        requests
+        requests,
+        size,
+        slides
       }
     })
   }

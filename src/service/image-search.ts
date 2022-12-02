@@ -156,7 +156,7 @@ class ImageSearch extends Search {
       // Ensure numeric values are stored as JavaScript numeric type, else DynamoDB
       // returns results because it won't coerce to number strings that  are numeric
       // in nature
-      // console.log(`JMQ: val is ${val}`)
+
       exprAttrValues[valuePlaceHolder] = val.match(/^\d+$/) ? parseInt(val) : val.replace(/__QUOTE__/g, "'")
       dynamoFilter = dynamoFilter.replace(`'${val}'`, valuePlaceHolder)
     }
@@ -164,8 +164,6 @@ class ImageSearch extends Search {
     params.FilterExpression = dynamoFilter
     params.ExpressionAttributeNames = { ...params.ExpressionAttributeNames, ...exprAttrNames }
     params.ExpressionAttributeValues = exprAttrValues
-    // console.log(`JMQ: exprAttrValues is ${JSON.stringify(exprAttrValues)}`)
-    // console.log(`JMQ: addFilter() DynamoDB filter is ${dynamoFilter}`)
   }
 
   private addEnabledOnlyCondition(params: DocumentClient.QueryInput) {

@@ -74,11 +74,13 @@ class OrderSearch extends Search {
     let retItems: DocumentClient.ItemList = []
     let retBody = {}
     if (typeof event !== 'string') {
+      // Get info across all orders
       const pageSize = Number.parseInt((event.queryStringParameters && event.queryStringParameters.pageSize) || '10')
       const page = Number.parseInt((event.queryStringParameters && event.queryStringParameters.page) || '-1')
       const sortBy = (event.queryStringParameters && event.queryStringParameters.sortBy) || 'created'
       const sortOrder = (event.queryStringParameters && event.queryStringParameters.sortOrder) || 'desc'
-      const orderCount = await this.obtainOrderCount(event)
+      const totals = await this.obtainTotals(event)
+      const { orderCount } = totals
       const totalPages = Math.ceil(orderCount / pageSize)
 
       if (page > totalPages && totalPages > 0) {
@@ -88,8 +90,6 @@ class OrderSearch extends Search {
           orders: []
         })
       }
-
-      // console.log(`JMQ: pageSize is ${pageSize}, orderCount is ${orderCount}, totalPages is ${totalPages}, page is ${page}, sortBy is ${sortBy}, sortOrder is ${sortOrder}`)
 
       const params: DocumentClient.QueryInput = {
         TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string
@@ -117,9 +117,11 @@ class OrderSearch extends Search {
       retBody = {
         orderCount,
         pageSize,
-        totalPages
+        totalPages,
+        ...totals
       }
     } else {
+      // A specific order (aka request) has been requested
       const res = await dynamoDbClient.get({
         TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME,
         Key: { orderId: event }
@@ -154,6 +156,31 @@ class OrderSearch extends Search {
     }
     await this.handleSearch(params, callback)
     return count
+  }
+
+  async obtainTotals(event: APIGatewayProxyEventV2): Promise<Record<string, number>> {
+    const params: DocumentClient.QueryInput = {
+      TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string,
+      ExpressionAttributeNames: {
+        '#size': 'size',
+        '#slides': 'filesProcessed'
+      },
+      ProjectionExpression: '#size, #slides'
+    }
+    let size = 0
+    let slides = 0
+    let orderCount = 0
+    const callback = (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => {
+      size = items.reduce((accumulator, currentValue) => accumulator + (currentValue.size || 0), size)
+      slides = items.reduce((accumulator, currentValue) => accumulator + ((currentValue.filesProcessed && currentValue.filesProcessed.length) || 0), slides)
+      orderCount += items.length
+    }
+    await this.handleSearch(params, callback)
+    return {
+      size,
+      slides,
+      orderCount
+    }
   }
 }
 

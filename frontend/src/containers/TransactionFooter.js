@@ -8,6 +8,9 @@ class TransactionFooter extends Component {
     return (<footer className="TransactionFooter fixed-bottom">
       <Stack bsPrefix={'charcot-transaction-footer-hstack'} direction="horizontal" gap={3}>
         <span className="charcot-transaction-footer-stat"><span>{this.context.transactionData.requests}</span> Requests</span>
+        <span
+          className="charcot-transaction-footer-stat"><span>{this.context.transactionData.size / Math.pow(2, 40)}</span> TB's Downloaded To Date</span>
+        <span className="charcot-transaction-footer-stat"><span>{this.context.transactionData.slides}</span> Total Slides</span>
       </Stack>
     </footer>)
   }

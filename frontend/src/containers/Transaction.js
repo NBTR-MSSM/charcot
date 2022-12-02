@@ -22,7 +22,9 @@ class Transaction extends Component {
       totalPages: 0,
       sortBy: 'created',
       sortOrder: 'desc',
-      orderCount: 0
+      orderCount: 0,
+      size: 0,
+      slides: 0
     }
   }
 
@@ -89,9 +91,15 @@ class Transaction extends Component {
       ordersSerialized: await this.retrieveOrdersAsDelimiterSeparatedRecords(),
       totalPages: res.totalPages,
       orderCount: res.orderCount,
+      size: res.size,
+      slides: res.slides,
       isLoading: false
     })
-    this.context.handleTransactionUpdate({ requests: this.state.orderCount })
+    this.context.handleTransactionUpdate({
+      requests: this.state.orderCount,
+      size: this.state.size,
+      slides: this.state.slides
+    })
   }
 
   renderLoading = () => (

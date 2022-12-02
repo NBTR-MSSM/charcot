@@ -12,4 +12,6 @@ class OrderInfoDto {
   String status
   String remark = null
   String sqsReceiptHandle = null
+  Long size = 0
+  Map<Integer, List<String>> bucketToFileList
 }

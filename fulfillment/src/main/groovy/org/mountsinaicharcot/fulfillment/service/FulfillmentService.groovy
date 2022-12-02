@@ -144,9 +144,9 @@ class FulfillmentService implements CommandLineRunner {
     log.info "Fulfilling order ${orderInfoDto.toString()}"
     updateOrderStatus(orderId, 'processing', "Request $orderId began being processed by Mount Sinai Charcot on ${currentTime()}")
 
-    List<String> fileNames = orderInfoDto.fileNames
-    Map<Integer, List<String>> bucketToFileList = partitionFileListIntoBucketsUpToSize(fileNames)
-    // Report on original number of buckets before any filtering of already processed files takes place
+    calculateOrderSizeAndPartitionIntoBuckets(orderInfoDto)
+    Map<Integer, List<String>> bucketToFileList = orderInfoDto.bucketToFileList
+            // Report on original number of buckets before any filtering of already processed files takes place
     int totalZips = bucketToFileList.size()
     orderInfoDto.filesProcessed && filterAlreadyProcessedFiles(bucketToFileList, orderInfoDto.filesProcessed)
     int zipCnt = bucketToFileList.keySet().min() + 1
@@ -220,7 +220,7 @@ class FulfillmentService implements CommandLineRunner {
       false
     }
 
-    markOrderAsProcessed(orderId, !canceled)
+    performOrderProcessedActions(orderInfoDto, !canceled)
   }
 
   Map<String, String> retrieveNextOrderId() {
@@ -237,11 +237,13 @@ class FulfillmentService implements CommandLineRunner {
     return null
   }
 
-  void markOrderAsProcessed(String orderId, boolean updateStatus = true) {
+  void performOrderProcessedActions(OrderInfoDto orderInfoDto, boolean updateStatus = true) {
+    String orderId = orderInfoDto.orderId
     OrderInfoDto orderInfo = retrieveOrderInfo(orderId)
     AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
     sqs.deleteMessage(sqsOrderQueueUrl, orderInfo.sqsReceiptHandle)
     updateStatus && updateOrderStatus(orderId, 'processed', "Request processed successfully on ${currentTime()}")
+    recordOrderSize(orderId, orderInfoDto.size)
   }
 
   void updateOrderStatus(String orderId, String status, String remark = null) {
@@ -257,6 +259,15 @@ class FulfillmentService implements CommandLineRunner {
     UpdateItemResult updateItemResult = dynamoDB.updateItem(dynamoDbOrderTableName,
             [orderId: new AttributeValue().withS(orderId)], attributeUpdates)
     log.info "Update request $orderId status to $status, ${updateItemResult.toString()}"
+  }
+
+  void recordOrderSize(String orderId, Long size) {
+    AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
+    Map<String, AttributeValueUpdate> attributeUpdates = [:]
+    attributeUpdates.put('size', new AttributeValueUpdate().withValue(new AttributeValue().withN(size.toString())))
+    UpdateItemResult updateItemResult = dynamoDB.updateItem(dynamoDbOrderTableName,
+            [orderId: new AttributeValue().withS(orderId)], attributeUpdates)
+    log.info "Updated request $orderId size to $size, ${updateItemResult.toString()}"
   }
 
   void updateSqsReceiptHande(String orderId, String sqsReceiptHandle) {
@@ -475,17 +486,21 @@ class FulfillmentService implements CommandLineRunner {
   /**
    * Creates buckets numbered 0 through N, where each buckets contains a maximum of FILE_BUCKET_SIZE. The reason
    * for this is that we make it deterministic the size of each Zip generated.
+   * It also calculates total order size in bytes. All of this info is store in the passed in
+   * order info DTO object.
    */
-  Map<Integer, List<String>> partitionFileListIntoBucketsUpToSize(List<String> files) {
+  void calculateOrderSizeAndPartitionIntoBuckets(OrderInfoDto orderInfoDto) {
     log.info "Partitioning file list into buckets up to size $FILE_BUCKET_SIZE"
     AmazonS3 s3 = AmazonS3ClientBuilder.standard().build()
     Integer bucketNum = 0
     Long cumulativeObjectsSize = 0
-    files.inject([:] as Map<Integer, List<String>>) { Map<Integer, List<String>> bucketToImages, String file ->
+    orderInfoDto.bucketToFileList = orderInfoDto.fileNames.inject([:] as Map<Integer, List<String>>) { Map<Integer, List<String>> bucketToImages, String file ->
       ObjectListing objectListing = s3.listObjects(s3OdpBucketName, file.replace('.mrxs', '/'))
       cumulativeObjectsSize = objectListing.objectSummaries.inject(cumulativeObjectsSize) { Long size, S3ObjectSummary objectSummary ->
         size + s3.getObjectMetadata(s3OdpBucketName, objectSummary.key).contentLength
       }
+
+      orderInfoDto.size += cumulativeObjectsSize
 
       // If the current file caused the size to go over the limit per bucket,
       // time to start a new bucket

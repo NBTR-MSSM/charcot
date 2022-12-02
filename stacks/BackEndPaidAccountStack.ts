@@ -83,7 +83,8 @@ export default class BackEndPaidAccountStack extends sst.Stack {
         status: 'string',
         fulfilled: 'number',
         remark: 'string',
-        sqsReceiptHandle: 'string'
+        sqsReceiptHandle: 'string',
+        size: 'number'
       },
       primaryIndex: { partitionKey: 'orderId' },
       // TODO: Is the 'created' ts index needed???
