@@ -1,6 +1,6 @@
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
 
-export const ages: DocumentClient.ScanOutput = {
+export const agesScanResult: DocumentClient.ScanOutput = {
   Items: [
     {
       age: 102
@@ -146,11 +146,11 @@ export const ages: DocumentClient.ScanOutput = {
   ]
 }
 
-export const agesPaginated: DocumentClient.ScanOutput = {
+export const agesPaginatedScanResult: DocumentClient.ScanOutput = {
   LastEvaluatedKey: {
     foo: 'bar'
   },
-  Items: ages.Items
+  Items: agesScanResult.Items
 }
 
 export const agesOutput = [
@@ -464,7 +464,7 @@ export const agesOutput = [
   }
 ]
 
-export const diagnoses: DocumentClient.ScanOutput = {
+export const diagnosesScanResult: DocumentClient.ScanOutput = {
   Items: [
     {
       diagnosis: "Definite Alzheimer's Disease"
@@ -685,7 +685,7 @@ export const diagnosesOutput = [
   }
 ]
 
-export const allFieldsSearchResult: DocumentClient.ScanOutput = {
+export const allFieldsScanResult: DocumentClient.ScanOutput = {
   Items: [
     {
       subjectNumber: 31737,
@@ -726,8 +726,8 @@ export const allFieldsSearchResult: DocumentClient.ScanOutput = {
   ]
 }
 
-export const allFieldsSearchResultPaginated: DocumentClient.ScanOutput = {
-  Items: allFieldsSearchResult.Items,
+export const allFieldsScanResultPaginated: DocumentClient.ScanOutput = {
+  Items: allFieldsScanResult.Items,
   LastEvaluatedKey: {
     foo: 'bar'
   }

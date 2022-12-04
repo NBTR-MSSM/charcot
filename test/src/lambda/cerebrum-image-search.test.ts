@@ -2,7 +2,7 @@ import * as lambda from '../../../src/lambda/cerebrum-image-search'
 import { APIGatewayProxyEventV2, Context } from 'aws-lambda'
 import merge from 'lodash.merge'
 import { dynamoDbClient } from '@exsoinn/aws-sdk-wrappers'
-import { ages, agesOutput, agesPaginated, diagnoses, diagnosesOutput } from '../../fixture/cerebrum-image-dynamodb-search-result.fixture'
+import { agesScanResult, agesOutput, agesPaginatedScanResult, diagnosesScanResult, diagnosesOutput } from '../../fixture/cerebrum-image-image.fixture'
 
 const jestGlobal = global as any
 describe('cerebrum-image-search', () => {
@@ -143,7 +143,7 @@ describe('cerebrum-image-search', () => {
 
   it('calculates correctly ranges for dimensions that are numeric', async () => {
     // @ts-ignore
-    dynamoDbClient.scan.mockResolvedValueOnce(ages)
+    dynamoDbClient.scan.mockResolvedValueOnce(agesScanResult)
     const event = {} as APIGatewayProxyEventV2
     merge(event, jestGlobal.BASE_REQUEST)
     event.pathParameters = {
@@ -174,7 +174,7 @@ describe('cerebrum-image-search', () => {
 
   it('calculates correctly search results are for dimensions that are not numeric', async () => {
     // @ts-ignore
-    dynamoDbClient.scan.mockResolvedValueOnce(diagnoses)
+    dynamoDbClient.scan.mockResolvedValueOnce(diagnosesScanResult)
     const event = {} as APIGatewayProxyEventV2
     merge(event, jestGlobal.BASE_REQUEST)
     event.pathParameters = {
@@ -239,9 +239,9 @@ describe('cerebrum-image-search', () => {
 
   it('handles dynamodb pagination correctly', async () => {
     // @ts-ignore
-    dynamoDbClient.scan.mockResolvedValueOnce(agesPaginated)
+    dynamoDbClient.scan.mockResolvedValueOnce(agesPaginatedScanResult)
     // @ts-ignore
-    dynamoDbClient.scan.mockResolvedValueOnce(ages)
+    dynamoDbClient.scan.mockResolvedValueOnce(agesScanResult)
     const event = {} as APIGatewayProxyEventV2
     merge(event, jestGlobal.BASE_REQUEST)
     event.pathParameters = {

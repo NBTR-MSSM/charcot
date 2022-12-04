@@ -3,6 +3,7 @@ import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
 import Search from './search'
 import { dynamoDbClient, HttpResponse } from '@exsoinn/aws-sdk-wrappers'
 import userManagement from './user-management'
+import { CerebrumImageOrder, OrderRetrievalOutput, OrderTotals } from '../types/charcot.types'
 
 const cancelEligibleStatuses = new Set().add('received').add('processing')
 
@@ -28,27 +29,37 @@ const populateUserData = async (transaction: DocumentClient.AttributeMap) => {
   transaction.userAttributes = userAttrs
 }
 
-const sort = (items: DocumentClient.ItemList, sortBy: string, sortOrder: string) => {
-  items.sort((a, b) => {
-    // Determine if we're sorting numeric or string values
-    if (sortBy === 'created') {
-      return sortOrder === 'desc' ? b[sortBy] - a[sortBy] : a[sortBy] - b[sortBy]
-    } else {
-      let strOne = a[sortBy]
-      let strTwo = b[sortBy]
+const sort = <T extends Record<string, any>>(items: T[], sortBy: string, sortOrder: 'desc' | 'asc') => {
+  const comparator = (a: T, b: T, field = sortBy): number => {
+    const left = a[field]
+    const right = b[field]
+
+    // Determine if we're sorting numeric or string values. For everything else
+    // we don't support sorting - just return 0
+    let ret = 0
+    if (typeof left === 'number' && typeof right === 'number') {
+      ret = sortOrder === 'desc' ? right - left : left - right
+    } else if (typeof left === 'string' && typeof right === 'string') {
+      let strOne = left
+      let strTwo = right
       if (sortOrder === 'desc') {
-        strOne = b[sortBy]
-        strTwo = a[sortBy]
+        strOne = right
+        strTwo = left
       }
       if (strOne < strTwo) {
-        return -1
+        ret = -1
       } else if (strOne > strTwo) {
-        return 1
+        ret = 1
       } else {
-        return 0
+        ret = 0
       }
+    } else {
+      ret = 0
     }
-  })
+    return ret === 0 ? comparator(a, b, 'created') : ret
+  }
+
+  items.sort(comparator)
 }
 
 /**
@@ -72,17 +83,16 @@ class OrderSearch extends Search {
    */
   async retrieve(event: APIGatewayProxyEventV2 | string): Promise<Record<string, any>> {
     let retItems: DocumentClient.ItemList = []
-    let retBody = {}
+    let retBody: OrderRetrievalOutput | Record<string, any> = {}
     if (typeof event !== 'string') {
       // Get info across all orders
       const pageSize = Number.parseInt((event.queryStringParameters && event.queryStringParameters.pageSize) || '10')
       const page = Number.parseInt((event.queryStringParameters && event.queryStringParameters.page) || '-1')
       const sortBy = (event.queryStringParameters && event.queryStringParameters.sortBy) || 'created'
       const sortOrder = (event.queryStringParameters && event.queryStringParameters.sortOrder) || 'desc'
-      const totals = await this.obtainTotals(event)
+      const totals = await this.obtainTotals()
       const { orderCount } = totals
       const totalPages = Math.ceil(orderCount / pageSize)
-
       if (page > totalPages && totalPages > 0) {
         return new HttpResponse(401, `Page ${page} is out of bounds (only ${totalPages} available at ${pageSize} items per page)`)
       } else if (totalPages === 0) {
@@ -107,7 +117,9 @@ class OrderSearch extends Search {
       await this.handleSearch(params, callback)
 
       // apply sorting
-      sort(retItems, sortBy, sortOrder)
+      if (sortOrder === 'asc' || sortOrder === 'desc') {
+        sort(retItems, sortBy, sortOrder)
+      }
 
       // If page is 0 or a negative value, grab all the records
       if (page > 0) {
@@ -115,10 +127,11 @@ class OrderSearch extends Search {
       }
 
       retBody = {
-        orderCount,
         pageSize,
         totalPages,
-        ...totals
+        page,
+        ...totals,
+        orders: []
       }
     } else {
       // A specific order (aka request) has been requested
@@ -137,28 +150,12 @@ class OrderSearch extends Search {
       item.isCancellable = cancelEligibleStatuses.has(item.status)
     }
 
-    return new HttpResponse(200, '', {
-      ...retBody,
-      orders: retItems
-    })
+    retBody.orders = retItems as CerebrumImageOrder[]
+    return new HttpResponse(200, '', retBody
+    )
   }
 
-  async obtainOrderCount(event: APIGatewayProxyEventV2): Promise<number> {
-    const params: DocumentClient.QueryInput = {
-      TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string,
-      Select: 'COUNT'
-    }
-    let count = 0
-    const callback = (scanOutput: DocumentClient.ScanOutput) => {
-      if (scanOutput.Count !== undefined) {
-        count += scanOutput.Count
-      }
-    }
-    await this.handleSearch(params, callback)
-    return count
-  }
-
-  async obtainTotals(event: APIGatewayProxyEventV2): Promise<Record<string, number>> {
+  async obtainTotals(): Promise<OrderTotals> {
     const params: DocumentClient.QueryInput = {
       TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string,
       ExpressionAttributeNames: {

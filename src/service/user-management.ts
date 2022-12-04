@@ -1,4 +1,4 @@
-import { HttpResponse, cognitoIdentityServiceProvider } from '@exsoinn/aws-sdk-wrappers'
+import { HttpResponse, cognitoIdentityServiceProviderClient } from '@exsoinn/aws-sdk-wrappers'
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
 import { capitalCase } from 'change-case'
 import { CognitoIdentityServiceProvider } from 'aws-sdk'
@@ -12,7 +12,7 @@ class UserManagement {
       email = (event.pathParameters && event.pathParameters.email) as string
     }
 
-    const res = await cognitoIdentityServiceProvider.adminGetUser({
+    const res = await cognitoIdentityServiceProviderClient.adminGetUser({
       UserPoolId: process.env.CEREBRUM_COGNITO_USER_POOL_ID as string,
       Username: email
     }).promise()
@@ -52,8 +52,8 @@ class UserManagement {
       Name: e[0],
       Value: e[1] as string
     }))
-    console.log(`JMQ: update(0 attributes are ${JSON.stringify(attributes)}`)
-    await cognitoIdentityServiceProvider.adminUpdateUserAttributes({
+    console.log(`JMQ: update() attributes are ${JSON.stringify(attributes)}`)
+    await cognitoIdentityServiceProviderClient.adminUpdateUserAttributes({
       UserPoolId: process.env.CEREBRUM_COGNITO_USER_POOL_ID as string,
       Username: email,
       UserAttributes: attributes
@@ -61,7 +61,7 @@ class UserManagement {
 
     // Update the password if one was provided
     if (updateRequest.password) {
-      await cognitoIdentityServiceProvider.adminSetUserPassword({
+      await cognitoIdentityServiceProviderClient.adminSetUserPassword({
         UserPoolId: process.env.CEREBRUM_COGNITO_USER_POOL_ID as string,
         Username: email,
         Password: updateRequest.password,

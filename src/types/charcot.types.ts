@@ -17,14 +17,33 @@ export interface CerebrumImageMetaData {
 }
 
 export interface CerebrumImageOrder {
+  [key: string]: string | number | Array<string> | Record<string, any> | boolean | undefined
   orderId: string
   created: number
   fileNames: CharcotFileName[]
   filesProcessed?: CharcotFileName[]
   filter?: Filter
   email: string
-  status: string
+  status: 'received' | 'processing' | 'processed' | 'canceled' | 'cancel-requested'
   remark?: string
+  size?: number
+  isCancellable?: boolean
+}
+
+export interface Pagination {
+  pageSize: number,
+  totalPages: number,
+  page: number
+}
+
+export interface OrderTotals {
+  orderCount: number,
+  size: number,
+  slides: number,
+}
+
+export interface OrderRetrievalOutput extends OrderTotals, Pagination {
+  orders: CerebrumImageOrder[]
 }
 
 export type Range = string

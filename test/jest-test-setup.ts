@@ -1,4 +1,5 @@
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
+import { sqsClient } from '@exsoinn/aws-sdk-wrappers'
 
 const jestGlobal = global as any
 jestGlobal.dummyOrderId = 'abc123'
@@ -13,10 +14,14 @@ jest.mock('uuid', () => ({
 jest.mock('@exsoinn/aws-sdk-wrappers', () => {
   const awsWrappers = jest.requireActual('@exsoinn/aws-sdk-wrappers')
   awsWrappers.axiosClient.post = jest.fn(() => Promise.resolve())
+  awsWrappers.cognitoIdentityServiceProviderClient.adminGetUser = jest.fn(() => ({
+    promise: () => Promise.resolve()
+  }))
   awsWrappers.dynamoDbClient.get = jest.fn(() => Promise.resolve())
   awsWrappers.dynamoDbClient.put = jest.fn(() => Promise.resolve())
   awsWrappers.dynamoDbClient.query = jest.fn(() => Promise.resolve())
   awsWrappers.dynamoDbClient.scan = jest.fn(() => Promise.resolve())
+  awsWrappers.dynamoDbClient.update = jest.fn(() => Promise.resolve())
   awsWrappers.lambdaClient.invokeLambda = jest.fn(() => Promise.resolve())
   awsWrappers.s3Client.copy = jest.fn(() => Promise.resolve())
   awsWrappers.s3Client.deleteObject = jest.fn(() => Promise.resolve())
@@ -26,6 +31,7 @@ jest.mock('@exsoinn/aws-sdk-wrappers', () => {
   awsWrappers.sesClient.sendEmail = jest.fn(() => ({
     promise: () => Promise.resolve()
   }))
+  awsWrappers.sqsClient.send = jest.fn(() => Promise.resolve())
   return awsWrappers
 })
 
@@ -35,7 +41,7 @@ process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME = 'nbtr-production'
 process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME = 'cerebrum-image-zip'
 process.env.ZIP_LINK_EXPIRY = '999'
 process.env.FROM_EMAIL = 'no-reply@mountsinaicharcot.org'
-process.env.FULFILLMENT_HOST = 'fulfillment.mountsinaicharcot.org'
+process.env.CEREBRUM_IMAGE_ORDER_QUEUE_URL = 'fulfillment.mountsinaicharcot.org/queue'
 
 jestGlobal.BASE_REQUEST = {
   headers: { 'content-type': 'application/x-www-form-urlencoded' },

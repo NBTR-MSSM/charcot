@@ -286,8 +286,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
             environment: {
               CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName,
               CEREBRUM_IMAGE_ORDER_QUEUE_URL: cerebrumImageOrderQueue.queueUrl,
-              CEREBRUM_IMAGE_METADATA_TABLE_NAME: cerebrumImageMetaDataTable.tableName,
-              FULFILLMENT_HOST: process.env.FULFILLMENT_HOST as string
+              CEREBRUM_IMAGE_METADATA_TABLE_NAME: cerebrumImageMetaDataTable.tableName
             }
           }
         },
