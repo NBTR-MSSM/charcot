@@ -11,6 +11,7 @@ class TransactionFooter extends Component {
         <span
           className="charcot-transaction-footer-stat"><span>{this.context.transactionData.size / Math.pow(2, 40)}</span> TB's Downloaded To Date</span>
         <span className="charcot-transaction-footer-stat"><span>{this.context.transactionData.slides}</span> Total Slides</span>
+        <span className="charcot-transaction-footer-stat"><span>{this.context.transactionData.uniqueUsers}</span> Unique Visitors</span>
       </Stack>
     </footer>)
   }

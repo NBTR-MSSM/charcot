@@ -127,6 +127,7 @@ const orderOutput: OrderRetrievalOutput = {
   page: -1,
   size: 8192,
   slides: 8,
+  uniqueUsers: 4,
   orders: [
     {
       ...dummyOrder,

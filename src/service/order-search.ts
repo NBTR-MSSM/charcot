@@ -160,23 +160,29 @@ class OrderSearch extends Search {
       TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string,
       ExpressionAttributeNames: {
         '#size': 'size',
-        '#slides': 'filesProcessed'
+        '#slides': 'filesProcessed',
+        '#email': 'email'
       },
-      ProjectionExpression: '#size, #slides'
+      ProjectionExpression: '#size, #slides, #email'
     }
     let size = 0
     let slides = 0
     let orderCount = 0
+    const uniqueUsers = new Set()
     const callback = (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => {
       size = items.reduce((accumulator, currentValue) => accumulator + (currentValue.size || 0), size)
       slides = items.reduce((accumulator, currentValue) => accumulator + ((currentValue.filesProcessed && currentValue.filesProcessed.length) || 0), slides)
       orderCount += items.length
+      items.forEach(e => {
+        uniqueUsers.add(e.email)
+      })
     }
     await this.handleSearch(params, callback)
     return {
       size,
       slides,
-      orderCount
+      orderCount,
+      uniqueUsers: uniqueUsers.size
     }
   }
 }

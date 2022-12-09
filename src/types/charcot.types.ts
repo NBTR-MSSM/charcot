@@ -40,6 +40,7 @@ export interface OrderTotals {
   orderCount: number,
   size: number,
   slides: number,
+  uniqueUsers: number
 }
 
 export interface OrderRetrievalOutput extends OrderTotals, Pagination {

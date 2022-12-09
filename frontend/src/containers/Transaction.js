@@ -24,7 +24,8 @@ class Transaction extends Component {
       sortOrder: 'desc',
       orderCount: 0,
       size: 0,
-      slides: 0
+      slides: 0,
+      uniqueUsers: 0
     }
   }
 
@@ -93,12 +94,14 @@ class Transaction extends Component {
       orderCount: res.orderCount,
       size: res.size,
       slides: res.slides,
+      uniqueUsers: res.uniqueUsers,
       isLoading: false
     })
     this.context.handleTransactionUpdate({
       requests: this.state.orderCount,
       size: this.state.size,
-      slides: this.state.slides
+      slides: this.state.slides,
+      uniqueUsers: this.state.uniqueUsers
     })
   }
 
