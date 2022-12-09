@@ -17,4 +17,12 @@
         margin-top: 10px;
         margin-left: 5px;
     }
+
+
+    .ProfileManagement #signup-submit-btn {
+        --bs-btn-bg: steelblue;
+        --bs-btn-color: white;
+        --bs-btn-hover-bg: white;
+        --bs-btn-hover-color: steelblue;
+    }
 }

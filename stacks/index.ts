@@ -22,7 +22,7 @@ export default function main(app: sst.App): void {
 
   /*
    * The "if()" below is added to prevent error that arises from VPC created in one account (paid acct) and trying
-   * to deploy to a deifferent one (ODP) during cdk synth phase:
+   * to deploy to a different one (ODP) during cdk synth phase:
    * [Error at /prod-charcot-common] Could not find any VPCs matching {"account":"950869325006","region":"us-east-1","filter":{"vpc-id":"vpc-070ce99cb78860905"},"returnAsymmetricSubnets":true,"lookupRoleArn":"arn:aws:iam::950869325006:role/cdk-hnb659fds-lookup-role-950869325006-us-east-1"}
    */
   let vpc
@@ -45,7 +45,7 @@ export default function main(app: sst.App): void {
 
   // eslint-disable-next-line no-new
   new FrontendStack(app, 'frontend', {}, {
-    apiEndPoint: process.env.ApiEndpoint || backEndPaidAccountStack.api.url,
+    apiEndPoint: process.env.ApiEndpoint || backEndPaidAccountStack.api.customDomainUrl || backEndPaidAccountStack.api.url,
     userPoolId: process.env.UserPoolId || backEndPaidAccountStack.userPoolId,
     userPoolClientId: process.env.UserPoolClientId || backEndPaidAccountStack.userPoolClientId,
     cognitoIdentityPoolId: process.env.CognitoIdentityPoolId || backEndPaidAccountStack.cognitoIdentityPoolId

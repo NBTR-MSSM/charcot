@@ -82,8 +82,7 @@ class ProfileManagement extends Component {
       await Auth.confirmSignUp(email, confirmationCode)
       await Auth.signIn(email, password)
       this.context.handleLogin({ email })
-      // send them back to whatever page they were on when they chose to sign up
-      this.context.redirectToPrevious()
+      this.context.redirect({ to: '/home' })
     } catch (e) {
       onError(e)
     }
@@ -227,15 +226,11 @@ class ProfileManagement extends Component {
   }
 
   renderProfileChangeSubmitButton() {
-    throw new Error('Must implement renderProfileChangeSubmitButton!')
+    throw new Error('Must implement renderProfileChangeSubmitButton()!')
   }
 
   render() {
-    return (
-      <div className="ProfileManagement">
-        {this.state.newUser ? this.renderConfirmationForm() : this.renderProfileChangeForm()}
-      </div>
-    )
+    throw new Error('Must implement render()!')
   }
 }
 

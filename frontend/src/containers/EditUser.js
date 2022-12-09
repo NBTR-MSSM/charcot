@@ -6,7 +6,7 @@ import ConfirmationModal from '../components/ConfirmationModal'
 import React from 'react'
 import Button from 'react-bootstrap/Button'
 
-class EditUser extends ProfileManagement {
+export default class EditUser extends ProfileManagement {
   constructor(props) {
     super(props)
     this.state = {
@@ -15,13 +15,8 @@ class EditUser extends ProfileManagement {
     }
   }
 
-  componentDidUpdate() {
-    console.log('JMQ: other user is EditUser componentDidUpdate()')
-  }
-
   async componentDidMount() {
     const user = await this.retrieveUserDetails()
-    console.log(`JMQ: other user is ${JSON.stringify(user)}`)
     this.setState({
       ...user,
       isShowSuccessfulUpdateConfirmation: false
@@ -63,7 +58,8 @@ class EditUser extends ProfileManagement {
           disabled={!this.validateForm()}>
           Update
         </LoaderButton>
-        <Button className="cancel" variant="secondary" size="lg" onClick={() => this.context.redirect({ to: '/transaction' })}>
+        <Button className="cancel" variant="secondary" size="lg"
+                onClick={() => this.context.redirect({ to: '/transaction' })}>
           Cancel
         </Button>
       </>
@@ -118,8 +114,11 @@ class EditUser extends ProfileManagement {
   }
 
   render() {
-    return <>{this.renderSuccessConfirmationModal()}{super.render()}</>
+    return (
+      <div className="ProfileManagement">
+        {this.renderSuccessConfirmationModal()}
+        {this.renderProfileChangeForm()}
+      </div>
+    )
   }
 }
-
-export default EditUser

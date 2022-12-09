@@ -1,9 +1,6 @@
 .Review #back-to-search-btn {
-    /*float: left;*/
-    /*margin-right: 50px;*/
     margin-top: 10px;
     width: 175px;
-    /*border: black thin;*/
     border: 1px solid lightgray;
     background-color: transparent;
     color: #0d6efd;

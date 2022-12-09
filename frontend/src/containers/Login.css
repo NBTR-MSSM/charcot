@@ -8,12 +8,36 @@
         max-width: 320px;
     }
 
-    .Login #submit-btn {
+    .Login #login-submit-btn {
+        margin-right: 10px;
+        font-weight: bold;
+        margin-top: 10px;
+        width: 120px;
+        --bs-btn-bg: steelblue;
+        --bs-btn-hover-bg: white;
+        --bs-btn-hover-color: steelblue;
+    }
+
+    .Login #signup-btn {
         margin-top: 10px;
         margin-right: 70px;
-        border: none;
-        background-color: steelblue;
-        color: white;
+        --bs-btn-bg: white;
+        --bs-btn-color: steelblue;
+        --bs-btn-hover-bg: steelblue;
+        --bs-btn-hover-color: white;
         font-weight: bold;
+        width: 120px;
+    }
+
+    .Login #forgot-password-btn {
+        margin-top: 10px;
+        --bs-btn-color: steelblue;
+        font-weight: bold;
+        text-decoration: none;
+    }
+
+    .Login #forgot-password-btn.btn-link:hover {
+        text-decoration: underline !important;
+        color: steelblue;
     }
 }

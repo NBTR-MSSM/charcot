@@ -4,7 +4,7 @@ import { onError } from '../lib/error'
 import LoaderButton from '../components/LoaderButton'
 import React from 'react'
 
-class Signup extends ProfileManagement {
+export default class Signup extends ProfileManagement {
   handleProfileChangeSubmit = async (event) => {
     event.preventDefault()
     this.setState({
@@ -36,16 +36,22 @@ class Signup extends ProfileManagement {
   renderProfileChangeSubmitButton() {
     return (
       <LoaderButton
+        id="signup-submit-btn"
         block="true"
-        size="lg"
+        size="md"
         type="submit"
-        variant="success"
         isLoading={this.state.isLoading}
         disabled={!this.validateForm()}>
         Signup
       </LoaderButton>
     )
   }
-}
 
-export default Signup
+  render() {
+    return (
+      <div className="ProfileManagement">
+        {this.state.newUser ? this.renderConfirmationForm() : this.renderProfileChangeForm()}
+      </div>
+    )
+  }
+}

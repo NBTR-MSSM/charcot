@@ -7,7 +7,7 @@ import LoaderButton from '../components/LoaderButton'
 import { onError } from '../lib/error'
 
 class Login extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = {
       email: '',
@@ -16,7 +16,7 @@ class Login extends Component {
     }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this.context.pushToHistory()
   }
 
@@ -28,14 +28,15 @@ class Login extends Component {
       { isLoading: true }
     )
 
-    const { email, password } = this.state
+    const {
+      email,
+      password
+    } = this.state
 
     try {
       await Auth.signIn(email, password)
-      // eslint-disable-next-line no-undef
       this.context.handleLogin({ email })
-      // send them back to whatever page they were one when they chose to sign up
-      this.context.redirectToPrevious()
+      this.context.redirect({ to: '/home' })
     } catch (e) {
       onError(e)
     }
@@ -47,40 +48,51 @@ class Login extends Component {
 
   handleFormChange = (event) => {
     const newState = {}
-    const { name, value } = event.target
+    const {
+      name,
+      value
+    } = event.target
     newState[name] = value
     this.setState(newState)
   }
 
-  render () {
+  render() {
     return (
-      <div className='Login'>
-        <Form onSubmit={this.handleSubmit}>
-          <Form.Group size="lg" controlId="email">
-            <Form.Label>Email</Form.Label>
-            <Form.Control
-              autoFocus
-              type='email'
-              name='email'
-              value={this.state.email}
-              onChange={this.handleFormChange}
-            />
-          </Form.Group>
-          <Form.Group size="lg" controlId="password">
-            <Form.Label>Password</Form.Label>
-            <Form.Control
-              type='password'
-              name='password'
-              value={this.state.password}
-              onChange={this.handleFormChange}
-            />
-          </Form.Group>
-          <LoaderButton id='submit-btn' block='false' size='lg' type="submit" isLoading={this.state.isLoading}
-                        disabled={!this.validateForm()}>
-            Login
-          </LoaderButton>
-        </Form>
-      </div>
+      <>
+        <div className="Login">
+          <Form onSubmit={this.handleSubmit}>
+            <Form.Group size="lg" controlId="email">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                autoFocus
+                type="email"
+                name="email"
+                value={this.state.email}
+                onChange={this.handleFormChange}
+              />
+            </Form.Group>
+            <Form.Group size="lg" controlId="password">
+              <Form.Label>Password</Form.Label>
+              <Form.Control
+                type="password"
+                name="password"
+                value={this.state.password}
+                onChange={this.handleFormChange}
+              />
+            </Form.Group>
+            <LoaderButton id="login-submit-btn" size="sm" type="submit" isLoading={this.state.isLoading}
+                          disabled={!this.validateForm()}>
+              Login
+            </LoaderButton>
+            <LoaderButton id="signup-btn" size="sm" type="submit" variant="secondary" href="/signup">
+              Signup
+            </LoaderButton>
+            <LoaderButton id="forgot-password-btn" variant="link" size="sm" type="submit" href="/forgot-password">
+              Forgot password
+            </LoaderButton>
+          </Form>
+        </div>
+      </>
     )
   }
 }
