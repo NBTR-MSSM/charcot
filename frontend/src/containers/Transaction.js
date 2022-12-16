@@ -224,6 +224,7 @@ class Transaction extends Component {
                  name="institutionName">{this.renderSortIcon('institutionName')}Institution</a></th>
           <th><a href="" onClick={this.handleSort} name="email">{this.renderSortIcon('email')}Email</a></th>
           <th>Criteria</th>
+          <th><a href="" onClick={this.handleSort} name="size">{this.renderSortIcon('size')}Size</a></th>
           <th>Status</th>
         </tr>
         </thead>
