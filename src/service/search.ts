@@ -6,8 +6,8 @@ export default abstract class Search {
     while (true) {
       const res: DocumentClient.ScanOutput = await dynamoDbClient.scan(params)
       const lastEvaluatedKey = res.LastEvaluatedKey
-      if ((res.Items && res.Items.length) || params.Select === 'COUNT') {
-        const items: DocumentClient.ItemList = res.Items ? res.Items : []
+      if (res.Items && res.Items.length) {
+        const items: DocumentClient.ItemList = res.Items
         // console.log(`JMQ: items is ${JSON.stringify(items)}`)
         callback(res, items)
       }

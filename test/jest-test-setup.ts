@@ -1,5 +1,4 @@
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
-import { sqsClient } from '@exsoinn/aws-sdk-wrappers'
 
 const jestGlobal = global as any
 jestGlobal.dummyOrderId = 'abc123'
@@ -15,6 +14,12 @@ jest.mock('@exsoinn/aws-sdk-wrappers', () => {
   const awsWrappers = jest.requireActual('@exsoinn/aws-sdk-wrappers')
   awsWrappers.axiosClient.post = jest.fn(() => Promise.resolve())
   awsWrappers.cognitoIdentityServiceProviderClient.adminGetUser = jest.fn(() => ({
+    promise: () => Promise.resolve()
+  }))
+  awsWrappers.cognitoIdentityServiceProviderClient.adminUpdateUserAttributes = jest.fn(() => ({
+    promise: () => Promise.resolve()
+  }))
+  awsWrappers.cognitoIdentityServiceProviderClient.adminSetUserPassword = jest.fn(() => ({
     promise: () => Promise.resolve()
   }))
   awsWrappers.dynamoDbClient.get = jest.fn(() => Promise.resolve())
@@ -42,6 +47,7 @@ process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME = 'cerebrum-image-zip'
 process.env.ZIP_LINK_EXPIRY = '999'
 process.env.FROM_EMAIL = 'no-reply@mountsinaicharcot.org'
 process.env.CEREBRUM_IMAGE_ORDER_QUEUE_URL = 'fulfillment.mountsinaicharcot.org/queue'
+process.env.CEREBRUM_COGNITO_USER_POOL_ID = 'user-pool-id'
 
 jestGlobal.BASE_REQUEST = {
   headers: { 'content-type': 'application/x-www-form-urlencoded' },

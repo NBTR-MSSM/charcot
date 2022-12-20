@@ -11,7 +11,7 @@ function createCopy<Type>(source: Type): Type {
 function obtainOrders(include: number[]) {
   const foundOrders = []
   for (const created of include) {
-    foundOrders.push(orders.filter(e => e.created === created)[0])
+    foundOrders.push(createCopy(orders.filter(e => e.created === created)[0]))
   }
   return foundOrders
 }
@@ -37,7 +37,8 @@ export const orderOutputFactory = (include: number[] | undefined = undefined) =>
 }
 
 /**
- * Sorts orders according to the createdOrder array argument
+ * Sorts orders according to the createdOrder array argument, which contains created timestamps
+ * in the same order that requests are to be stored in the returned OrderRetrievalOutput
  */
 export const sortedOrderOutput = (createdOrder: number[]): OrderRetrievalOutput => {
   const orderOutputCopy = produceOrderOutputWithHydratedOrders()

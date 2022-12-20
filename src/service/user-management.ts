@@ -18,7 +18,7 @@ class UserManagement {
     }).promise()
 
     const user: Record<string, string> = {}
-    for (const attr of res.UserAttributes || []) {
+    for (const attr of res.UserAttributes!) {
       const name = attr.Name
       const value = attr.Value
       user[name.replace('custom:', '')] = value as string
@@ -28,6 +28,7 @@ class UserManagement {
 
     // FIXME: Temporary solution to fill in missing name nad last name,
     //   remove once these are populated in cognito user pool
+    /* istanbul ignore if */
     if (!user.given_name) {
       const email = user.email as string
       const name = email.substring(0, email.indexOf('@')).split('.')

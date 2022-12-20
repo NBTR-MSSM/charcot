@@ -11,6 +11,11 @@ export const userFactory = () => {
   return createCopy(user)
 }
 
+export const updateRequestFactory = () => user.UserAttributes!.reduce((accum, current) => {
+  accum[current.Name] = current.Value
+  return accum
+}, {} as Record<string, string | undefined>)
+
 const user: CognitoIdentityServiceProvider.AdminGetUserResponse = {
   Username: 'b02712c7-ff3b-4b3d-975a-c1b91a408519',
   UserAttributes: [

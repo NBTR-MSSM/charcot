@@ -56,6 +56,7 @@ const sort = <T extends Record<string, any>>(items: T[], sortBy: string, sortOrd
     } else {
       ret = 0
     }
+    // If we have a tie, use request created timestamp to break it
     return ret === 0 ? comparator(a, b, 'created') : ret
   }
 
@@ -63,18 +64,26 @@ const sort = <T extends Record<string, any>>(items: T[], sortBy: string, sortOrd
 }
 
 /**
- * Given a page and page size (I.e. number of items per page) returns the items in the array
+ * Given an array (0-based) of items, a page and a page size (I.e. number of items per page) returns the items in the array
  * in that page.
+ * Example:
+ *   13 items, pageSize = 5, page = 3
+ *   first = (5 * 3) - 5 = 10
+ *   last = (5 * 3) - (13 % 5) = 15 - 3 = 12
+ *   (1-based) 1 2 3 4 5 6 7 8 9 10 11 12 13
+ *   (0-based) 0 1 2 3 4 5 6 7 8 09 10 11 12
+ *
+ *  5 items, pageSize = 1, page = 2
+ *   first = (1 * 2) - 1 = 1
+ *   last = (1 * 2) - (5 % 1) = 2 - 0 = 2
+ *   (1-based) 1 2 3 4 5 6 7 8 9 10 11 12 13
+ *   (0-based) 0 1 2 3 4 5 6 7 8 09 10 11 12
  */
 const goToPage = (items: DocumentClient.ItemList, page: number, pageSize: number) => {
-  // Calculate the indexes of the first and last items of the page requested
-  let last = pageSize * page - 1
-  const first = last - pageSize + 1
-
-  // adjust last index if requested page is the last one, and it's not full
-  last = last > items.length - 1 ? items.length - 1 : last
-
-  return items.slice(first, last + 1)
+  const first = (pageSize * page) - pageSize
+  const numItemsOfLastPage = items.length % pageSize
+  const last = (pageSize * page) - numItemsOfLastPage
+  return items.slice(first, last + (numItemsOfLastPage ? 1 : 0))
 }
 
 class OrderSearch extends Search {

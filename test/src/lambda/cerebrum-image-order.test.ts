@@ -6,7 +6,11 @@ import {
   allFieldsScanResult,
   allFieldsScanResultPaginated
 } from '../../fixture/cerebrum-image-image.fixture'
-import { orderScanResultFactory, orderOutputFactory, sortedOrderOutput } from '../../fixture/cerebrum-image-order.fixture'
+import {
+  orderScanResultFactory,
+  orderOutputFactory,
+  sortedOrderOutput
+} from '../../fixture/cerebrum-image-order.fixture'
 import { userFactory } from '../../fixture/cerebrum-image-user.fixture'
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
 
@@ -30,10 +34,61 @@ describe('cerebrum-image-order', () => {
     expect(JSON.parse(res.body as string)).toEqual(orderOutputFactory())
   })
 
+  it('does not attempt to cancel an order that does not exist', async () => {
+    event.pathParameters = {
+      orderId: 'mno123',
+      requester: 'joquijada2010@gmail.com'
+    }
+
+    // @ts-ignore
+    dynamoDbClient.get.mockResolvedValueOnce({
+      Item: undefined
+    })
+
+    const res = await lambda.cancel(event, {} as Context, jest.fn()) as APIGatewayProxyStructuredResultV2
+    expect(res).toEqual({
+      statusCode: 404,
+      body: JSON.stringify({
+        message: 'Request mno123 not found'
+      }, null, ' ')
+    })
+  })
+
+  it('rejects cancel request for an order that is not cancellable', async () => {
+    event.pathParameters = {
+      orderId: 'mno123',
+      requester: 'joquijada2010@gmail.com'
+    }
+
+    const scanOutput = orderScanResultFactory([5], true) as DocumentClient.GetItemOutput
+    scanOutput.Item!.status = 'processed'
+
+    // @ts-ignore
+    dynamoDbClient.get.mockResolvedValueOnce(scanOutput)
+
+    // @ts-ignore
+    cognitoIdentityServiceProviderClient.adminGetUser.mockImplementationOnce((params: cognitoIdentityServiceProviderClient.AdminGetUserRequest) => {
+      const user = userFactory()
+      user.Username = params.Username
+      return { promise: () => Promise.resolve(user) }
+    })
+
+    const res = await lambda.cancel(event, {} as Context, jest.fn()) as APIGatewayProxyStructuredResultV2
+    expect(res).toEqual({
+      statusCode: 401,
+      body: JSON.stringify({
+        message: 'Request in status processed cannot be canceled'
+      }, null, ' ')
+    })
+  })
+
   it('cancels an order', async () => {
     event.pathParameters = {
       orderId: 'mno123',
       requester: 'joquijada2010@gmail.com'
+    }
+    event.queryStringParameters = {
+      requester: 'test@test.com'
     }
     // @ts-ignore
     dynamoDbClient.get.mockResolvedValueOnce(orderScanResultFactory([5], true))
@@ -52,6 +107,30 @@ describe('cerebrum-image-order', () => {
         message: 'Operation successful'
       }, null, ' ')
     })
+
+    expect(dynamoDbClient.update).toHaveBeenCalledWith({
+      TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME,
+      Key: { orderId: 'mno123' },
+      UpdateExpression: 'SET #status = :status, #remark = :remark',
+      ExpressionAttributeNames: {
+        '#status': 'status',
+        '#remark': 'remark'
+      },
+      ExpressionAttributeValues: {
+        ':status': 'cancel-requested',
+        ':remark': `Cancel requested by test@test.com on ${new Date().toUTCString()}`
+      }
+    })
+  })
+
+  it('defaults to sorting by created timestamp if request asks to sort by non-numeric and non-string field', async () => {
+    event.queryStringParameters = {
+      sortOrder: 'desc',
+      sortBy: 'fileNames'
+    }
+    prepareOrderRetrieveMocks()
+    const res = await lambda.retrieve(event, {} as Context, jest.fn()) as APIGatewayProxyStructuredResultV2
+    expect(JSON.parse(res.body as string)).toEqual(sortedOrderOutput([5, 4, 3, 2, 1]))
   })
 
   it('sorts by requested field in descending order during order retrieval', async () => {
@@ -74,7 +153,7 @@ describe('cerebrum-image-order', () => {
     expect(JSON.parse(res.body as string)).toEqual(sortedOrderOutput([1, 2, 3, 4, 5]))
   })
 
-  it('requested page is selected during order retrieval', async () => {
+  it('correct items for requested page are selected during order retrieval', async () => {
     event.queryStringParameters = {
       pageSize: '1',
       page: '2'
@@ -85,6 +164,23 @@ describe('cerebrum-image-order', () => {
     expected.page = 2
     expected.pageSize = 1
     expected.totalPages = 5
+    expect(JSON.parse(res.body as string)).toEqual(expected)
+  })
+
+  it('retrieves correct list of items in last page when total items is not a multiple of page size', async () => {
+    // Try edge case where total number of items doesn't divide evenly among
+    // all pages (I.e. totalItems % pageSize > 0), in other words total number of items is not
+    // a multiple of page size
+    event.queryStringParameters = {
+      pageSize: '2',
+      page: '3'
+    }
+    prepareOrderRetrieveMocks()
+    const res = await lambda.retrieve(event, {} as Context, jest.fn()) as APIGatewayProxyStructuredResultV2
+    const expected = orderOutputFactory([1])
+    expected.page = 3
+    expected.pageSize = 2
+    expected.totalPages = 3
     expect(JSON.parse(res.body as string)).toEqual(expected)
   })
 
