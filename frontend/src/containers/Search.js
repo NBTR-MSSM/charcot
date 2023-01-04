@@ -8,6 +8,7 @@ import DiagnosisChart from './DiagnosisChart'
 import './Search.css'
 import FilterComponent from '../components/FilterComponent'
 import { AppContext } from '../lib/context'
+import { Table } from 'react-bootstrap'
 
 class Search extends Component {
   componentDidMount () {
@@ -27,7 +28,7 @@ class Search extends Component {
       <div className='Search'>
         <h3>Data Search</h3>
         {filterComponent}
-        <table>
+        <Table bsPrefix="charcot-search-table">
           <tbody>
           <tr>
             <td>
@@ -52,7 +53,7 @@ class Search extends Component {
             </td>
           </tr>
           </tbody>
-        </table>
+        </Table>
       </div>)
   }
 }

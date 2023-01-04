@@ -3,16 +3,16 @@
     margin-left: 135px;
 }
 
-.Search table {
+.Search .charcot-search-table {
    /*margin-left: -50px;*/
 }
 
-.Search table, td {
+.Search .charcot-search-table, td {
     border: none !important;
     vertical-align: top;
 }
 
-.Search table tbody tr td > div {
+.Search .charcot-search-table tbody tr td > div {
     height: 200px;
     overflow: auto !important;
     box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%);
