@@ -146,7 +146,6 @@ class SubjectNumberEntry extends Component {
         dimension: 'subjectNumber',
         category: num
       })
-      // console.log(`JMQ: handleClear() removed ${num}`)
     }
     this.resetState(skip)
   }

@@ -4,9 +4,12 @@ import './FilterComponent.css'
 import { AppContext } from '../lib/context'
 
 class FilterComponent extends Component {
-  handlePredicateRemove = (event) => {
+  handlePredicateRemove = async (event) => {
+    if (!event.target.parentElement || !event.target.parentElement.name) {
+      return
+    }
     const [dimension, category] = event.target.parentElement.name.split('|')
-    this.context.handleCategoryUnselect({ dimension, category })
+    await this.context.handleCategoryUnselect({ dimension, category })
   }
 
   render = () => {
