@@ -14,7 +14,9 @@ export default class Filter {
       categories = new Set()
       this.filter[dimension] = categories
     }
-    categories.add(category)
+    // Store all values as string to avoid to finding values because they're stored
+    // as number and caller trying to retrieve as string
+    categories.add(String(category))
     return this
   }
 
@@ -33,7 +35,7 @@ export default class Filter {
 
   has ({ dimension, category }) {
     const categories = this.filter[dimension]
-    return categories && (!category || categories.has(category))
+    return categories && (!category || categories.has(String(category)))
   }
 
   isEmpty () {
@@ -52,7 +54,7 @@ export default class Filter {
   }
 
   remove ({ dimension, category }) {
-    this.filter[dimension].delete(category)
+    this.filter[dimension].delete(String(category))
 
     // Delete this dimension from the object if
     // this was the only selected category

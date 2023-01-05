@@ -21,7 +21,7 @@ class Search extends Component {
   render () {
     let filterComponent = ''
     if (!this.props.filter.isEmpty()) {
-      filterComponent = <FilterComponent filter={this.props.filter}/>
+      filterComponent = <FilterComponent/>
     }
 
     return (
