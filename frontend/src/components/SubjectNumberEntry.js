@@ -33,7 +33,6 @@ class SubjectNumberEntry extends Component {
   }
 
   async componentDidMount() {
-    // console.log('JMQ: SubjectNumberFileUpload componentDidMount()')
     this.resetIfNecessary()
   }
 
@@ -46,24 +45,18 @@ class SubjectNumberEntry extends Component {
     const filter = this.context.filter
     if ((savedState.isFileProcessed || savedState.isManualEntryProcessed) &&
       (!filter.has({ dimension: 'subjectNumber' }) || filter.isEmpty())) {
-      // console.log(`JMQ: resetIfNecessary() filter is ${JSON.stringify(filter.serialize())}, filter empty? ${filter.isEmpty()}, savedState is ${JSON.stringify(savedState)}`)
       this.resetState()
     }
   }
 
   handleEntryModeChange = async (event) => {
     event.preventDefault()
+    // toggle between manual and file input each time this method called
     savedState.isUserPrefersFileUpload = !savedState.isUserPrefersFileUpload
     const skip = new Set()
     skip.add('subjectNumberListEntry')
 
-    /* if (savedState.isUserPrefersFileUpload) {
-      // switching to subnum file upload
-      await this.handleClear(undefined, skip)
-    } else { */
-    // Switching to manual subnum entry
     await this.handleClear(undefined, skip)
-    // }
 
     this.setState({
       isUserPrefersFileUpload: savedState.isUserPrefersFileUpload
@@ -80,7 +73,6 @@ class SubjectNumberEntry extends Component {
     let subjectNumbers
     if (savedState.isUserPrefersFileUpload) {
       const file = this.fileInput.current.files[0]
-      // console.log(`JMQ: Selected file - ${file.name}`)
       const data = await this.readFile(file)
       subjectNumbers = data.split(/\n/).map(num => num.trim()).filter(num => num.match(/^\d+$/)).map(num => parseInt(num))
       savedState.isFileProcessed = true
@@ -132,11 +124,10 @@ class SubjectNumberEntry extends Component {
       newState[key] = savedState[key]
     }
     /*
-     * Make sure we update the state only of the properties
+     * Make sure we update the state only for the properties
      * that have been modified, hence the reason for using the newState
      * helper object to accomplish this.
      */
-    // console.log(`JMQ: resetState() newState is ${JSON.stringify(newState)}`)
     this.setState(newState)
   }
 
@@ -245,7 +236,6 @@ class SubjectNumberEntry extends Component {
   )
 
   render() {
-    // console.log(`JMQ: render() state is ${JSON.stringify(this.state)}`)
     let fragmentToRender
     if (savedState.isUserPrefersFileUpload) {
       fragmentToRender = savedState.isFileProcessed ? this.renderFileClearButton() : this.renderSubNumFileUploadForm()

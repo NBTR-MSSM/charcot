@@ -217,7 +217,7 @@ export default class App extends Component {
   /**
    * We take care to send downstream a clone (I.e. a copy) of the filter to avoid the pitfall
    * that ensues in scenarios where child components compare previous and current
-   * props to decide if the should update themselves, see
+   * props to decide if they should update themselves, see
    * https://stackoverflow.com/questions/52393172/comparing-prevprops-in-componentdidupdate,
    * search for "when you go to do a comparison you are comparing the two exact same arrays ALWAYS"
    */

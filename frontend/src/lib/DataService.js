@@ -1,6 +1,7 @@
 import { API } from 'aws-amplify'
 import Filter from './Filter'
 import SubjectNumberEntry from '../components/SubjectNumberEntry'
+import SexStatCustomDisplay from '../components/SexStatCustomDisplay'
 
 /*
  * Every time a chart needs to me modified and/or a new one added, add the corresponding config here
@@ -19,11 +20,34 @@ const DIMENSION_CONFIGS = {
     endpoint: '/cerebrum-images/ages?interval=6&max=90&start=12',
     isNumeric: true
   },
-  sex: { name: 'sex', displayName: 'Sex', endpoint: '/cerebrum-images/sexes' },
-  region: { name: 'region', displayName: 'Brain Region', endpoint: '/cerebrum-images/regions' },
-  stain: { name: 'stain', displayName: 'Stain', endpoint: '/cerebrum-images/stains' },
-  race: { name: 'race', displayName: 'Race', endpoint: '/cerebrum-images/races' },
-  diagnosis: { name: 'diagnosis', displayName: 'Diagnosis', endpoint: '/cerebrum-images/diagnoses' }
+  sex: {
+    name: 'sex',
+    displayName: 'Sex',
+    endpoint: '/cerebrum-images/sexes',
+    customStatDisplay: function (info) {
+      return <SexStatCustomDisplay info={info} />
+    }
+  },
+  region: {
+    name: 'region',
+    displayName: 'Brain Region',
+    endpoint: '/cerebrum-images/regions'
+  },
+  stain: {
+    name: 'stain',
+    displayName: 'Stain',
+    endpoint: '/cerebrum-images/stains'
+  },
+  race: {
+    name: 'race',
+    displayName: 'Race',
+    endpoint: '/cerebrum-images/races'
+  },
+  diagnosis: {
+    name: 'diagnosis',
+    displayName: 'Diagnosis',
+    endpoint: '/cerebrum-images/diagnoses'
+  }
 }
 
 /**
@@ -44,10 +68,13 @@ const calculateTickInterval = (categories) => {
 /**
  * Contacts endpoint which returns array of dimension/category data.
  */
-const retrieveData = async ({ config, dimension, filter }) => {
+const retrieveData = async ({
+  config,
+  dimension,
+  filter
+}) => {
   const key = `${dimension}-${filter.serialize()}`
   if (!CACHE.has(key)) {
-    // console.log(`JMQ: key ${key} not found in CACHE`)
     CACHE.set(key, await API.get('charcot', config.endpoint, {
       queryStringParameters: {
         filter: filter.serialize(dimension),
@@ -58,7 +85,13 @@ const retrieveData = async ({ config, dimension, filter }) => {
   return CACHE.get(key)
 }
 
-const prepareCategoryData = ({ config, dimension, filter, values, resetCountToZero = false }) => {
+const prepareCategoryData = ({
+  config,
+  dimension,
+  filter,
+  values,
+  resetCountToZero = false
+}) => {
   const selectedCategories = new Set()
   const categories = values.reduce((prev, cur) => {
     const currentCategory = {
@@ -80,8 +113,10 @@ const prepareCategoryData = ({ config, dimension, filter, values, resetCountToZe
 
     prev.set(currentCategory.name, currentCategory)
 
-    // console.log(`JMQ: filter is ${filter.serialize()}`)
-    if (filter.has({ dimension, category: currentCategory.name })) {
+    if (filter.has({
+      dimension,
+      category: currentCategory.name
+    })) {
       selectedCategories.add(currentCategory.name)
       currentCategory.selected = true
     }
@@ -104,10 +139,21 @@ const CACHE = new Map()
  *       dimension-filter combo
  */
 class DataService {
-  async fetch ({ dimension, filter }) {
+  async fetch({
+    dimension,
+    filter
+  }) {
     const config = DIMENSION_CONFIGS[dimension]
-    const filteredValues = await retrieveData({ config, dimension, filter })
-    const { categories: filteredCategories, selectedCategories, selectedSlideCount } = prepareCategoryData({
+    const filteredValues = await retrieveData({
+      config,
+      dimension,
+      filter
+    })
+    const {
+      categories: filteredCategories,
+      selectedCategories,
+      selectedSlideCount
+    } = prepareCategoryData({
       config,
       dimension,
       filter,
@@ -116,11 +162,15 @@ class DataService {
 
     /*
      * Do a filter-less fetch to get super set of all the dimensions/categories. The filter
-     * might have excluded dimensions/categories yet we need them all available for user selection
+     * might have excluded dimensions/categories, yet we need them all available for user selection
      */
     let unfilteredCategories = new Map()
     if (!filter.isEmpty()) {
-      const unfilteredValues = await retrieveData({ config, dimension, filter: new Filter() })
+      const unfilteredValues = await retrieveData({
+        config,
+        dimension,
+        filter: new Filter()
+      })
       ;({ categories: unfilteredCategories } = prepareCategoryData({
         config,
         dimension,
@@ -147,15 +197,20 @@ class DataService {
       filteredCategoryCount: Array.from(filteredCategories.keys()).length,
       statToDisplay: config.statToDisplay,
       hideInAccordion: config.hideInAccordion,
-      body: config.body
+      body: config.body,
+      customStatDisplay: config.customStatDisplay,
+      filteredCategories
     }
   }
 
-  async fetchAll ({ filter }) {
+  async fetchAll({ filter }) {
     const promises = []
     const dimensions = Object.keys(DIMENSION_CONFIGS)
     for (const dimension of dimensions) {
-      promises.push(this.fetch({ dimension, filter }))
+      promises.push(this.fetch({
+        dimension,
+        filter
+      }))
     }
     const res = await Promise.all(promises)
     const ret = {
