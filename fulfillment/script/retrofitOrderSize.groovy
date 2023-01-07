@@ -23,7 +23,7 @@ scanRequest.tableName = table
 while (true) {
   ScanResult result = dynamoDB.scan(scanRequest)
   result.items.each { Map<String, AttributeValue> fields ->
-    if (!fields.filesProcessed) {
+    if (fields.size) {
       return
     }
     def orderId = fields.orderId.s

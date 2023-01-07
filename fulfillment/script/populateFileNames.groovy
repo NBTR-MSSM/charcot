@@ -17,7 +17,7 @@ import groovyx.net.http.RESTClient
 def table = 'prod-charcot-cerebrum-image-order'
 AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
 def scanRequest = new ScanRequest()
-def url = 'https://api-debug.mountsinaicharcot.org/cerebrum-images'
+def url = 'https://api.mountsinaicharcot.org/cerebrum-images'
 def client = new RESTClient(url)
 scanRequest.tableName = table
 while (true) {
@@ -36,7 +36,7 @@ while (true) {
           it.fileName
         }
         println "JMQ: $orderId filter $filter yielded $files"
-        // updateFiles(table, dynamoDB, orderId, files)
+        updateFiles(table, dynamoDB, orderId, files)
       }
     } catch (Exception e) {
       println "JMQ: $orderId filter $filter failed: $e"
@@ -52,9 +52,9 @@ void updateFiles(String tableName, AmazonDynamoDB dynamoDB, String orderId, List
   def attributeValueUpdate = new AttributeValueUpdate().withValue(new AttributeValue().withL(files.collect { new AttributeValue().withS(it) }))
   UpdateItemResult updateItemResult = dynamoDB.updateItem(tableName,
           [orderId: new AttributeValue().withS(orderId)],
-          [status: new AttributeValue().withS('processed')],
-          [filesNames: attributeValueUpdate],
-          [filesProcessed: attributeValueUpdate])
-  log.info "Updated request $orderId:  ${updateItemResult.toString()}"
+          [status        : new AttributeValueUpdate().withValue(new AttributeValue().withS('processed')),
+           fileNames     : attributeValueUpdate,
+           filesProcessed: attributeValueUpdate])
+  println "Updated request $orderId:  ${updateItemResult.toString()}"
 }
 
