@@ -8,13 +8,18 @@ import { singular } from 'pluralize'
 import { rank } from '../common/rank'
 import Search from './search'
 
+const isFilter = (input: unknown): input is Filter => {
+  return typeof input === 'string'
+}
+
 class ImageSearch extends Search {
-  async search(filter: Filter): Promise<Record<string, any>> {
+  async search(event: APIGatewayProxyEventV2 | Filter): Promise<Record<string, any>> {
     const params: DocumentClient.QueryInput = {
       TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string
     }
+
+    const filter: Filter = isFilter(event) ? event : (event.queryStringParameters && event.queryStringParameters.filter) as string
     this.addFilter(filter, params)
-    // console.log(`JMQ: search() params is ${JSON.stringify(params)}`)
     let responseCode = 404
     let retItems: DocumentClient.ItemList = []
     const callback = (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => {
@@ -23,12 +28,14 @@ class ImageSearch extends Search {
     }
     await this.handleSearch(params, callback)
     return new HttpResponse(responseCode, '', {
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: retItems
     })
   }
 
   async dimension(event: APIGatewayProxyEventV2) {
-    console.log(`JMQ: event is ${JSON.stringify(event)}`)
     let dimension = (event.pathParameters && event.pathParameters.dimension) as string
     const isNumeric = event.queryStringParameters && event.queryStringParameters.numeric === 'true'
     const attrExpNames: Record<string, string> = {}
@@ -46,7 +53,6 @@ class ImageSearch extends Search {
     }
     this.addFilter((event.queryStringParameters && event.queryStringParameters.filter) as Filter, params)
     this.addEnabledOnlyCondition(params)
-    // console.log(`JMQ: dimension() params is ${JSON.stringify(params)}`)
 
     let ret: Dimension[] = []
     let responseCode = 404
@@ -104,7 +110,6 @@ class ImageSearch extends Search {
     if (!filter) {
       return
     }
-    // console.log(`JMQ: raw filter is ${filter}`)
 
     const exprAttrNames: Record<string, string> = {}
     const exprAttrValues: Record<string, string | number> = {}
@@ -179,7 +184,6 @@ class ImageSearch extends Search {
 
     params.ExpressionAttributeNames = { ...params.ExpressionAttributeNames, ...attrNames }
     params.ExpressionAttributeValues = { ...params.ExpressionAttributeValues, ...attrVals }
-    // console.log(`JMQ: addEnabledOnlyCondition() DynamoDB filter is ${params.FilterExpression}`)
   }
 }
 

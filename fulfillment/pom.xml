@@ -15,6 +15,7 @@
     <description>Zips up brain image slides</description>
     <properties>
         <java.version>17</java.version>
+        <groovy.version>3.0.11</groovy.version>
     </properties>
     <dependencies>
         <dependency>
@@ -27,7 +28,14 @@
         </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>${groovy.version}</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy</artifactId>
+            <version>${groovy.version}</version>
         </dependency>
 
         <dependency>
@@ -47,7 +55,7 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-dynamodb</artifactId>
-            <version>1.12.283</version>
+            <version>1.12.376</version>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
@@ -83,6 +91,11 @@
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-json</artifactId>
             <version>3.0.13</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ivy</groupId>
+            <artifactId>ivy</artifactId>
+            <version>2.4.0</version>
         </dependency>
     </dependencies>
 
