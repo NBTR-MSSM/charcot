@@ -81,9 +81,16 @@ const sort = <T extends Record<string, any>>(items: T[], sortBy: string, sortOrd
  */
 const goToPage = (items: DocumentClient.ItemList, page: number, pageSize: number) => {
   const first = (pageSize * page) - pageSize
+  let last = (pageSize * page)
+  /*
+   * Is the page requested the last one? If so adjust the 'last' item index if last
+   * page is not full, I.e. num of items in last page < pageSize
+   */
   const numItemsOfLastPage = items.length % pageSize
-  const last = (pageSize * page) - numItemsOfLastPage
-  return items.slice(first, last + (numItemsOfLastPage ? 1 : 0))
+  if (page >= items.length / pageSize && numItemsOfLastPage) {
+    last = last - numItemsOfLastPage + 1
+  }
+  return items.slice(first, last)
 }
 
 class OrderSearch extends Search {
