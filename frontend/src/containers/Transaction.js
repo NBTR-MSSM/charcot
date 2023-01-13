@@ -3,10 +3,12 @@ import { AppContext } from '../lib/context'
 import './Transaction.css'
 import { API } from 'aws-amplify'
 import TransactionItem from '../components/TransactionItem'
-import { Modal, Spinner, Table } from 'react-bootstrap'
+import { InputGroup, Modal, Spinner, Table } from 'react-bootstrap'
 import Pagination from 'react-bootstrap/Pagination'
-import { BsSortDownAlt, BsSortUpAlt, BsArrowRepeat } from 'react-icons/bs'
+import { BsArrowRepeat, BsSortDownAlt, BsSortUpAlt } from 'react-icons/bs'
 import { DateTimeFormatter, LocalDateTime } from 'js-joda'
+import Form from 'react-bootstrap/Form'
+import debounce from 'lodash.debounce'
 
 const formattedDateTime = () => LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyyMMdd-HH-mm-ss'))
 
@@ -122,6 +124,20 @@ class Transaction extends Component {
     </Modal>
   )
 
+  debouncedHandlePageSizeChange = debounce(this.retrieveOrders, 500)
+
+  handlePageSizeChange = (event) => {
+    const newState = {}
+    const {
+      id,
+      value
+    } = event.target
+    console.log(`JMQ: id is ${id}, value is ${value}`)
+    newState[id] = value
+    this.setState(newState)
+    this.debouncedHandlePageSizeChange()
+  }
+
   handlePageChange = (event) => {
     event.preventDefault()
     let page = event.target.textContent
@@ -161,11 +177,29 @@ class Transaction extends Component {
     })
   }
 
+  renderPageSizeChangeForm = () => {
+    return <Form>
+      <Form.Group controlId="pageSize" size="sm">
+        <InputGroup className="mb-3">
+          <InputGroup.Text id="basic-addon1">Transactions per Page</InputGroup.Text>
+          <Form.Control
+            aria-describedby="basic-addon1"
+            type="text"
+            value={this.state.pageSize}
+            onChange={this.handlePageSizeChange}
+            onFocus={() => this.setState({ pageSize: '' })}
+          />
+        </InputGroup>
+      </Form.Group>
+    </Form>
+  }
+
   renderPagination = () => {
     const items = []
     for (let number = 1; number <= this.state.totalPages; number++) {
       items.push(
-        <Pagination.Item name={number} onClick={this.handlePageChange} key={number} active={number === this.state.page}>
+        <Pagination.Item name={number} onClick={this.handlePageChange} key={number}
+                         active={number === this.state.page}>
           {number}
         </Pagination.Item>
       )
@@ -213,13 +247,17 @@ class Transaction extends Component {
 
   renderLoaded = () => {
     const pagination = this.renderPagination()
-    return (<>
+    const pageSizeChangeForm = this.renderPageSizeChangeForm()
+    return (<div className="Transaction">
+      {pageSizeChangeForm}
       {pagination}
       <Table striped bordered hover>
         <thead>
         <tr>
-          <th><a href="" onClick={this.handleSort} name="created">{this.renderSortIcon('created')}Request Date</a></th>
-          <th><a href="" onClick={this.handleSort} name="requester">{this.renderSortIcon('requester')}Requester</a></th>
+          <th><a href="" onClick={this.handleSort} name="created">{this.renderSortIcon('created')}Request Date</a>
+          </th>
+          <th><a href="" onClick={this.handleSort} name="requester">{this.renderSortIcon('requester')}Requester</a>
+          </th>
           <th><a href="" onClick={this.handleSort}
                  name="institutionName">{this.renderSortIcon('institutionName')}Institution</a></th>
           <th><a href="" onClick={this.handleSort} name="email">{this.renderSortIcon('email')}Email</a></th>
@@ -233,7 +271,7 @@ class Transaction extends Component {
         </tbody>
       </Table>
       {pagination}
-    </>)
+    </div>)
   }
 
   render() {

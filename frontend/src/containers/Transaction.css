@@ -14,3 +14,7 @@
 .totalRecords {
     font-weight: bold;
 }
+
+.Transaction .input-group {
+    width: 20%;
+}
