@@ -12,9 +12,9 @@ class SexStatCustomDisplay extends Component {
     const female = this.props.info.categories.get('Female')
     return <>
       <span
-        className="charcot-footer-stat"><span>{(!female.selected && male.count) || (male.selected && male.count) || 0}</span> Male</span>
+        className="charcot-footer-stat"><span>{((!female.selected && male.selected) && male.count) || (male.selected && male.count) || 0}</span> Male</span>
       <span
-        className="charcot-footer-stat"><span>{(!male.selected && female.count) || (female.selected && female.count) || 0}</span> Female</span>
+        className="charcot-footer-stat"><span>{((!male.selected && female.selected) && female.count) || (female.selected && female.count) || 0}</span> Female</span>
     </>
   }
 }
