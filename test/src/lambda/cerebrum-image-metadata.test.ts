@@ -4,7 +4,7 @@ import * as lambda from '../../../src/lambda/cerebrum-image-metadata'
 import { APIGatewayProxyEventV2, Context } from 'aws-lambda'
 import merge from 'lodash.merge'
 
-const jestGlobal = global as any
+const jestGlobal = global as unknown as Record<string, string>
 let event: APIGatewayProxyEventV2
 describe('cerebrum-image-metadata', () => {
   beforeEach(() => {

@@ -17,7 +17,7 @@ export interface CerebrumImageMetaData {
 }
 
 export interface CerebrumImageOrder {
-  [key: string]: string | number | Array<string> | Record<string, any> | boolean | undefined
+  [key: string]: string | number | Array<string> | Record<string, string> | boolean | undefined
   orderId: string
   created: number
   fileNames: CharcotFileName[]

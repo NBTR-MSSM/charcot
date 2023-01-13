@@ -29,7 +29,7 @@ const populateUserData = async (transaction: DocumentClient.AttributeMap) => {
   transaction.userAttributes = userAttrs
 }
 
-const sort = <T extends Record<string, any>>(items: T[], sortBy: string, sortOrder: 'desc' | 'asc') => {
+const sort = <T extends Record<string, string | unknown>>(items: T[], sortBy: string, sortOrder: 'desc' | 'asc') => {
   const comparator = (a: T, b: T, field = sortBy): number => {
     const left = a[field]
     const right = b[field]

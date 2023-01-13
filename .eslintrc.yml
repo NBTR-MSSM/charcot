@@ -3,7 +3,12 @@ extends:
   - standard
 rules:
   space-before-function-paren: off
+  '@typescript-eslint/no-non-null-assertion': off
 overrides:
+  - files:
+      - 'frontend/src/**/*.js'
+    rules:
+      no-use-before-define: off
   - files:
       - 'test/**/*.test.ts'
       - 'jest-test-setup.ts'

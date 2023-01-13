@@ -4,7 +4,7 @@ import merge from 'lodash.merge'
 import { cognitoIdentityServiceProviderClient } from '@exsoinn/aws-sdk-wrappers'
 import { updateRequestFactory, userFactory } from '../../fixture/cerebrum-image-user.fixture'
 
-const jestGlobal = global as any
+const jestGlobal = global as unknown as Record<string, string>
 let event: APIGatewayProxyEventV2
 describe('cerebrum-image-user', () => {
   beforeEach(() => {

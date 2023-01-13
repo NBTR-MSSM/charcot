@@ -63,7 +63,7 @@ class ProfileManagement extends Component {
     return obj
   }
 
-  handleProfileChangeSubmit = async (event) => {
+  handleProfileChangeSubmit = async () => {
     throw new Error('Must implement handleProfileChangeSubmit!')
   }
 

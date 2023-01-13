@@ -37,7 +37,7 @@ class Transaction extends Component {
     await this.retrieveOrders()
   }
 
-  async componentDidUpdate(prevProps, prevState, snapshot) {
+  async componentDidUpdate(prevProps, prevState) {
     if (this.state.page !== prevState.page || this.state.sortBy !== prevState.sortBy || this.state.sortOrder !== prevState.sortOrder) {
       console.log('transaction updated')
       await this.retrieveOrders()

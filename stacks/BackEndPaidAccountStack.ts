@@ -3,7 +3,6 @@ import { Auth, Bucket } from '@serverless-stack/resources'
 import * as iam from 'aws-cdk-lib/aws-iam'
 import { Bucket as S3Bucket, EventType } from 'aws-cdk-lib/aws-s3'
 import * as s3Notifications from 'aws-cdk-lib/aws-s3-notifications'
-import { StackArguments } from '../src/types/charcot.types'
 import { StringAttribute } from 'aws-cdk-lib/aws-cognito'
 import { Certificate } from 'aws-cdk-lib/aws-certificatemanager'
 import * as route53 from 'aws-cdk-lib/aws-route53'
@@ -23,7 +22,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
   cerebrumImageMetadataTableArn: string
   cerebrumImageOrderQueueArn: string
 
-  constructor(scope: sst.App, id: string, props: sst.StackProps, args: StackArguments) {
+  constructor(scope: sst.App, id: string, props: sst.StackProps) {
     super(scope, id, props)
 
     const stage = this.stage

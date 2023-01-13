@@ -14,12 +14,12 @@ import {
 import { userFactory } from '../../fixture/cerebrum-image-user.fixture'
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
 
-const mockCreateOrderEventBody: Readonly<Record<string, any>> = {
+const mockCreateOrderEventBody: Readonly<Record<string, string | string[]>> = {
   fileNames: ['XE13-009_2_HE_1.mrxs', 'XE13-009_2_Sil_1.mrxs', 'XE12-025_1_HE_1.mrxs'],
   email: 'john.smith@acme.com'
 }
 
-const jestGlobal = global as any
+const jestGlobal = global as unknown as Record<string, string>
 let event: APIGatewayProxyEventV2
 describe('cerebrum-image-order', () => {
   beforeEach(() => {
@@ -254,7 +254,7 @@ describe('cerebrum-image-order', () => {
     const currentTime = new Date('2021-12-27 00:00:00 UTC')
     // @ts-ignore
     const dateSpy = jest.spyOn(global, 'Date').mockImplementation(() => currentTime)
-    const order: Record<string, any> = {}
+    const order: Record<string, string | undefined> = {}
     merge(order, mockCreateOrderEventBody)
     order.fileNames = undefined
     event.body = JSON.stringify(order)
@@ -318,7 +318,7 @@ describe('cerebrum-image-order', () => {
   })
 
   it('returns error when email is missing', async () => {
-    const order: Record<string, any> = {}
+    const order: Record<string, string> = {}
     merge(order, mockCreateOrderEventBody)
     order.email = ''
     event.body = JSON.stringify(order)
@@ -333,7 +333,7 @@ describe('cerebrum-image-order', () => {
   })
 
   it('returns error when order contains no files and no filter', async () => {
-    const order: Record<string, any> = {}
+    const order: Record<string, string | undefined> = {}
     merge(order, mockCreateOrderEventBody)
     order.fileNames = undefined
     event.body = JSON.stringify(order)

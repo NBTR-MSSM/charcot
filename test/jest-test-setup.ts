@@ -1,6 +1,6 @@
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
 
-const jestGlobal = global as any
+const jestGlobal = global as unknown as Record<string, string | unknown>
 jestGlobal.dummyOrderId = 'abc123'
 
 jest.mock('ioredis')

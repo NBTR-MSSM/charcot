@@ -11,7 +11,7 @@ import {
   diagnosesOutput
 } from '../../fixture/cerebrum-image-image.fixture'
 
-const jestGlobal = global as any
+const jestGlobal = global as unknown as Record<string, string>
 describe('cerebrum-image-search', () => {
   beforeEach(() => {
     jest.clearAllMocks()
