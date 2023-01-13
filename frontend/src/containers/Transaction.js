@@ -126,7 +126,7 @@ class Transaction extends Component {
 
   debouncedHandlePageSizeChange = debounce(this.retrieveOrders, 500)
 
-  handlePageSizeChange = (event) => {
+  handlePageSizeChange = async (event) => {
     const newState = {}
     const {
       id,
@@ -135,7 +135,7 @@ class Transaction extends Component {
     console.log(`JMQ: id is ${id}, value is ${value}`)
     newState[id] = value
     this.setState(newState)
-    this.debouncedHandlePageSizeChange()
+    await this.debouncedHandlePageSizeChange()
   }
 
   handlePageChange = (event) => {
