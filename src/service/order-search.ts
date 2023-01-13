@@ -186,8 +186,8 @@ class OrderSearch extends Search {
     let orderCount = 0
     const uniqueUsers = new Set()
     const callback = (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => {
-      size = items.reduce((accumulator, currentValue) => accumulator + (currentValue.size || 0), size)
-      slides = items.reduce((accumulator, currentValue) => accumulator + ((currentValue.filesProcessed && currentValue.filesProcessed.length) || 0), slides)
+      size = items.reduce((accumulator, currentValue) => accumulator + currentValue.size, size)
+      slides = items.reduce((accumulator, currentValue) => accumulator + (currentValue.filesProcessed && currentValue.filesProcessed.length), slides)
       orderCount += items.length
       items.forEach(e => {
         uniqueUsers.add(e.email)

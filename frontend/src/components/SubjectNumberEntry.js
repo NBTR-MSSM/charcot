@@ -198,26 +198,24 @@ class SubjectNumberEntry extends Component {
   )
 
   renderSubNumEntryForm = () => (
-    <>
-      <Form onSubmit={this.handleSubmit}>
-        <Form.Group controlId="subjectNumberListEntry" size="lg">
-          <Form.Label>Enter list of comma separated subject numbers (Ex: 23,99,754,139,5):</Form.Label>
-          <Form.Control as="textarea"
-                        rows={5}
-                        value={savedState.subjectNumberListEntry}
-                        onChange={this.handleFormChange}/>
-        </Form.Group>
-        <LoaderButton
-          block="true"
-          size="sm"
-          type="submit"
-          variant="success"
-          isLoading={this.state.isProcessing}
-          disabled={!this.validateSubjectNumberListEntry()}>
-          Submit
-        </LoaderButton>
-      </Form>
-    </>
+    <Form onSubmit={this.handleSubmit}>
+      <Form.Group controlId="subjectNumberListEntry" size="lg">
+        <Form.Label>Enter list of comma separated subject numbers (Ex: 23,99,754,139,5):</Form.Label>
+        <Form.Control as="textarea"
+                      rows={5}
+                      value={savedState.subjectNumberListEntry}
+                      onChange={this.handleFormChange}/>
+      </Form.Group>
+      <LoaderButton
+        block="true"
+        size="sm"
+        type="submit"
+        variant="success"
+        isLoading={this.state.isProcessing}
+        disabled={!this.validateSubjectNumberListEntry()}>
+        Submit
+      </LoaderButton>
+    </Form>
   )
 
   renderFileClearButton = () => (
