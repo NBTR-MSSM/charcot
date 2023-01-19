@@ -33,7 +33,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     /*
      * SQS Queue(s)
      */
-    const cerebrumImageOrderQueue = new sst.Queue(this, process.env.CEREBRUM_IMAGE_ORDER_QUEUE_NAME as string, {
+    const cerebrumImageOrderQueue = new sst.Queue(this, 'cerebrum-image-order-queue', {
       cdk: {
         queue: {
           // Give maximum of 12 hours to process a request, some of them can be large and in fact
@@ -48,7 +48,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     /*
      * DynamoDB Tables
      */
-    const cerebrumImageMetaDataTable = new sst.Table(this, process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string, {
+    const cerebrumImageMetaDataTable = new sst.Table(this, 'cerebrum-image-metadata', {
       fields: {
         fileName: 'string',
         region: 'string',
@@ -73,7 +73,7 @@ export default class BackEndPaidAccountStack extends sst.Stack {
       }
     })
 
-    const cerebrumImageOrderTable = new sst.Table(this, process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string, {
+    const cerebrumImageOrderTable = new sst.Table(this, 'cerebrum-image-order', {
       fields: {
         orderId: 'string',
         email: 'string',
@@ -96,8 +96,8 @@ export default class BackEndPaidAccountStack extends sst.Stack {
     // with their stage-less S3 buckets which were in place already before Charcot. Renaming
     // those existing buckets is not an option
     const bucketSuffix = stage === 'prod' ? '' : `-${stage}`
-    const cerebrumImageBucketName = `${process.env.CEREBRUM_IMAGE_BUCKET_NAME}${bucketSuffix}` // source s3 bucket
-    const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketSuffix}` // target s3 bucket
+    const cerebrumImageBucketName = `nbtr-odp-staging${bucketSuffix}` // source s3 bucket
+    const cerebrumImageOdpBucketName = `nbtr-production${bucketSuffix}` // target s3 bucket
 
     // Buckets and notification target functions
     const handleCerebrumImageTransfer = new sst.Function(this, 'HandleCerebrumImageTransfer', {
@@ -120,7 +120,6 @@ export default class BackEndPaidAccountStack extends sst.Stack {
         CEREBRUM_IMAGE_ODP_BUCKET_NAME: cerebrumImageOdpBucketName
       },
       timeout: 900
-      // vpc: args.vpc
     })
 
     this.handleCerebrumImageTransferRoleArn = handleCerebrumImageTransfer?.role?.roleArn as string

@@ -8,7 +8,7 @@ import { Vpc } from 'aws-cdk-lib/aws-ec2'
 
 const calculateZipBucketName = (stage: string) => {
   const bucketSuffix = stage === 'prod' ? '' : `-${stage}`
-  return `${process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME}${bucketSuffix}`
+  return `cerebrum-image-zip${bucketSuffix}`
 }
 
 export default function main(app: sst.App): void {
@@ -30,10 +30,7 @@ export default function main(app: sst.App): void {
     const commonStack = new CommonStack(app, 'common', {})
     vpc = process.env.VpcId ? Vpc.fromLookup(commonStack, 'VPC', { vpcId: process.env.VpcId }) : commonStack.vpc
   }
-  const backEndPaidAccountStack = new BackEndPaidAccountStack(app, 'backend-paid-account', {}, {
-    zipBucketName,
-    vpc
-  })
+  const backEndPaidAccountStack = new BackEndPaidAccountStack(app, 'backend-paid-account', {})
 
   const fulfillmentStack = new FulfillmentStack(app, 'fulfillment', {}, {
     cerebrumImageOrderTableArn: process.env.CerebrumImageOrderTableArn || backEndPaidAccountStack.cerebrumImageOrderTableArn,

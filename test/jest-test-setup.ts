@@ -43,7 +43,6 @@ jest.mock('@exsoinn/aws-sdk-wrappers', () => {
 process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME = 'cerebrum-image-metadata'
 process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME = 'cerebrum-image-order'
 process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME = 'nbtr-production'
-process.env.CEREBRUM_IMAGE_ZIP_BUCKET_NAME = 'cerebrum-image-zip'
 process.env.ZIP_LINK_EXPIRY = '999'
 process.env.FROM_EMAIL = 'no-reply@mountsinaicharcot.org'
 process.env.CEREBRUM_IMAGE_ORDER_QUEUE_URL = 'fulfillment.mountsinaicharcot.org/queue'

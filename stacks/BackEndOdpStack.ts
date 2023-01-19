@@ -24,7 +24,7 @@ export default class BackEndOdpStack extends sst.Stack {
     // See comment in BackEndPaidAccountStack.ts for the reason of this logic,
     // same applies here
     const bucketSuffix = stage === 'prod' ? '' : `-${stage}`
-    const cerebrumImageOdpBucketName = `${process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME}${bucketSuffix}`
+    const cerebrumImageOdpBucketName = `nbtr-production${bucketSuffix}`
 
     const cerebrumImageZipBucketName = args.zipBucketName!
 

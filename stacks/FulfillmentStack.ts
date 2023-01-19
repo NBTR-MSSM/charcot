@@ -92,7 +92,7 @@ export default class FulfillmentStack extends sst.Stack {
     })
 
     // Add policy statements so that ECS tasks can perform/carry out the pertinent actions
-    const cerebrumImageOdpBucketNameProdStage = process.env.CEREBRUM_IMAGE_ODP_BUCKET_NAME
+    const cerebrumImageOdpBucketNameProdStage = 'nbtr-production'
     service.taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['dynamodb:GetItem', 'dynamodb:UpdateItem'],
