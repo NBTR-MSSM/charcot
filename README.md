@@ -1,5 +1,6 @@
 # charcot
-> Putting brain images at the fingertips of scientists and researchers.
+> Putting brain images at the fingertips of scientists and researchers. Charcot allows interested parties to request Zips of brain image data by interactively building cohorts via a user-friendly graphical interface.
+
 
 ![human-brain](./doc/img/human-brain.jpeg)
 
@@ -7,68 +8,43 @@
 ## Table of Contents
 * [charcot](#charcot)
     * [Overview](#overview)
-      * [Transfer from Paid to ODP Account](#transfer-from-paid-to-odp-account)
-      * [Image Metadata Receiver](#image-metadata-receiver)
-      * [Image Shopping Experience](#image-shopping-experience)
-      * [Image Zip Archive Delivery](#image-zip-archive-delivery)
     * [Install](#install)
       * [Requirements](#requirements)
       * [Steps](#steps)
     * [Usage](#usage)
-      * [Image Metadata Receiver](#image-metadata-receiver)
-      * [Image Shopping Experience](#image-shopping-experience)
+    * [Architecture](#architecture)
     * [Developers](#developers)
 <!-- /TOC -->
 
-### Overview
-_Note: Diagram below subject to change, click [here](https://drive.google.com/file/d/1a-1B2nF9x1TC3YpWshvbmzyU9oJc5W_N/view?usp=sharing) for the latest/greatest version_
-
-![mssm-brain-image-delivery](./doc/img/mssm-brain-image-delivery.jpg)
-
-Charcot allows interested parties to retrieve Zips of brain image data via a user-friendly graphical interface.
-
-#### Transfer from Paid to ODP Account
-Coming Soon
-
-#### Image Metadata Receiver
-Coming Soon
-
-#### Image Shopping Experience
-Coming Soon
-
-#### Image Zip Archive Delivery
-Coming Soon
-
 ### Install
-The below steps assume a Mac OS or Unix-like systems only.
+The below steps assume MacOS or Unix-like systems only.
 
 #### Requirements
 1. [nvm](https://github.com/nvm-sh/nvm#profile_snippet)
    ```
    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
    ```
-2. `node`, using `nvm` command that you installed above,
+2. `node 16`, using `nvm` command that you installed above,
    ```
-   nvm install node
+   nvm install node@16
    ```
 3. [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-4. An [AWS cloud account](https://console.aws.amazon.com/), and the `aws cli`. The steps on how to do this are beyond the scope of this document, but on mac you can do `brew install aws`
-and then `aws configure` to configure access to your AWS account from the command line.
-
+4. The `aws cli`. The steps on how to do this are beyond the scope of this document, but on mac you can do `brew install aws`
+5. Admin level key id/key screte pair for both Mt Sinai ODP and paid accounts. The AWS in profiles respectively have to be named `mssm` and `mssm-odp` in your `~/.aws/credentials` file. You can use `aws configure` from the command line to configure access to your AWS accounts.
+6. [zx](https://www.npmjs.com/package/zx)
 
 #### Steps
 1. Git clone repo at https://github.com/joquijada/charcot,
    `git clone git@github.com:joquijada/charcot.git`
-2. Install dependencies, `npm install`
-3. Deploy to the app to the cloud, `AWS_PROFILE=<your AWS profile> npx sst deploy`
+2. Install dependencies by running this command in the parent folder of the code cloned above, `npm install`
+3. Deploy the app to the cloud, `AWS_PROFILE=<your AWS profile> npx sst deploy:<env>`
+4. Populate image metadata in AWS: `script/post-metadata.mjs -s debug`
 
 ### Usage
+Once deployment completes, open https://<stage>.mountsinaicarcot.org/.
 
-#### Image Metadata Receiver
-Coming soon
-
-#### Image Shopping Experience
-Coming Soon - Load UI at URL XYZ
+### Architecture
+Refer to [this](./doc/architecture/README.md) document.
 
 ### Developers
 Take a look at the [contributing](./CONTRIBUTING.md) and [developer](./doc/developer/README.md) guides if you plan to develop for charcot.
