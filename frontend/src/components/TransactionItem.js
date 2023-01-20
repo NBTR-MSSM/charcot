@@ -121,6 +121,7 @@ class TransactionItem extends Component {
         <td>{item.email}</td>
         <td>{item.filter}</td>
         <td>{Number.parseFloat(item.size / Math.pow(2, 30)).toFixed(2)}GB</td>
+        <td>{item.fileCount}</td>
         <td>
           <OverlayTrigger
             placement="left"

@@ -50,7 +50,7 @@ class Transaction extends Component {
   }
 
   retrieveOrdersAsDelimiterSeparatedRecords = async () => {
-    let ret = ['orderId,created,institutionName,email,filter,status,remark']
+    let ret = ['orderId,created,institutionName,email,filter,size,slideCount,status,remark']
     const res = await this.fetchOrders({ page: -1 })
     ret = ret.concat(res.orders.map(order => {
       const {
@@ -59,10 +59,12 @@ class Transaction extends Component {
         institutionName,
         email,
         filter,
+        size,
+        fileCount,
         status,
         remark
       } = order
-      return `${orderId},${created},${institutionName},${email},${filter},${status},${remark}`
+      return `${orderId},${created},${institutionName},${email},${filter},${size},${fileCount},${status},${remark}`
     }))
     return ret
   }
@@ -263,6 +265,7 @@ class Transaction extends Component {
           <th><a href="" onClick={this.handleSort} name="email">{this.renderSortIcon('email')}Email</a></th>
           <th>Criteria</th>
           <th><a href="" onClick={this.handleSort} name="size">{this.renderSortIcon('size')}Size</a></th>
+          <th><a href="" onClick={this.handleSort} name="fileCount">{this.renderSortIcon('fileCount')}Slide Count</a></th>
           <th>Status</th>
         </tr>
         </thead>
