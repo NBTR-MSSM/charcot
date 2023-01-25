@@ -42,8 +42,8 @@ started is to read entire [TypeScript handbook](https://www.typescriptlang.org/d
 > ![jest](../img/jest.png) This product uses Jest for writing unit tests
 
 - If applicable, ensure you write unit tests for any code you write/modify. Then run them via `npm test`
-  > 👉 When run this, it will lint and test the code as well.
-- You can test your work locally by running `npx start -- --stage dev`
+  > 👉 When you run tests, it will lint first..
+- You can test your work locally by running `npm start`
 
 #### Linting
 
