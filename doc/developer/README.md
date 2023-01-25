@@ -24,7 +24,7 @@ In addition to [the requirements outlined in the project README](../../README.md
 
 ### Developing
 
-### Required Skills
+#### Required Skills
 
 | Name                                                                  | Reason  	                                                                                        |
 |-----------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
