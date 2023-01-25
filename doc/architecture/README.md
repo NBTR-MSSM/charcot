@@ -21,7 +21,6 @@ located [here](https://docs.sst.dev/what-is-sst) to learn more.
 
 ![](../img/sst-overview.jpg)
 
-### Code Structure
 
 ### Components
 
@@ -30,13 +29,13 @@ located [here](https://docs.sst.dev/what-is-sst) to learn more.
 Charcot uses React.js and React Bootstrap for the front end. The front end communicates with the back end via the API
 Gateway routes exposed and RESTful endpoints. The stack code can be found [here](../../stacks/FrontEndStack.ts)
 
-### Back End
+#### Back End
 
 The backend code is split into two stack files, [one](../../stacks/BackEndOdpStack.ts) that provisions the resources
 that belong in the AWS Mt Sinai ODP account, and [the other](../../stacks/BackEndPaidAccountStack.ts) provisions
 resources that go in the AWS Mt Sinai paid account.
 
-### Fulfillment
+#### Fulfillment
 
 The fulfillment module is built using Groovy and deployed as Docker containers. This module is responsible for handling
 the workload to generate image zips and email those to the requester. AWS ECS is used to orchestrate scaling out/in of
