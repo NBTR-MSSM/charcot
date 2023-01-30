@@ -244,6 +244,7 @@ class FulfillmentService implements CommandLineRunner {
     sqs.deleteMessage(sqsOrderQueueUrl, orderInfo.sqsReceiptHandle)
     updateStatus && updateOrderStatus(orderId, 'processed', "Request processed successfully on ${currentTime()}")
     recordOrderSize(orderId, orderInfoDto.size)
+    recordFileCount(orderId, orderInfoDto.fileNames.size())
   }
 
   void updateOrderStatus(String orderId, String status, String remark = null) {
@@ -268,6 +269,14 @@ class FulfillmentService implements CommandLineRunner {
     UpdateItemResult updateItemResult = dynamoDB.updateItem(dynamoDbOrderTableName,
             [orderId: new AttributeValue().withS(orderId)], attributeUpdates)
     log.info "Updated request $orderId size to $size, ${updateItemResult.toString()}"
+  }
+
+  void recordFileCount(String orderId, Integer fileCount) {
+    AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
+    UpdateItemResult updateItemResult = dynamoDB.updateItem(dynamoDbOrderTableName,
+            [orderId: new AttributeValue().withS(orderId)],
+            [fileCount: new AttributeValueUpdate().withValue(new AttributeValue().withN(fileCount.toString()))])
+    log.info "Updated request $orderId fileCount to $fileCount, ${updateItemResult.toString()}"
   }
 
   void updateSqsReceiptHande(String orderId, String sqsReceiptHandle) {
