@@ -190,6 +190,8 @@ class DataService {
       categories: mergedCategories,
       selectedCategories,
       chartHeight: `${chartHeight < 200 ? 200 : (chartHeight > 600 ? 600 : chartHeight)}px`,
+      expandable: chartHeight > 200,
+      realHeight: `${chartHeight}px`,
       tickInterval: calculateTickInterval(mergedCategories),
       selectedCategoryCount: selectedCategories.size,
       selectedSlideCount,

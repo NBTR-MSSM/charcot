@@ -11,21 +11,18 @@ import { AppContext } from '../lib/context'
 import { Table } from 'react-bootstrap'
 
 class Search extends Component {
-  componentDidMount () {
+  componentDidMount() {
     this.context.pushToHistory()
   }
 
-  /**
-   * TODO: Convert to bootstrap <Table>, https://react-bootstrap.github.io/components/table/
-   */
-  render () {
+  render() {
     let filterComponent = ''
     if (!this.props.filter.isEmpty()) {
       filterComponent = <FilterComponent/>
     }
 
     return (
-      <div className='Search'>
+      <div className="Search">
         <h3>Data Search</h3>
         {filterComponent}
         <Table bsPrefix="charcot-search-table">

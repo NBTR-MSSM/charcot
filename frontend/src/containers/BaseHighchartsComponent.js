@@ -1,17 +1,15 @@
-import { Component } from 'react'
+import React, { Component } from 'react'
 import HighchartsReact from 'highcharts-react-official'
 import Highcharts from 'highcharts'
 import merge from 'lodash.merge'
+import Button from 'react-bootstrap/Button'
 
-/**
- * TODO: Calculated dynamically
- * 1. yAxis.tickInterval: So that smaller category values are easier to quite, sort of like the precision of the measurement
- * 2. chart.height: To control spacing between bars
- * 3. plotOptions.series.pointWidth based on number of categories?
- */
 export default class BaseHighchartsComponent extends Component {
   // TODO: Should I just consolidate all the args into 'props'?
-  constructor (props, { chartOptions, dimension }) {
+  constructor(props, {
+    chartOptions,
+    dimension
+  }) {
     super(props)
     this.dimension = dimension
     this.baseChartOptions = {
@@ -53,20 +51,53 @@ export default class BaseHighchartsComponent extends Component {
     merge(this.baseChartOptions, chartOptions)
 
     this.state = {
-      // To avoid unnecessary update keep all options in the state.
+      expanded: false,
       chartOptions: this.baseChartOptions,
       totalSelected: 0
     }
   }
 
+  handleExpand = () => {
+    this.setState({
+      expanded: true
+    })
+    const elem = document.getElementById(`charcot-search-${this.dimension}`)
+    const { realHeight } = this.retrieveDimensionData()
+    elem.style.height = realHeight
+    elem.classList.toggle('charcot-search-div-gradient')
+  }
+
+  handleCollapse = () => {
+    this.setState({
+      expanded: false
+    })
+    const elem = document.getElementById(`charcot-search-${this.dimension}`)
+    elem.style.height = '200px'
+    elem.classList.toggle('charcot-search-div-gradient')
+  }
+
   handleCategorySelect = (event) => {
     const { category } = event.target
-    this.context.handleCategorySelect({ dimension: this.dimension, category })
+    this.context.handleCategorySelect({
+      dimension: this.dimension,
+      category
+    })
   }
 
   handleCategoryUnselect = (event) => {
     const { category } = event.target
-    this.context.handleCategoryUnselect({ dimension: this.dimension, category })
+    this.context.handleCategoryUnselect({
+      dimension: this.dimension,
+      category
+    })
+  }
+
+  retrieveDimensionData = () => {
+    const dimensions = this.context.dimensionData.dimensions
+    if (dimensions.length < 1) {
+      return undefined
+    }
+    return (dimensions.filter(e => e.dimension === this.dimension))[0]
   }
 
   /**
@@ -74,12 +105,16 @@ export default class BaseHighchartsComponent extends Component {
    * on the latest filter.
    */
   updateChart = () => {
-    const dimensions = this.context.dimensionData.dimensions
-    if (dimensions.length < 1) {
+    const dimensionData = this.retrieveDimensionData()
+    if (!dimensionData) {
       return
     }
 
-    const { categories, chartHeight, tickInterval } = (dimensions.filter(e => e.dimension === this.dimension))[0]
+    const {
+      categories,
+      chartHeight,
+      tickInterval
+    } = dimensionData
 
     this.setState({
       chartOptions: {
@@ -111,27 +146,48 @@ export default class BaseHighchartsComponent extends Component {
     })
   }
 
-  componentDidMount () {
-    // console.log(`JMQ: chart ${this.dimension} mounted`)
+  componentDidMount() {
+    console.log('JMQ: componentDidMount()')
   }
 
-  /**
-   * If filter changed, update the charts.
-   */
-  componentDidUpdate (prevProps) {
+  componentDidUpdate(prevProps) {
+    console.log('JMQ: componentDidUpdate()')
     if (this.props.filter !== prevProps.filter) {
+      console.log('JMQ: update worthy change')
       this.updateChart()
     }
   }
 
-  render () {
+  renderExpandButton = () => {
+    const dimensionData = this.retrieveDimensionData()
+    if (!dimensionData || !dimensionData.expandable) {
+      return
+    }
+    return <Button onClick={this.handleExpand} className="charcot-search-expand-btn"
+                   type="reset" size="sm">Expand</Button>
+  }
+
+  renderCollapseButton = () => {
+    const dimensionData = this.retrieveDimensionData()
+    if (!dimensionData || !dimensionData.expandable) {
+      return
+    }
+    return <Button onClick={this.handleCollapse} className="charcot-search-collapse-btn"
+                   type="reset" size="sm">Collapse</Button>
+  }
+
+  render() {
     const { chartOptions } = this.state
+    const classes = ['charcot-search-div']
+    const dimensionData = this.retrieveDimensionData()
+    dimensionData && dimensionData.expandable && classes.push('charcot-search-div-gradient')
     return (
-      <div>
+      <div id={`charcot-search-${this.dimension}`} className={classes.join(' ')}>
         <HighchartsReact
           highcharts={Highcharts}
           options={chartOptions}
         />
+        {this.state.expanded ? this.renderCollapseButton() : this.renderExpandButton()}
       </div>
     )
   }

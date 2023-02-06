@@ -15,9 +15,9 @@ const savedState = {
 class TransactionItem extends Component {
   constructor(props) {
     super(props)
-    console.log('JMQ: constructor()')
     this.state = {
       isShowOrderCancelConfirmModal: false,
+      // Prevent impatient repeated clicks
       isDisableOrderCancelConfirmModalButtons: false,
       isShowSuccessfulOrderCancellationConfirmation: false
     }
