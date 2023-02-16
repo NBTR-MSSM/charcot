@@ -97,9 +97,9 @@ class OrderSearch extends Search {
   /**
    * Retrieves orders and paginates as appropriate
    */
-  async retrieve(event: APIGatewayProxyEventV2 | string): Promise<Record<string, any>> {
+  async retrieve(event: APIGatewayProxyEventV2 | string): Promise<Record<string, unknown>> {
     let retItems: DocumentClient.ItemList = []
-    let retBody: OrderRetrievalOutput | Record<string, any> = {}
+    let retBody: OrderRetrievalOutput | Record<string, unknown> = {}
     if (typeof event !== 'string') {
       // Get info across all orders
       const pageSize = Number.parseInt((event.queryStringParameters && event.queryStringParameters.pageSize) || '10')
@@ -110,8 +110,12 @@ class OrderSearch extends Search {
       const { orderCount } = totals
       const totalPages = Math.ceil(orderCount / pageSize)
       if (page > totalPages && totalPages > 0) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         return new HttpResponse(401, `Page ${page} is out of bounds (only ${totalPages} available at ${pageSize} items per page)`)
       } else if (totalPages === 0) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         return new HttpResponse(200, 'No records found', {
           orders: []
         })
@@ -167,6 +171,8 @@ class OrderSearch extends Search {
     }
 
     retBody.orders = retItems as CerebrumImageOrder[]
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     return new HttpResponse(200, '', retBody
     )
   }

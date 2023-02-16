@@ -1,29 +1,41 @@
-import { IVpc, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2'
-import { Construct } from 'constructs'
-import * as sst from '@serverless-stack/resources'
+import { SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2'
+import * as sst from 'sst/constructs'
 
-export default class CommonStack extends sst.Stack {
-  vpc: IVpc
-  vpcId: string
+const calculateZipBucketName = (stage: string) => {
+  const bucketSuffix = stage === 'prod' ? '' : `-${stage}`
+  return `cerebrum-image-zip${bucketSuffix}`
+}
 
-  constructor(scope: Construct, id: string, props: sst.StackProps) {
-    super(scope, id, props)
+export function CommonStack({ stack }: sst.StackContext) {
+  const zipBucketName = calculateZipBucketName(stack.stage)
 
-    this.vpc = new Vpc(this, 'CharcotFulfillmentServiceVpc', {
-      vpcName: `${this.stage}-charcot`,
-      cidr: '10.1.0.0/17',
-      maxAzs: 2,
-      subnetConfiguration: [
-        {
-          name: 'charcot-ingress',
-          subnetType: SubnetType.PUBLIC
-        }
-      ]
-    })
+  /*
+   * VPC is irrelevant for ODP account. See FulfillmentStack for implications and reason
+   * we do this for the ODP account.
+   */
+  if (stack.account === '950869325006') {
+    return { zipBucketName, vpc: undefined }
+  }
+  const vpc = new Vpc(stack, 'CharcotFulfillmentServiceVpc', {
+    vpcName: `${stack.stage}-charcot`,
+    // ipAddresses: '',
+    cidr: '10.1.0.0/17',
+    maxAzs: 2,
+    subnetConfiguration: [
+      {
+        name: 'charcot-ingress',
+        subnetType: SubnetType.PUBLIC
+      }
+    ]
+  })
 
-    this.vpcId = this.vpc.vpcId
-    this.addOutputs({
-      VpcId: this.vpcId
-    })
+  stack.addOutputs({
+    VpcId: vpc.vpcId
+  })
+
+  return {
+    vpcId: vpc.vpcId,
+    zipBucketName,
+    vpc
   }
 }
