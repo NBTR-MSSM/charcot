@@ -495,5 +495,55 @@
         ]
       }
     ]
+  },
+  "vpc-provider:account=045387143127:filter.vpc-id=vpc-0b3bb4d61fee9f816:region=us-east-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-0b3bb4d61fee9f816",
+    "vpcCidrBlock": "10.1.0.0/17",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "charcot-ingress",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-080ad703f7644a2da",
+            "cidr": "10.1.0.0/18",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-06d822c761ed47772"
+          },
+          {
+            "subnetId": "subnet-0551663aa0855a558",
+            "cidr": "10.1.64.0/18",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-0a24bcd0fb18cd536"
+          }
+        ]
+      }
+    ]
+  },
+  "vpc-provider:account=045387143127:filter.vpc-id=vpc-0def406f5f25af4c6:region=us-east-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-0def406f5f25af4c6",
+    "vpcCidrBlock": "10.1.0.0/17",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "charcot-ingress",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-0d3077bc4d79580d6",
+            "cidr": "10.1.0.0/18",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-091fabb68d3159cd4"
+          },
+          {
+            "subnetId": "subnet-01bd3d8089cd8a591",
+            "cidr": "10.1.64.0/18",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-0efa14e67e0b4677e"
+          }
+        ]
+      }
+    ]
   }
 }

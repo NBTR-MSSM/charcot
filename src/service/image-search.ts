@@ -13,7 +13,7 @@ const isFilter = (input: unknown): input is Filter => {
 }
 
 class ImageSearch extends Search {
-  async search(event: APIGatewayProxyEventV2 | Filter): Promise<Record<string, any>> {
+  async search(event: APIGatewayProxyEventV2 | Filter): Promise<Record<string, unknown>> {
     const params: DocumentClient.QueryInput = {
       TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string
     }
@@ -27,6 +27,8 @@ class ImageSearch extends Search {
       responseCode = 200
     }
     await this.handleSearch(params, callback)
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     return new HttpResponse(responseCode, '', {
       headers: {
         'Content-Type': 'application/json'

@@ -16,7 +16,7 @@
     "deploy:fulfillment:dev": "AWS_PROFILE=mssm npx sst deploy --stage dev fulfillment"
   },
   "devDependencies": {
-    "@tsconfig/node14": "^1.0.1",
+    "@tsconfig/node18": "^1.0.1",
     "@types/aws-lambda": "^8.10.70",
     "@types/jest": "^27.0.3",
     "@types/lodash.merge": "^4.6.6",
@@ -25,6 +25,7 @@
     "@types/uuid": "^8.3.3",
     "@typescript-eslint/eslint-plugin": "^5.3.1",
     "@typescript-eslint/parser": "^5.3.1",
+    "constructs": "^10.1.156",
     "eslint-config-serverless-stack": "^0.69.7",
     "eslint-config-standard": "^16.0.3",
     "eslint-plugin-import": "^2.25.3",
@@ -32,14 +33,13 @@
     "eslint-plugin-promise": "^5.1.1",
     "jest": "^28.1.3",
     "json-array-streams": "^1.0.1",
+    "sst": "^2.0.23",
     "ts-jest": "^28.0.7",
     "yargs": "^17.3.1"
   },
   "dependencies": {
     "@exsoinn/aws-sdk-wrappers": "^1.14.2",
-    "@serverless-stack/cli": "1.4.0",
-    "@serverless-stack/resources": "^1.4.0",
-    "aws-cdk-lib": "2.24.0",
+    "aws-cdk-lib": "^2.62.2",
     "change-case": "^4.1.2",
     "lodash.merge": "^4.6.2",
     "nodemailer": "^6.7.2",
