@@ -40,7 +40,10 @@ export function FrontendStack({ stack }: sst.StackContext) {
     }
   })
 
-  // Show the url in the output and the environment used for this React app
+  /*
+   * After SST 2.x upgrade, need to comment out below block entirely when removing stack:
+   * https://discord.com/channels/983865673656705025/983866416832864350/1076597603220848690
+   */
   stack.addOutputs({
     SiteUrl: (site.customDomainUrl || site.url) as string,
     DistributionDomain: site.cdk.distribution.domainName,

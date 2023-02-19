@@ -64,7 +64,6 @@ const commandObjs = [
 ]
 
 process.chdir(path.resolve(__dirname, '../'))
-console.log(process.cwd())
 
 try {
   if (action === 'remove') {
