@@ -33,6 +33,10 @@
     font-size: .75rem;
 }
 
+.Splash .icon-container2 a {
+    text-decoration: none;
+    color: black;
+}
 
 .Splash .icon2 {
     width: 350px;

@@ -26,11 +26,11 @@ class Splash extends Component {
       </table>
       <table className='icon-container2'>
         <tr>
-          <td><span className="square border-end"><img className='icon2 ismms' src='./ismms.jpg'/></span></td>
-          <td><span className="square border-end"><img className='icon2 us-dept-va-affairs'
-                                                       src='./us-dept-va-affairs.jpg'/>Mental Illness Research and Education Clinical Center (MIRECC)</span>
+          <td><span className="square border-end"><a href='https://icahn.mssm.edu/'><img className='icon2 ismms' src='./ismms.jpg'/></a></span></td>
+          <td><span className="square border-end"><a href='https://www.mirecc.va.gov/visn2/'><img className='icon2 us-dept-va-affairs'
+                                                       src='./us-dept-va-affairs.jpg'/>Mental Illness Research and Education Clinical Center (MIRECC)</a></span>
           </td>
-          <td><span><img className='icon2' src='./neuro-bio-bank.jpg'/>The Mount Sinai NIH Neurobiobank</span></td>
+          <td><span><a href='https://neurobiobank.nih.gov/'><img className='icon2' src='./neuro-bio-bank.jpg'/>The Mount Sinai NIH Neurobiobank</a></span></td>
         </tr>
       </table>
     </div>)
