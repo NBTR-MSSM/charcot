@@ -30,9 +30,6 @@ export function FrontendStack({ stack }: sst.StackContext) {
     buildCommand: 'npm run build',
     buildOutput: 'dist',
     environment,
-    cdk: {
-      id: `${stage}-charcot-frontend`
-    },
     customDomain: {
       domainName: stage === 'prod' ? 'www.mountsinaicharcot.org' : `${stage}.mountsinaicharcot.org`,
       domainAlias: stage === 'prod' ? 'mountsinaicharcot.org' : undefined,

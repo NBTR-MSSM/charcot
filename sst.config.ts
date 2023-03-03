@@ -18,22 +18,27 @@ export default {
     const stage = app.stage
     app
       .stack(CommonStack, {
+        id: 'common',
         stackName: `${stage}-${app.name}-common`,
         tags: { created_by: 'sst' }
       })
       .stack(BackEndPaidAccountStack, {
+        id: 'backend-paid-account',
         stackName: `${stage}-${app.name}-backend-paid-account`,
         tags: { created_by: 'sst' }
       })
       .stack(FulfillmentStack, {
+        id: 'fulfillment',
         stackName: `${stage}-${app.name}-fulfillment`,
         tags: { created_by: 'sst' }
       })
       .stack(FrontendStack, {
+        id: 'frontend',
         stackName: `${stage}-${app.name}-frontend`,
         tags: { created_by: 'sst' }
       })
       .stack(BackEndOdpStack, {
+        id: 'backend-odp',
         stackName: `${stage}-${app.name}-backend-odp`,
         tags: { created_by: 'sst' }
       })
