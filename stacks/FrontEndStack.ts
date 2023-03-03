@@ -28,8 +28,11 @@ export function FrontendStack({ stack }: sst.StackContext) {
   const site = new sst.StaticSite(stack, 'ReactSite', {
     path: 'frontend',
     buildCommand: 'npm run build',
-    buildOutput: 'build',
+    buildOutput: 'dist',
     environment,
+    cdk: {
+      id: `${stage}-charcot-frontend`
+    },
     customDomain: {
       domainName: stage === 'prod' ? 'www.mountsinaicharcot.org' : `${stage}.mountsinaicharcot.org`,
       domainAlias: stage === 'prod' ? 'mountsinaicharcot.org' : undefined,
@@ -44,10 +47,16 @@ export function FrontendStack({ stack }: sst.StackContext) {
    * After SST 2.x upgrade, need to comment out below block entirely when removing stack:
    * https://discord.com/channels/983865673656705025/983866416832864350/1076597603220848690
    */
-  stack.addOutputs({
-    SiteUrl: (site.customDomainUrl || site.url) as string,
-    DistributionDomain: site.cdk.distribution.domainName,
-    DistributionId: site.cdk.distribution.distributionId,
-    Environment: JSON.stringify(environment, null, 2)
-  })
+  if (stack.stage !== 'debug') {
+    stack.addOutputs({
+      SiteUrl: (site.customDomainUrl || site.url) as string,
+      DistributionDomain: site.cdk.distribution.distributionDomainName,
+      DistributionId: site.cdk.distribution.distributionId,
+      Environment: JSON.stringify(environment, null, 2)
+    })
+  } else {
+    stack.addOutputs({
+      SiteUrl: 'foo'
+    })
+  }
 }
