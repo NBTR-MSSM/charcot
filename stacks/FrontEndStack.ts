@@ -28,7 +28,7 @@ export function FrontendStack({ stack }: sst.StackContext) {
   const site = new sst.StaticSite(stack, 'ReactSite', {
     path: 'frontend',
     buildCommand: 'npm run build',
-    buildOutput: 'dist',
+    buildOutput: 'build',
     environment,
     customDomain: {
       domainName: stage === 'prod' ? 'www.mountsinaicharcot.org' : `${stage}.mountsinaicharcot.org`,

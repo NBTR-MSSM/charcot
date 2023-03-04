@@ -43,23 +43,23 @@ const { paidAccountProfile, odpAccountProfile, stage, cleanup } = argv
 const commandObjs = [
   {
     profile: paidAccountProfile,
-    stack: 'Common'
+    stack: 'common'
   },
   {
     profile: paidAccountProfile,
-    stack: 'BackEndPaidAccount',
+    stack: 'backend-paid-account',
   },
   {
     profile: paidAccountProfile,
-    stack: 'Fulfillment',
+    stack: 'fulfillment',
   },
   {
     profile: odpAccountProfile,
-    stack: 'BackendOdp',
+    stack: 'backend-odp',
   },
   {
     profile: paidAccountProfile,
-    stack: 'Frontend',
+    stack: 'frontend',
   }
 ]
 
