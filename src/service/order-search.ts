@@ -87,7 +87,7 @@ const goToPage = (items: DocumentClient.ItemList, page: number, pageSize: number
    * page is not full, I.e. num of items in last page < pageSize
    */
   const numItemsOfLastPage = items.length % pageSize
-  if (page >= items.length / pageSize && numItemsOfLastPage) {
+  if (numItemsOfLastPage && page >= items.length / pageSize) {
     last = last - numItemsOfLastPage + 1
   }
   return items.slice(first, last)
@@ -122,7 +122,19 @@ class OrderSearch extends Search {
       }
 
       const params: DocumentClient.QueryInput = {
-        TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string
+        TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string,
+        ExpressionAttributeNames: {
+          '#orderId': 'orderId',
+          '#email': 'email',
+          '#created': 'created',
+          '#filter': 'filter',
+          '#status': 'status',
+          '#fulfilled': 'fulfilled',
+          '#remark': 'remark',
+          '#size': 'size',
+          '#fileCount': 'fileCount'
+        },
+        ProjectionExpression: '#orderId, #email, #created, #filter, #status, #fulfilled, #remark, #size, #fileCount'
       }
 
       /*
@@ -141,8 +153,9 @@ class OrderSearch extends Search {
         sort(retItems, sortBy, sortOrder)
       }
 
-      // If page is 0 or a negative value, grab all the records
-      if (page > 0) {
+      // If page is 0 or a negative value, or all items fit in a single page,
+      // grab all the records
+      if (page > 0 && orderCount > pageSize) {
         retItems = goToPage(retItems, page, pageSize)
       }
 

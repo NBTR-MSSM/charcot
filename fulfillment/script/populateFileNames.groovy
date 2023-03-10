@@ -10,7 +10,7 @@ import groovyx.net.http.RESTClient
 
 /*
  * Retrofit the order size in bytes, by looking at list of files processed
- * and then querying S3 to get a sum of the size of each file per order, then
+ * and then querying S3 to get a sum of the size of each file per order, and finally
  * update the order size in DynamoDB order table
  */
 

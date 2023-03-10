@@ -1,7 +1,7 @@
 #!/usr/bin/env zx
 
 /**
- * One off created to update in DynamoDB order table the request create dates to be milliseconds since the epoch before
+ * One-off created to update in DynamoDB order table the request create dates to be milliseconds since the epoch before
  * such change was made in the Charcot app. Initially Charcot was capturing the date in ISO standard format, but in order
  * to make sorting by date easier, decided to start capturing in milliseconds. Also the type of the 'created' field in DynamoDB
  * was changed from 'string' to 'number'. This script updates the type also. After this script runs, then can update

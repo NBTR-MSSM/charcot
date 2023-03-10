@@ -40,7 +40,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "AWS_PROFILE=mssm sst env 'react-scripts start' --stage debug",
+    "dev": "AWS_PROFILE=mssm sst env 'react-scripts start' --stage debug",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

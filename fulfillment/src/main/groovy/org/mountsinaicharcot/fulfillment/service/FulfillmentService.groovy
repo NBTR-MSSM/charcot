@@ -406,6 +406,10 @@ class FulfillmentService implements CommandLineRunner {
   String generateSignedZipUrl(OrderInfoDto orderInfoDto, String zipName) {
     AmazonS3 s3 = AmazonS3ClientBuilder.standard().build()
 
+    /*
+     * FIXME: Can't we just assume in local we always deploy everything to same account (mssm - paid account profile)? Doing
+     *  Paid/ODP account stack split is the reason this was originally added, but do not think there's too much value in that split
+     */
     if (local) {
       // In local the 'mssm-odp' AWS profile should exist
       s3 = AmazonS3ClientBuilder.standard().withCredentials(new ProfileCredentialsProviderV1(odpProfileName)).build()
