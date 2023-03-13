@@ -40,11 +40,11 @@ const sort = <T extends Record<string, string | unknown>>(items: T[], sortBy: st
     if (typeof left === 'number' && typeof right === 'number') {
       ret = sortOrder === 'desc' ? right - left : left - right
     } else if (typeof left === 'string' && typeof right === 'string') {
-      let strOne = left
-      let strTwo = right
+      let strOne = left.toLowerCase()
+      let strTwo = right.toLowerCase()
       if (sortOrder === 'desc') {
-        strOne = right
-        strTwo = left
+        strOne = right.toLowerCase()
+        strTwo = left.toLowerCase()
       }
       if (strOne < strTwo) {
         ret = -1
@@ -56,7 +56,7 @@ const sort = <T extends Record<string, string | unknown>>(items: T[], sortBy: st
     } else {
       ret = 0
     }
-    // If we have a tie, use request created timestamp to break it
+    // If we have a tie, use create timestamp to break it
     return ret === 0 ? comparator(a, b, 'created') : ret
   }
 
@@ -148,6 +148,12 @@ class OrderSearch extends Search {
 
       await this.handleSearch(params, callback)
 
+      // Enrich each order record
+      for (const item of retItems) {
+        await populateUserData(item)
+        item.isCancellable = cancelEligibleStatuses.has(item.status)
+      }
+
       // apply sorting
       if (sortOrder === 'asc' || sortOrder === 'desc') {
         sort(retItems, sortBy, sortOrder)
@@ -172,15 +178,17 @@ class OrderSearch extends Search {
         TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME,
         Key: { orderId: event }
       })
-      if (res.Item) {
-        retItems.push(res.Item)
+      const item = res.Item
+      if (!item) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        return new HttpResponse(200, `Request ${event} not found`, {
+          orders: []
+        })
       }
-    }
-
-    // Enrich each order record
-    for (const item of retItems) {
       await populateUserData(item)
       item.isCancellable = cancelEligibleStatuses.has(item.status)
+      retItems.push(item)
     }
 
     retBody.orders = retItems as CerebrumImageOrder[]
