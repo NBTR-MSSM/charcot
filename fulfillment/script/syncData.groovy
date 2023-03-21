@@ -16,6 +16,9 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUsersRe
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolDescriptionType
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserResponse
 
+/**
+ * Use this script to copy user and order data from one environment to the other.
+ */
 def cli = buildCli()
 def opts = cli.parse(this.args)
 
@@ -31,7 +34,7 @@ if (opts.h) {
 String sourceStage = opts.'source-stage'
 String targetStage = opts.'target-stage'
 loadUsers(sourceStage, targetStage)
-//loadOrders(sourceStage, targetStage)
+loadOrders(sourceStage, targetStage)
 // end: main program
 
 
