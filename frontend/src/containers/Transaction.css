@@ -18,3 +18,8 @@
 .Transaction .input-group {
     width: 20%;
 }
+
+.Transaction .transactions-per-page {
+    float: left;
+    margin-right: 50px;
+}

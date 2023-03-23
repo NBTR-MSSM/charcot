@@ -17,6 +17,7 @@ class Transaction extends Component {
     super(props)
     this.state = {
       orders: [],
+      filteredOrders: undefined,
       ordersSerialized: [],
       page: 1,
       isLoading: false,
@@ -27,7 +28,8 @@ class Transaction extends Component {
       orderCount: 0,
       size: 0,
       slides: 0,
-      uniqueUsers: 0
+      uniqueUsers: 0,
+      searchTerm: ''
     }
   }
 
@@ -72,6 +74,7 @@ class Transaction extends Component {
   fetchOrders = async (queryParams) => {
     return await API.get('charcot', '/cerebrum-image-orders', {
       queryStringParameters: {
+        searchTerm: this.state.searchTerm,
         pageSize: this.state.pageSize,
         page: this.state.page,
         sortBy: this.state.sortBy,
@@ -107,6 +110,9 @@ class Transaction extends Component {
       slides: this.state.slides,
       uniqueUsers: this.state.uniqueUsers
     })
+
+    // If state contains a search term, apply it
+    this.state.searchTerm && this.applySearchTerm(this.state.searchTerm)
   }
 
   renderLoading = () => (
@@ -126,18 +132,35 @@ class Transaction extends Component {
     </Modal>
   )
 
-  debouncedHandlePageSizeChange = debounce(this.retrieveOrders, 500)
+  debouncedRetrieveOrders = debounce(this.retrieveOrders, 500)
 
   handlePageSizeChange = async (event) => {
-    const newState = {}
     const {
-      id,
-      value
+      value: pageSize
     } = event.target
-    console.log(`JMQ: id is ${id}, value is ${value}`)
-    newState[id] = value
-    this.setState(newState)
-    await this.debouncedHandlePageSizeChange()
+    this.setState({
+      pageSize
+    })
+    await this.debouncedRetrieveOrders()
+  }
+
+  applySearchTerm = searchTerm => {
+    console.log(`JMQ: applying searchTerm ${searchTerm}`)
+    const trimmedSearchTerm = searchTerm.trim()
+    this.setState({
+      filteredOrders: trimmedSearchTerm ? this.state.orders.filter((e) => `${e.email}${e.institutionName}${e.requester}`.match(new RegExp(trimmedSearchTerm, 'i'))) : undefined
+    })
+  }
+
+  handleSearchTermChange = async (event) => {
+    const {
+      value: searchTerm
+    } = event.target
+    console.log(`JMQ: searchTerm is ${searchTerm}`)
+    this.applySearchTerm(searchTerm)
+    this.setState({
+      searchTerm
+    })
   }
 
   handlePageChange = (event) => {
@@ -179,10 +202,10 @@ class Transaction extends Component {
     })
   }
 
-  renderPageSizeChangeForm = () => {
-    return <Form>
+  renderControlForm = () => (
+    <Form>
       <Form.Group controlId="pageSize" size="sm">
-        <InputGroup className="mb-3">
+        <InputGroup className="mb-3 transactions-per-page">
           <InputGroup.Text id="basic-addon1">Transactions per Page</InputGroup.Text>
           <Form.Control
             aria-describedby="basic-addon1"
@@ -192,9 +215,19 @@ class Transaction extends Component {
             onFocus={() => this.setState({ pageSize: '' })}
           />
         </InputGroup>
+        <Form.Group controlId="searchTerm" size="sm">
+          <InputGroup className="mb-3">
+            <InputGroup.Text id="basic-addon1">Search Term</InputGroup.Text>
+            <Form.Control
+              aria-describedby="basic-addon1"
+              type="text"
+              value={this.state.searchTerm}
+              onChange={this.handleSearchTermChange}
+            />
+          </InputGroup>
+        </Form.Group>
       </Form.Group>
-    </Form>
-  }
+    </Form>)
 
   renderPagination = () => {
     const items = []
@@ -249,7 +282,8 @@ class Transaction extends Component {
 
   renderLoaded = () => {
     const pagination = this.renderPagination()
-    const pageSizeChangeForm = this.renderPageSizeChangeForm()
+    const pageSizeChangeForm = this.renderControlForm()
+    const orders = this.state.filteredOrders || this.state.orders
     return (<div className="Transaction">
       {pageSizeChangeForm}
       {pagination}
@@ -265,12 +299,13 @@ class Transaction extends Component {
           <th><a href="" onClick={this.handleSort} name="email">{this.renderSortIcon('email')}Email</a></th>
           <th>Criteria</th>
           <th><a href="" onClick={this.handleSort} name="size">{this.renderSortIcon('size')}Size</a></th>
-          <th><a href="" onClick={this.handleSort} name="fileCount">{this.renderSortIcon('fileCount')}Slide Count</a></th>
+          <th><a href="" onClick={this.handleSort} name="fileCount">{this.renderSortIcon('fileCount')}Slide Count</a>
+          </th>
           <th>Status</th>
         </tr>
         </thead>
         <tbody>
-        {this.state.orders.map((e) => (<TransactionItem key={e.orderId} item={e}/>))}
+        {orders.map((e) => (<TransactionItem key={e.orderId} item={e}/>))}
         </tbody>
       </Table>
       {pagination}
