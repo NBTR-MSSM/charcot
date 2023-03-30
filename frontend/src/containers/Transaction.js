@@ -9,6 +9,8 @@ import { BsArrowRepeat, BsSortDownAlt, BsSortUpAlt } from 'react-icons/bs'
 import { DateTimeFormatter, LocalDateTime } from 'js-joda'
 import Form from 'react-bootstrap/Form'
 import debounce from 'lodash.debounce'
+import paginationService from '../lib/PaginationService'
+import sortService from '../lib/SortService'
 
 const formattedDateTime = () => LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyyMMdd-HH-mm-ss'))
 
@@ -17,11 +19,11 @@ class Transaction extends Component {
     super(props)
     this.state = {
       orders: [],
-      filteredOrders: undefined,
+      selectedOrders: undefined,
       ordersSerialized: [],
       page: 1,
       isLoading: false,
-      pageSize: 15,
+      pageSize: 10,
       totalPages: 0,
       sortBy: 'created',
       sortOrder: 'desc',
@@ -37,13 +39,7 @@ class Transaction extends Component {
     console.log('transaction mounted')
     this.context.pushToHistory()
     await this.retrieveOrders()
-  }
-
-  async componentDidUpdate(prevProps, prevState) {
-    if (this.state.page !== prevState.page || this.state.sortBy !== prevState.sortBy || this.state.sortOrder !== prevState.sortOrder) {
-      console.log('transaction updated')
-      await this.retrieveOrders()
-    }
+    this.updatePagination()
   }
 
   createDownloadUrl = () => {
@@ -76,7 +72,8 @@ class Transaction extends Component {
       queryStringParameters: {
         searchTerm: this.state.searchTerm,
         pageSize: this.state.pageSize,
-        page: this.state.page,
+        // page: this.state.page,
+        page: -1,
         sortBy: this.state.sortBy,
         sortOrder: this.state.sortOrder,
         ...queryParams
@@ -135,20 +132,35 @@ class Transaction extends Component {
   debouncedRetrieveOrders = debounce(this.retrieveOrders, 500)
 
   handlePageSizeChange = async (event) => {
-    const {
-      value: pageSize
-    } = event.target
-    this.setState({
-      pageSize
+    /*
+     * updatePagination() updates the state, so to avoid infinite loop it has
+     * to be invoked outside componentDidUpdate(), individually in every relevant place
+     * that needs to update pagination
+     */
+    this.updatePagination({
+      page: 1,
+      pageSize: event.target.value
     })
-    await this.debouncedRetrieveOrders()
+  }
+
+  updatePagination = ({
+    pageSize = this.state.pageSize,
+    page = this.state.page
+  } = {}) => {
+    pageSize = pageSize < 1 ? 10 : pageSize
+    page = page < 1 ? 1 : page
+    this.setState({
+      page,
+      pageSize,
+      totalPages: Math.ceil(this.state.orderCount / pageSize),
+      selectedOrders: paginationService.goToPage(this.state.orders, page, pageSize)
+    })
   }
 
   applySearchTerm = searchTerm => {
-    console.log(`JMQ: applying searchTerm ${searchTerm}`)
     const trimmedSearchTerm = searchTerm.trim()
     this.setState({
-      filteredOrders: trimmedSearchTerm ? this.state.orders.filter((e) => `${e.email}${e.institutionName}${e.requester}`.match(new RegExp(trimmedSearchTerm, 'i'))) : undefined
+      selectedOrders: trimmedSearchTerm ? this.state.orders.filter((e) => `${e.email}${e.institutionName}${e.requester}`.match(new RegExp(trimmedSearchTerm, 'i'))) : undefined
     })
   }
 
@@ -156,7 +168,6 @@ class Transaction extends Component {
     const {
       value: searchTerm
     } = event.target
-    console.log(`JMQ: searchTerm is ${searchTerm}`)
     this.applySearchTerm(searchTerm)
     this.setState({
       searchTerm
@@ -187,9 +198,11 @@ class Transaction extends Component {
       // It's a number
     }
 
-    this.setState({
-      page: Number.parseInt(page)
-    })
+    /*
+     * See comment about why we invoke in multiple place as opposed to
+     * a single invocation in componentDidUpdate()
+     */
+    this.updatePagination({ page: Number.parseInt(page) })
   }
 
   handleSort = (event) => {
@@ -198,8 +211,12 @@ class Transaction extends Component {
     const sortOrder = this.state.sortOrder === 'desc' ? 'asc' : 'desc'
     this.setState({
       sortBy,
-      sortOrder
+      sortOrder,
+      orders: sortService.sort(this.state.orders, sortBy, sortOrder)
     })
+    this.updatePagination()
+    // If state contains a search term, apply it
+    this.state.searchTerm && this.applySearchTerm(this.state.searchTerm)
   }
 
   renderControlForm = () => (
@@ -283,7 +300,7 @@ class Transaction extends Component {
   renderLoaded = () => {
     const pagination = this.renderPagination()
     const pageSizeChangeForm = this.renderControlForm()
-    const orders = this.state.filteredOrders || this.state.orders
+    const orders = this.state.selectedOrders || this.state.orders
     return (<div className="Transaction">
       {pageSizeChangeForm}
       {pagination}

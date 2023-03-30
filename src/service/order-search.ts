@@ -79,17 +79,14 @@ const sort = <T extends Record<string, string | unknown>>(items: T[], sortBy: st
  *   (1-based) 1 2 3 4 5 6 7 8 9 10 11 12 13
  *   (0-based) 0 1 2 3 4 5 6 7 8 09 10 11 12
  */
-const goToPage = (items: DocumentClient.ItemList, page: number, pageSize: number) => {
-  const first = (pageSize * page) - pageSize
-  let last = (pageSize * page)
-  /*
-   * Is the page requested the last one? If so adjust the 'last' item index if last
-   * page is not full, I.e. num of items in last page < pageSize
-   */
-  const numItemsOfLastPage = items.length % pageSize
-  if (numItemsOfLastPage && page >= items.length / pageSize) {
-    last = last - numItemsOfLastPage + 1
+const goToPage = (items: DocumentClient.ItemList, page: number, pageSize: number, orderCount: number) => {
+  // If page is not a positive value, or all items fit in a single page,
+  // just grab all the records
+  if (page < 1 || orderCount <= pageSize) {
+    return items
   }
+  const first = (pageSize * page) - pageSize
+  const last = (pageSize * page)
   return items.slice(first, last)
 }
 
@@ -112,7 +109,7 @@ class OrderSearch extends Search {
       if (page > totalPages && totalPages > 0) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        return new HttpResponse(401, `Page ${page} is out of bounds (only ${totalPages} available at ${pageSize} items per page)`)
+        return new HttpResponse(401, `Requested page ${page} is out of bounds (only ${totalPages} available at ${pageSize} items per page)`)
       } else if (totalPages === 0) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
@@ -159,11 +156,7 @@ class OrderSearch extends Search {
         sort(retItems, sortBy, sortOrder)
       }
 
-      // If page is 0 or a negative value, or all items fit in a single page,
-      // grab all the records
-      if (page > 0 && orderCount > pageSize) {
-        retItems = goToPage(retItems, page, pageSize)
-      }
+      retItems = goToPage(retItems, page, pageSize, orderCount)
 
       retBody = {
         pageSize,

@@ -196,7 +196,7 @@ describe('cerebrum-image-order', () => {
     expect(res).toEqual({
       statusCode: 401,
       body: JSON.stringify({
-        message: 'Page 6 is out of bounds (only 5 available at 1 items per page)'
+        message: 'Requested page 6 is out of bounds (only 5 available at 1 items per page)'
       }, null, ' ')
     })
   })
