@@ -36,11 +36,11 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.CommandLineRunner
 import org.springframework.stereotype.Service
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
-import software.amazon.awssdk.transfer.s3.FileDownload
-import software.amazon.awssdk.transfer.s3.FileUpload
-import software.amazon.awssdk.transfer.s3.S3ClientConfiguration
+import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.transfer.s3.S3TransferManager
-import software.amazon.awssdk.transfer.s3.UploadFileRequest
+import software.amazon.awssdk.transfer.s3.model.FileDownload
+import software.amazon.awssdk.transfer.s3.model.FileUpload
+import software.amazon.awssdk.transfer.s3.model.UploadFileRequest
 
 import java.nio.charset.Charset
 import java.nio.file.Paths
@@ -146,10 +146,16 @@ class FulfillmentService implements CommandLineRunner {
 
     calculateOrderSizeAndPartitionIntoBuckets(orderInfoDto)
     Map<Integer, List<String>> bucketToFileList = orderInfoDto.bucketToFileList
-            // Report on original number of buckets before any filtering of already processed files takes place
+    // Report on original number of buckets before any filtering of already processed files takes place
     int totalZips = bucketToFileList.size()
     orderInfoDto.filesProcessed && filterAlreadyProcessedFiles(bucketToFileList, orderInfoDto.filesProcessed)
-    int zipCnt = bucketToFileList.keySet().min() + 1
+    /*
+     * In reprocess scenarios, all files might have been processed already,
+     * in which case bucketToFileList will be empty because filterAlreadyProcessedFiles() detected
+     * that all files have already been processed.
+     */
+
+    int zipCnt = bucketToFileList ? bucketToFileList.keySet().min() + 1 : 0
     def canceled = bucketToFileList.find { Integer bucketNumber, List<String> filesToZip ->
       def startAll = System.currentTimeMillis()
       /*
@@ -340,7 +346,7 @@ class FulfillmentService implements CommandLineRunner {
       keysToDownload << key
     }
 
-    try (S3TransferManager transferManager = S3TransferManager.create()) {
+    try (S3TransferManager transferManager = S3TransferManager.builder().s3Client(S3AsyncClient.crtBuilder().build()).build()) {
       keysToDownload.each { String keyToDownload ->
         FileDownload download =
                 transferManager.downloadFile({ b ->
@@ -387,12 +393,12 @@ class FulfillmentService implements CommandLineRunner {
     systemStats()
     String zipPath = "$workFolder/$zipName"
     log.info "Uploading Zip $zipPath to $s3ZipBucketName S3 bucket"
-    try (S3TransferManager transferManager = S3TransferManager.builder().s3ClientConfiguration({ S3ClientConfiguration.Builder cfg ->
-      cfg.minimumPartSizeInBytes(50000000)
-      if (local) {
-        cfg.credentialsProvider(ProfileCredentialsProvider.create(odpProfileName))
-      }
-    }).build()) {
+    def s3ClientBuilder = S3AsyncClient.crtBuilder()
+            .minimumPartSizeInBytes(50000000)
+    if (local) {
+      s3ClientBuilder.credentialsProvider(ProfileCredentialsProvider.create(odpProfileName))
+    }
+    try (S3TransferManager transferManager = S3TransferManager.builder().s3Client(s3ClientBuilder.build()).build()) {
       FileUpload upload = transferManager.uploadFile({ UploadFileRequest.Builder b ->
         b.source(Paths.get(zipPath))
                 .putObjectRequest({ req -> req.bucket(s3ZipBucketName).key(zipName)
@@ -409,6 +415,7 @@ class FulfillmentService implements CommandLineRunner {
     /*
      * FIXME: Can't we just assume in local we always deploy everything to same account (mssm - paid account profile)? Doing
      *  Paid/ODP account stack split is the reason this was originally added, but do not think there's too much value in that split
+     *  anymore.
      */
     if (local) {
       // In local the 'mssm-odp' AWS profile should exist
@@ -525,7 +532,7 @@ class FulfillmentService implements CommandLineRunner {
         cumulativeObjectsSize = 0
       } else {
         bucketToImages.get(bucketNum, []) << file
-        log.info "Added $file to bucket $bucketNum, size thus far us $cumulativeObjectsSize"
+        log.info "Added $file to bucket $bucketNum, size thus far is $cumulativeObjectsSize"
       }
 
       bucketToImages
@@ -533,7 +540,7 @@ class FulfillmentService implements CommandLineRunner {
   }
 
   /**
-   * This method exists to support resume fulfillment scenario where for example there was an unexpected error
+   * This method exists to support resume/reprocess fulfillment scenario where for example there was an unexpected error
    * and now we manually resume this request/order form where it left off, to avoid sending duplicate Zip's
    * to the requester.
    */

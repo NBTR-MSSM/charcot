@@ -1,3 +1,4 @@
+<!-- Un-hide this file to disable logging -->
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <logger name="org.apache" level="TRACE" />

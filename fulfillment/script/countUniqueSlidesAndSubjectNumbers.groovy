@@ -1,6 +1,5 @@
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
-import com.amazonaws.services.s3.model.ObjectListing
 import com.amazonaws.services.s3.model.ListObjectsV2Request
 
 AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion('us-east-1').build()

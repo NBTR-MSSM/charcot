@@ -2,7 +2,7 @@ package org.mountsinaicharcot.fulfillment.dto
 
 import groovy.transform.ToString
 
-@ToString(includeNames=true)
+@ToString(includeNames = true, ignoreNulls = true)
 class OrderInfoDto {
   String orderId
   List<String> fileNames
