@@ -197,9 +197,14 @@ class OrderSearch extends Search {
       ExpressionAttributeNames: {
         '#size': 'size',
         '#slides': 'filesProcessed',
-        '#email': 'email'
+        '#email': 'email',
+        '#status': 'status'
       },
-      ProjectionExpression: '#size, #slides, #email'
+      ExpressionAttributeValues: {
+        ':processed': 'processed'
+      },
+      ProjectionExpression: '#size, #slides, #email',
+      FilterExpression: '#status = :processed'
     }
     let size = 0
     let slides = 0

@@ -34,7 +34,7 @@ if (opts.h) {
 String sourceStage = opts.'source-stage'
 String targetStage = opts.'target-stage'
 loadUsers(sourceStage, targetStage)
-// loadOrders(sourceStage, targetStage)
+loadOrders(sourceStage, targetStage)
 // end: main program
 
 

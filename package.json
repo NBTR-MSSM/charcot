@@ -13,7 +13,8 @@
     "lint:fix": "eslint -c .eslintrc.yml --no-eslintrc --fix ./",
     "remove:debug": "./script/deploy.mjs remove -p mssm -o mssm -s debug -c",
     "remove:dev": "./script/deploy.mjs remove -p mssm -o mssm-odp -s dev -c",
-    "deploy:fulfillment:dev": "AWS_PROFILE=mssm npx sst deploy --stage dev fulfillment"
+    "deploy:fulfillment:dev": "AWS_PROFILE=mssm npx sst deploy --stage dev fulfillment",
+    "import:data:debug": "./script/post-metadata.mjs -s debug"
   },
   "devDependencies": {
     "@tsconfig/node18": "^1.0.1",

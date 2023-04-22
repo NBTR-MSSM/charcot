@@ -39,7 +39,7 @@ class Transaction extends Component {
     console.log('transaction mounted')
     this.context.pushToHistory()
     await this.retrieveOrders()
-    this.updatePagination()
+    this.refreshSelectedOrders()
   }
 
   createDownloadUrl = () => {
@@ -70,12 +70,7 @@ class Transaction extends Component {
   fetchOrders = async (queryParams) => {
     return await API.get('charcot', '/cerebrum-image-orders', {
       queryStringParameters: {
-        searchTerm: this.state.searchTerm,
-        pageSize: this.state.pageSize,
-        // page: this.state.page,
         page: -1,
-        sortBy: this.state.sortBy,
-        sortOrder: this.state.sortOrder,
         ...queryParams
       }
     })
@@ -93,7 +88,8 @@ class Transaction extends Component {
      */
     this.setState({
       orders: res.orders,
-      ordersSerialized: await this.retrieveOrdersAsDelimiterSeparatedRecords(),
+      ordersSerialized: [],
+      // ordersSerialized: await this.retrieveOrdersAsDelimiterSeparatedRecords(),
       totalPages: res.totalPages,
       orderCount: res.orderCount,
       size: res.size,
@@ -108,8 +104,7 @@ class Transaction extends Component {
       uniqueUsers: this.state.uniqueUsers
     })
 
-    // If state contains a search term, apply it
-    this.state.searchTerm && this.applySearchTerm(this.state.searchTerm)
+    this.refreshSelectedOrders()
   }
 
   renderLoading = () => (
@@ -132,15 +127,11 @@ class Transaction extends Component {
   debouncedRetrieveOrders = debounce(this.retrieveOrders, 500)
 
   handlePageSizeChange = async (event) => {
-    /*
-     * updatePagination() updates the state, so to avoid infinite loop it has
-     * to be invoked outside componentDidUpdate(), individually in every relevant place
-     * that needs to update pagination
-     */
     this.updatePagination({
       page: 1,
       pageSize: event.target.value
     })
+    this.refreshSelectedOrders()
   }
 
   updatePagination = ({
@@ -152,15 +143,14 @@ class Transaction extends Component {
     this.setState({
       page,
       pageSize,
-      totalPages: Math.ceil(this.state.orderCount / pageSize),
-      selectedOrders: paginationService.goToPage(this.state.orders, page, pageSize)
+      totalPages: Math.ceil(this.state.orderCount / pageSize)
     })
   }
 
   applySearchTerm = searchTerm => {
-    const trimmedSearchTerm = searchTerm.trim()
+    const trimmedSearchTerm = searchTerm && searchTerm.trim()
     this.setState({
-      selectedOrders: trimmedSearchTerm ? this.state.orders.filter((e) => `${e.email}${e.institutionName}${e.requester}`.match(new RegExp(trimmedSearchTerm, 'i'))) : undefined
+      searchTerm: trimmedSearchTerm
     })
   }
 
@@ -169,9 +159,7 @@ class Transaction extends Component {
       value: searchTerm
     } = event.target
     this.applySearchTerm(searchTerm)
-    this.setState({
-      searchTerm
-    })
+    this.refreshSelectedOrders()
   }
 
   handlePageChange = (event) => {
@@ -203,6 +191,7 @@ class Transaction extends Component {
      * a single invocation in componentDidUpdate()
      */
     this.updatePagination({ page: Number.parseInt(page) })
+    this.refreshSelectedOrders()
   }
 
   handleSort = (event) => {
@@ -214,10 +203,23 @@ class Transaction extends Component {
       sortOrder,
       orders: sortService.sort(this.state.orders, sortBy, sortOrder)
     })
-    this.updatePagination()
-    // If state contains a search term, apply it
-    this.state.searchTerm && this.applySearchTerm(this.state.searchTerm)
+    this.refreshSelectedOrders()
   }
+
+  refreshSelectedOrders = () => {
+    this.debouncedUpdateSelectedOrders()
+  }
+
+  updateSelectedOrders = () => {
+    // First navigate to page based on user page selections, then apply search term, if any
+    let selectedOrders = paginationService.goToPage(this.state.orders, this.state.page, this.state.pageSize)
+    selectedOrders = this.state.searchTerm ? selectedOrders.filter((e) => `${e.email}${e.institutionName}${e.requester}${e.status}`.match(new RegExp(this.state.searchTerm, 'i'))) : selectedOrders
+    this.setState({
+      selectedOrders
+    })
+  }
+
+  debouncedUpdateSelectedOrders = debounce(this.updateSelectedOrders, 500)
 
   renderControlForm = () => (
     <Form>

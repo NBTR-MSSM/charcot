@@ -145,8 +145,10 @@ class FulfillmentService implements CommandLineRunner {
     updateOrderStatus(orderId, 'processing', "Request $orderId began being processed by Mount Sinai Charcot on ${currentTime()}")
 
     calculateOrderSizeAndPartitionIntoBuckets(orderInfoDto)
+    recordOrderSize(orderId, orderInfoDto.size)
+    recordFileCount(orderId, orderInfoDto.fileNames.size())
     Map<Integer, List<String>> bucketToFileList = orderInfoDto.bucketToFileList
-    // Report on original number of buckets before any filtering of already processed files takes place
+    // Capture original number of buckets before any filtering of already processed files takes place
     int totalZips = bucketToFileList.size()
     orderInfoDto.filesProcessed && filterAlreadyProcessedFiles(bucketToFileList, orderInfoDto.filesProcessed)
     /*
@@ -249,8 +251,6 @@ class FulfillmentService implements CommandLineRunner {
     AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
     sqs.deleteMessage(sqsOrderQueueUrl, orderInfo.sqsReceiptHandle)
     updateStatus && updateOrderStatus(orderId, 'processed', "Request processed successfully on ${currentTime()}")
-    recordOrderSize(orderId, orderInfoDto.size)
-    recordFileCount(orderId, orderInfoDto.fileNames.size())
   }
 
   void updateOrderStatus(String orderId, String status, String remark = null) {
@@ -346,7 +346,7 @@ class FulfillmentService implements CommandLineRunner {
       keysToDownload << key
     }
 
-    try (S3TransferManager transferManager = S3TransferManager.builder().s3Client(S3AsyncClient.crtBuilder().build()).build()) {
+    try (def s3Client = S3AsyncClient.crtBuilder().build(); S3TransferManager transferManager = S3TransferManager.builder().s3Client(s3Client).build()) {
       keysToDownload.each { String keyToDownload ->
         FileDownload download =
                 transferManager.downloadFile({ b ->
@@ -398,7 +398,7 @@ class FulfillmentService implements CommandLineRunner {
     if (local) {
       s3ClientBuilder.credentialsProvider(ProfileCredentialsProvider.create(odpProfileName))
     }
-    try (S3TransferManager transferManager = S3TransferManager.builder().s3Client(s3ClientBuilder.build()).build()) {
+    try (S3AsyncClient s3Client = s3ClientBuilder.build(); S3TransferManager transferManager = S3TransferManager.builder().s3Client(s3Client).build()) {
       FileUpload upload = transferManager.uploadFile({ UploadFileRequest.Builder b ->
         b.source(Paths.get(zipPath))
                 .putObjectRequest({ req -> req.bucket(s3ZipBucketName).key(zipName)
