@@ -12,6 +12,7 @@ import Transaction from './containers/Transaction'
 import { AppContext } from './lib/context'
 import EditUser from './containers/EditUser'
 import ForgotPassword from './containers/ForgotPassword'
+import ChangePassword from './containers/ChangePassword'
 
 class CharcotRoutes extends Component {
   render() {
@@ -37,6 +38,9 @@ class CharcotRoutes extends Component {
         </Route>
         <Route exact path="/forgot-password">
           <ForgotPassword/>
+        </Route>
+        <Route exact path="/change-password">
+          <ChangePassword/>
         </Route>
         <Route exact path="/confirmation">
           <Confirmation/>

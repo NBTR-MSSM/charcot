@@ -243,19 +243,22 @@ export default class App extends Component {
       footer = <TransactionFooter/>
     }
 
-    let authFragment = <><LinkContainer to="/signup">
-      <Nav.Link>Signup</Nav.Link>
-    </LinkContainer>
+    let authFragment = <>
+      <LinkContainer to="/signup">
+        <Nav.Link>Signup</Nav.Link>
+      </LinkContainer>
       <LinkContainer to="/login">
         <Nav.Link>Login</Nav.Link>
       </LinkContainer>
     </>
+    let changePasswordFragment = ''
 
     if (this.state.isAuthenticated) {
       authFragment = <Nav.Link onClick={this.handleLogout}>Logout</Nav.Link>
+      changePasswordFragment = <LinkContainer to="/change-password">
+        <Nav.Link>Change Password</Nav.Link>
+      </LinkContainer>
     }
-
-    // console.log(`JMQ: currentPage is ${this.currentPage()}`)
 
     return !this.state.isAuthenticating && (
       <div className="App container py-3">
@@ -276,6 +279,7 @@ export default class App extends Component {
                       <Nav.Link>Search</Nav.Link>
                     </LinkContainer>
                     {authFragment}
+                    {changePasswordFragment}
                     {this.state.isAuthenticated && this.state.isAdmin && (
                       <LinkContainer to="/transaction">
                         <Nav.Link>Transactions</Nav.Link>

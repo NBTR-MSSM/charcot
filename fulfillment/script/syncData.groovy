@@ -8,13 +8,14 @@ import com.amazonaws.services.dynamodbv2.model.UpdateItemResult
 import groovy.cli.commons.CliBuilder
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserRequest
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserResponse
+import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminSetUserPasswordRequest
+import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoolsRequest
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoolsResponse
-import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUsersRequest
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUsersResponse
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolDescriptionType
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminCreateUserResponse
 
 /**
  * Use this script to copy user and order data from one environment to the other.
@@ -57,16 +58,22 @@ private void loadUsers(String sourceStage, String targetStage) {
             .build() as ListUsersRequest)
     listUsersResponse.users().each {
       println "User: ${it.username()}"
-      String email = it.attributes().find { it.name() == 'email'}.value()
-      AdminCreateUserRequest userRequest = AdminCreateUserRequest.builder()
-              .userPoolId(targetPool.id())
-              .username(email)
-              .temporaryPassword('Changeme1+')
-              .userAttributes(it.attributes().findAll { it.name() !in ['sub'] })
-              .messageAction("SUPPRESS")
-              .build()
+      String email = it.attributes().find { it.name() == 'email' }.value()
+      println "Pool ID is ${targetPool.id()}"
       try {
+        AdminCreateUserRequest userRequest = AdminCreateUserRequest.builder()
+                .userPoolId(targetPool.id())
+                .username(email)
+                .userAttributes(it.attributes().findAll { it.name() !in ['sub'] })
+                .messageAction("SUPPRESS")
+                .build()
         AdminCreateUserResponse createUserResponse = cognitoClient.adminCreateUser(userRequest)
+        def setPasswordRequest = AdminSetUserPasswordRequest.builder()
+                .userPoolId(targetPool.id())
+                .username(email)
+                .password('Changeme1!')
+                .permanent(true).build()
+        cognitoClient.adminSetUserPassword(setPasswordRequest)
         println "Created user ${createUserResponse.user().username()} in pool ${targetPool.id()} ${targetPool.name()}"
       } catch (CognitoIdentityProviderException e) {
         println "Problem creating user $email: ${e.awsErrorDetails().errorMessage()}"
@@ -81,7 +88,7 @@ private void loadUsers(String sourceStage, String targetStage) {
 /**
  * Returns the most recently created pool for the given stage. There might be more than one
  * user pool for the same stage because user pools are not cleaned up when an environment is
- * brought torn down (yet).
+ * torn down (yet).
  */
 private UserPoolDescriptionType extractPool(String stage, List<UserPoolDescriptionType> pools) {
   // response.userPools() returns an unmodifiable collection, make a copy first,
