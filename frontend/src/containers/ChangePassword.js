@@ -26,7 +26,7 @@ export default class ForgotPassword extends ProfileManagement {
         type="submit"
         isLoading={this.state.isLoading}
         disabled={!this.validateForm()}>
-        Send request
+        Change It
       </LoaderButton>
     )
   }
