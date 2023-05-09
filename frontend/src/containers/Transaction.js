@@ -48,7 +48,7 @@ class Transaction extends Component {
   }
 
   retrieveOrdersAsDelimiterSeparatedRecords = async () => {
-    let ret = ['orderId,created,institutionName,email,filter,size,slideCount,status,remark']
+    let ret = ['orderId,created,institutionName,email,size,slideCount,status,filter']
     const res = await this.fetchOrders({ page: -1 })
     ret = ret.concat(res.orders.map(order => {
       const {
@@ -56,13 +56,12 @@ class Transaction extends Component {
         created,
         institutionName,
         email,
-        filter,
         size,
         fileCount,
         status,
-        remark
+        filter
       } = order
-      return `${orderId},${created},${institutionName},${email},${filter},${size},${fileCount},${status},${remark}`
+      return `${orderId},${created},${institutionName},${email},${size},${fileCount},${status},${filter}`
     }))
     return ret
   }
@@ -88,8 +87,7 @@ class Transaction extends Component {
      */
     this.setState({
       orders: res.orders,
-      ordersSerialized: [],
-      // ordersSerialized: await this.retrieveOrdersAsDelimiterSeparatedRecords(),
+      ordersSerialized: await this.retrieveOrdersAsDelimiterSeparatedRecords(),
       totalPages: res.totalPages,
       orderCount: res.orderCount,
       size: res.size,

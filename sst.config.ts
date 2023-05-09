@@ -16,6 +16,9 @@ export default {
   },
   stacks(app) {
     const stage = app.stage
+    app.setDefaultFunctionProps({
+      runtime: 'nodejs18.x'
+    })
     app
       .stack(CommonStack, {
         id: 'common',
