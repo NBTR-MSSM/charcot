@@ -48,7 +48,7 @@ class Transaction extends Component {
   }
 
   retrieveOrdersAsDelimiterSeparatedRecords = async () => {
-    let ret = ['orderId,requester,created,institutionName,email,size,slideCount,status,filter']
+    let ret = ['REQUEST ID,REQUESTER,CREATED,INSTITUTION NAME,EMAIL,SIZE (GB),SLIDE COUNT,STATUS,FILTER']
     const res = await this.fetchOrders({ page: -1 })
     ret = ret.concat(res.orders.map(order => {
       const {
@@ -62,7 +62,7 @@ class Transaction extends Component {
         status,
         filter
       } = order
-      return `${orderId},${requester},${LocalDateTime.ofEpochSecond(Number.parseInt(created / 1000), ZoneOffset.UTC).format(DateTimeFormatter.ofPattern('MM/dd/yyyy HH:mm:ss'))} GMT,${institutionName},${email},${Number.parseFloat(size / Math.pow(2, 30)).toFixed(2)} GB,${fileCount},${status},${filter}`
+      return `${orderId},${requester},${LocalDateTime.ofEpochSecond(Number.parseInt(created / 1000), ZoneOffset.UTC).format(DateTimeFormatter.ofPattern('MM/dd/yyyy HH:mm:ss'))} GMT,${institutionName},${email},${Number.parseFloat(size / Math.pow(2, 30)).toFixed(2)},${fileCount},${status},${filter}`
     }))
     return ret
   }
