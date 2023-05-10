@@ -6,7 +6,7 @@ import TransactionItem from '../components/TransactionItem'
 import { InputGroup, Modal, Spinner, Table } from 'react-bootstrap'
 import Pagination from 'react-bootstrap/Pagination'
 import { BsArrowRepeat, BsSortDownAlt, BsSortUpAlt } from 'react-icons/bs'
-import { DateTimeFormatter, LocalDateTime } from 'js-joda'
+import { DateTimeFormatter, LocalDateTime, ZoneOffset } from 'js-joda'
 import Form from 'react-bootstrap/Form'
 import debounce from 'lodash.debounce'
 import paginationService from '../lib/PaginationService'
@@ -48,11 +48,12 @@ class Transaction extends Component {
   }
 
   retrieveOrdersAsDelimiterSeparatedRecords = async () => {
-    let ret = ['orderId,created,institutionName,email,size,slideCount,status,filter']
+    let ret = ['orderId,requester,created,institutionName,email,size,slideCount,status,filter']
     const res = await this.fetchOrders({ page: -1 })
     ret = ret.concat(res.orders.map(order => {
       const {
         orderId,
+        requester,
         created,
         institutionName,
         email,
@@ -61,7 +62,7 @@ class Transaction extends Component {
         status,
         filter
       } = order
-      return `${orderId},${created},${institutionName},${email},${size},${fileCount},${status},${filter}`
+      return `${orderId},${requester},${LocalDateTime.ofEpochSecond(Number.parseInt(created / 1000), ZoneOffset.UTC).format(DateTimeFormatter.ofPattern('MM/dd/yyyy HH:mm:ss'))} GMT,${institutionName},${email},${Number.parseFloat(size / Math.pow(2, 30)).toFixed(2)} GB,${fileCount},${status},${filter}`
     }))
     return ret
   }
