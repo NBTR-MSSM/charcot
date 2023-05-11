@@ -185,10 +185,6 @@ class Transaction extends Component {
       // It's a number
     }
 
-    /*
-     * See comment about why we invoke in multiple place as opposed to
-     * a single invocation in componentDidUpdate()
-     */
     this.updatePagination({ page: Number.parseInt(page) })
     this.refreshSelectedOrders()
   }
@@ -240,8 +236,18 @@ class Transaction extends Component {
               aria-describedby="basic-addon1"
               type="text"
               value={this.state.searchTerm}
-              onChange={this.handleSearchTermChange}
-            />
+              onChange={this.handleSearchTermChange}/>
+
+            {this.state.searchTerm
+              ? (<button className="search-term-clear-btn" onClick={(e) => {
+                  e.preventDefault()
+                  this.applySearchTerm('')
+                  this.refreshSelectedOrders()
+                }
+            }>
+              X
+            </button>)
+              : ''}
           </InputGroup>
         </Form.Group>
       </Form.Group>
@@ -260,10 +266,10 @@ class Transaction extends Component {
 
     const totalRecords = (
       <span>
-        <span className="totalRecords">Total records: </span>
-        <a href={this.createDownloadUrl()}
-           download={`charcot-transactions-${formattedDateTime()}.csv`}>{this.state.orderCount} (Click to download as a plaintext CSV file)</a>
-      </span>
+              <span className="totalRecords">Total records: </span>
+              <a href={this.createDownloadUrl()}
+                 download={`charcot-transactions-${formattedDateTime()}.csv`}>{this.state.orderCount} (Click to download as a plaintext CSV file)</a>
+              </span>
     )
 
     const reload = <span className="reload"><a href="" onClick={async (e) => {
