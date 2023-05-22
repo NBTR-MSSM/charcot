@@ -13,6 +13,7 @@ import { AppContext } from './lib/context'
 import EditUser from './containers/EditUser'
 import ForgotPassword from './containers/ForgotPassword'
 import ChangePassword from './containers/ChangePassword'
+import TransactionDetail from './containers/TransactionDetail'
 
 class CharcotRoutes extends Component {
   render() {
@@ -49,6 +50,9 @@ class CharcotRoutes extends Component {
           <>
             <Route exact path="/transaction">
               <Transaction/>
+            </Route>
+            <Route exact path="/transaction-detail">
+              <TransactionDetail/>
             </Route>
             <Route exact path="/edit-user">
               <EditUser/>

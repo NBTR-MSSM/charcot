@@ -13,6 +13,7 @@ export const AppContext = createContext({
   transactionData: {
     requests: 0
   },
+  transactionItem: undefined,
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   redirectToPrevious: () => {},
   // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -34,5 +35,7 @@ export const AppContext = createContext({
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   handleSetOtherUserEmail: () => {},
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  handleTransactionUpdate: () => {}
+  handleTransactionUpdate: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  handleSetTransactionItem: () => {}
 })

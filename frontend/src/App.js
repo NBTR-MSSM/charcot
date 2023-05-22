@@ -52,7 +52,9 @@ export default class App extends Component {
       transactionData: {
         requests: 0
       },
+      transactionItem: undefined,
       handleTransactionUpdate: this.handleTransactionUpdate,
+      handleSetTransactionItem: this.handleSetTransactionItem,
       handleCategorySelect: this.handleCategorySelect,
       handleCategoryUnselect: this.handleCategoryUnselect,
       handleClearFilter: this.handleClearFilter,
@@ -119,6 +121,15 @@ export default class App extends Component {
         isAdmin: adminUsers.includes(email)
       }
     )
+  }
+
+  /**
+   * The transaction item to view in TransactionDetail page
+   */
+  handleSetTransactionItem = (item) => {
+    this.setState({
+      transactionItem: item
+    })
   }
 
   handleSetOtherUserEmail = (email) => {

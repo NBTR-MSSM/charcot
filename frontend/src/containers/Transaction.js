@@ -308,7 +308,7 @@ class Transaction extends Component {
     const pagination = this.renderPagination()
     const pageSizeChangeForm = this.renderControlForm()
     const orders = this.state.selectedOrders || this.state.orders
-    return (<div className="Transaction">
+    return <div className="Transaction">
       {pageSizeChangeForm}
       {pagination}
       <Table striped bordered hover>
@@ -333,7 +333,7 @@ class Transaction extends Component {
         </tbody>
       </Table>
       {pagination}
-    </div>)
+    </div>
   }
 
   render() {

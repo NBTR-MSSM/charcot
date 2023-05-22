@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { AppContext } from '../lib/context'
-import { Card, OverlayTrigger, Popover } from 'react-bootstrap'
+import { Card, OverlayTrigger } from 'react-bootstrap'
 import { BsInfoCircleFill } from 'react-icons/bs'
 import { API } from 'aws-amplify'
 import ConfirmationModal from './ConfirmationModal'
@@ -107,38 +107,28 @@ class TransactionItem extends Component {
       </Card>
     )
 
-    return (
-      <tr>
-        <td>{new Date(item.created).toUTCString()}</td>
-        <td>
-          <OverlayTrigger rootClose={true} trigger="click" placement="right" overlay={userAttributesPopover}>
-            <a href="" onClick={(e) => e.preventDefault()}><BsInfoCircleFill/> {item.requester}</a>
-          </OverlayTrigger>
-          {this.renderOrderCancelConfirmModal()}
-          {this.renderSuccessfulOrderCancellationConfirmationModal(item)}
-        </td>
-        <td>{item.institutionName}</td>
-        <td>{item.email}</td>
-        <td>{item.filter}</td>
-        <td>{Number.parseFloat(item.size / Math.pow(2, 30)).toFixed(2)}GB</td>
-        <td>{item.fileCount}</td>
-        <td>
-          <OverlayTrigger
-            placement="left"
-            overlay={
-              <Popover id="popover-basic">
-                <Popover.Body>
-                  {item.remark}
-                </Popover.Body>
-              </Popover>
-              /* <Tooltip id={`tooltip-status-${item.orderId}`}>
-                {item.remark}
-              </Tooltip> */
-            }>
-            <a href="" onClick={(e) => e.preventDefault()}>{item.status}</a>
-          </OverlayTrigger>
-        </td>
-      </tr>)
+    return <tr>
+      <td>{new Date(item.created).toUTCString()}</td>
+      <td>
+        <OverlayTrigger rootClose={true} trigger="click" placement="right" overlay={userAttributesPopover}>
+          <a href="" onClick={(e) => e.preventDefault()}><BsInfoCircleFill/> {item.requester}</a>
+        </OverlayTrigger>
+        {this.renderOrderCancelConfirmModal()}
+        {this.renderSuccessfulOrderCancellationConfirmationModal(item)}
+      </td>
+      <td>{item.institutionName}</td>
+      <td>{item.email}</td>
+      <td>{item.filter}</td>
+      <td>{Number.parseFloat(item.size / Math.pow(2, 30)).toFixed(2)}GB</td>
+      <td>{item.fileCount}</td>
+      <td>
+        <a href="" onClick={(e) => {
+          e.preventDefault()
+          this.context.handleSetTransactionItem(item)
+          this.context.redirect({ to: '/transaction-detail' })
+        }}>{item.status}</a>
+      </td>
+    </tr>
   }
 }
 
