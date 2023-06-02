@@ -35,7 +35,7 @@ class Login extends Component {
 
     try {
       await Auth.signIn(email, password)
-      this.context.handleLogin({ email })
+      this.context.handleLogin({ session: await Auth.currentSession() })
       this.context.redirect({ to: '/home' })
     } catch (e) {
       onError(e)

@@ -20,18 +20,6 @@ const savedState = {
   filter: new Filter()
 }
 
-/*
- * FIXME: Use cognito groups to manage privileges, [REF|https://docs.amplify.aws/cli/auth/admin/#example|"let path = '/addUserToGroup';"]
- */
-const adminUsers = [
-  'vahram.haroutunian@mssm.edu',
-  'maxwell.bustamante@mssm.edu',
-  'joshua.arneson@mssm.edu',
-  'joquijada2010@gmail.com',
-  'jose.quijada@mssm.edu',
-  'joquijada2022@gmail.com'
-]
-
 /**
  * TODO: Move all the various handlers that are passed down the component hierarchy via props to AppContext,
  *       and clean up all those unnecessary props.
@@ -98,9 +86,8 @@ export default class App extends Component {
   onLoad = async () => {
     // Load user session if any (I.e. if user is already logged in)
     try {
-      await Auth.currentSession()
-      const user = await Auth.currentUserInfo()
-      this.handleLogin({ email: user.attributes.email })
+      const session = await Auth.currentSession()
+      this.handleLogin({ session })
     } catch (e) {
       if (e !== 'No current user') {
         onError(e)
@@ -113,12 +100,13 @@ export default class App extends Component {
     await this.updateChartDataState({ filter: this.state.filter })
   }
 
-  handleLogin = ({ email }) => {
+  handleLogin = ({ session }) => {
+    const email = session.idToken.payload.email
     this.setState(
       {
         email,
         isAuthenticated: true,
-        isAdmin: adminUsers.includes(email)
+        isAdmin: session.idToken.payload['cognito:groups'].includes('charcot-admin')
       }
     )
   }

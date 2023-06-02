@@ -46,7 +46,6 @@ loadOrders(sourceStage, targetStage)
 private void loadUsers(String sourceStage, String targetStage) {
   try (CognitoIdentityProviderClient cognitoClient = CognitoIdentityProviderClient.builder().build()) {
     ListUserPoolsRequest request = ListUserPoolsRequest.builder().build()
-
     ListUserPoolsResponse listPoolsResponse = cognitoClient.listUserPools(request)
     def pools = listPoolsResponse.userPools()
     def sourcePool = extractPool(sourceStage, pools)
