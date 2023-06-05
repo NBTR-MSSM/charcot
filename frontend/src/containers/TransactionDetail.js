@@ -28,7 +28,7 @@ class TransactionDetail extends Component {
           {remarks.map((e, idx) => {
             return <tr key={idx}>
               <td className="filler"></td>
-              <td colspan="3">{e}</td>
+              <td>{e}</td>
             </tr>
           })}
           </tbody>
