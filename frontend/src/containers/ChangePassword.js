@@ -8,7 +8,7 @@ import { onError } from '../lib/error'
 import Button from 'react-bootstrap/Button'
 import './ChangePassword.css'
 
-export default class ForgotPassword extends ProfileManagement {
+export default class ChangePassword extends ProfileManagement {
   constructor(props) {
     super(props)
     this.state = {
@@ -16,6 +16,8 @@ export default class ForgotPassword extends ProfileManagement {
       oldPassword: ''
     }
   }
+
+  isNewPasswordRequiredMode = () => new URLSearchParams(window.location.search).get('newPasswordRequired')
 
   renderProfileChangeSubmitButton() {
     return (
@@ -33,7 +35,7 @@ export default class ForgotPassword extends ProfileManagement {
 
   validateForm() {
     return (
-      this.state.oldPassword.length > 0 &&
+      (this.state.oldPassword.length || this.isNewPasswordRequiredMode()) > 0 &&
       this.state.password.length > 0 &&
       this.state.password === this.state.confirmPassword
     )
@@ -49,13 +51,20 @@ export default class ForgotPassword extends ProfileManagement {
       oldPassword
     } = this.state
     try {
-      const currentUser = await Auth.currentAuthenticatedUser()
-      await Auth.changePassword(
-        currentUser,
-        oldPassword,
-        password
-      )
-      this.context.redirect({ to: '/search' })
+      if (this.isNewPasswordRequiredMode()) {
+        await Auth.completeNewPassword(
+          this.context.sessionInfo,
+          password
+        )
+        this.context.redirect({ to: '/login' })
+      } else {
+        await Auth.changePassword(
+          await Auth.currentAuthenticatedUser(),
+          oldPassword,
+          password
+        )
+        this.context.redirect({ to: '/search' })
+      }
     } catch (e) {
       onError(e)
     }
@@ -69,18 +78,25 @@ export default class ForgotPassword extends ProfileManagement {
   }
 
   render() {
+    let oldPasswordFragment = <>
+      <FormGroup bsSize="large" controlId="oldPassword">
+        <FormLabel>Old Password</FormLabel>
+        <FormControl
+          type="password"
+          onChange={this.handleFormChange}
+          value={this.state.oldPassword}
+        />
+      </FormGroup>
+      <hr/>
+    </>
+
+    if (this.isNewPasswordRequiredMode()) {
+      oldPasswordFragment = <h2>You need to update your password</h2>
+    }
     return <div className="ChangePassword">
       <Button id="back-btn" size="sm" onClick={() => this.context.redirectToPrevious()}>{'< Back'}</Button>
       <form onSubmit={this.handleChangePasswordSubmit}>
-        <FormGroup bsSize="large" controlId="oldPassword">
-          <FormLabel>Old Password</FormLabel>
-          <FormControl
-            type="password"
-            onChange={this.handleFormChange}
-            value={this.state.oldPassword}
-          />
-        </FormGroup>
-        <hr/>
+        {oldPasswordFragment}
         <FormGroup bsSize="large" controlId="password">
           <FormLabel>New Password</FormLabel>
           <FormControl

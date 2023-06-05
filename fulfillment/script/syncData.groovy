@@ -16,6 +16,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoo
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUsersRequest
 import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUsersResponse
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolDescriptionType
+import software.amazon.awssdk.services.cognitoidentityprovider.model.UsernameExistsException
 
 /**
  * Use this script to copy user and order data from one environment to the other.
@@ -59,21 +60,32 @@ private void loadUsers(String sourceStage, String targetStage) {
       println "User: ${it.username()}"
       String email = it.attributes().find { it.name() == 'email' }.value()
       println "Pool ID is ${targetPool.id()}"
+      boolean isUserCreatedOrExistsAlready
       try {
-        AdminCreateUserRequest userRequest = AdminCreateUserRequest.builder()
-                .userPoolId(targetPool.id())
-                .username(email)
-                .userAttributes(it.attributes().findAll { it.name() !in ['sub'] })
-                .messageAction("SUPPRESS")
-                .build()
-        AdminCreateUserResponse createUserResponse = cognitoClient.adminCreateUser(userRequest)
-        def setPasswordRequest = AdminSetUserPasswordRequest.builder()
-                .userPoolId(targetPool.id())
-                .username(email)
-                .password('Changeme1!')
-                .permanent(true).build()
-        cognitoClient.adminSetUserPassword(setPasswordRequest)
-        println "Created user ${createUserResponse.user().username()} in pool ${targetPool.id()} ${targetPool.name()}"
+        try {
+          AdminCreateUserRequest userRequest = AdminCreateUserRequest.builder()
+                  .userPoolId(targetPool.id())
+                  .username(email)
+                  .userAttributes(it.attributes().findAll { it.name() !in ['sub'] })
+                  .messageAction("SUPPRESS")
+                  .build()
+          AdminCreateUserResponse createUserResponse = cognitoClient.adminCreateUser(userRequest)
+          println "Created user ${createUserResponse.user().username()} in pool ${targetPool.id()} ${targetPool.name()}"
+          isUserCreatedOrExistsAlready = true
+        } catch (UsernameExistsException ignored) {
+          isUserCreatedOrExistsAlready = true
+        }
+
+        // Set a temporary password for user. If user exists already, reset it. This will take care of renewing expired
+        // temp passwords because for instance user took to long to log back in
+        if (isUserCreatedOrExistsAlready) {
+          def setPasswordRequest = AdminSetUserPasswordRequest.builder()
+                  .userPoolId(targetPool.id())
+                  .username(email)
+                  .password('Changeme1!')
+                  .build()
+          cognitoClient.adminSetUserPassword(setPasswordRequest)
+        }
       } catch (CognitoIdentityProviderException e) {
         println "Problem creating user $email: ${e.awsErrorDetails().errorMessage()}"
       }

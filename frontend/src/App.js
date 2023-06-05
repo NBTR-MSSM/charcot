@@ -40,6 +40,7 @@ export default class App extends Component {
       transactionData: {
         requests: 0
       },
+      sessionInfo: undefined,
       transactionItem: undefined,
       handleTransactionUpdate: this.handleTransactionUpdate,
       handleSetTransactionItem: this.handleSetTransactionItem,
@@ -47,6 +48,7 @@ export default class App extends Component {
       handleCategoryUnselect: this.handleCategoryUnselect,
       handleClearFilter: this.handleClearFilter,
       handleSetOtherUserEmail: this.handleSetOtherUserEmail,
+      handleSetSessionInfo: this.handleSetSessionInfo,
       handleLogin: this.handleLogin,
       handleLogout: this.handleLogout,
       redirect: this.redirect,
@@ -106,7 +108,7 @@ export default class App extends Component {
       {
         email,
         isAuthenticated: true,
-        isAdmin: session.idToken.payload['cognito:groups'].includes('charcot-admin')
+        isAdmin: session.idToken.payload['cognito:groups'] && session.idToken.payload['cognito:groups'].includes('charcot-admin')
       }
     )
   }
@@ -120,6 +122,15 @@ export default class App extends Component {
     })
   }
 
+  handleSetSessionInfo = ({ sessionInfo }) => {
+    this.setState({
+      sessionInfo
+    })
+  }
+
+  /**
+   * Used to store the email of the profile being modified by admins
+   */
   handleSetOtherUserEmail = (email) => {
     this.setState({
       otherUserEmail: email

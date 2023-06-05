@@ -34,9 +34,14 @@ class Login extends Component {
     } = this.state
 
     try {
-      await Auth.signIn(email, password)
-      this.context.handleLogin({ session: await Auth.currentSession() })
-      this.context.redirect({ to: '/home' })
+      const resp = await Auth.signIn(email, password)
+      if (resp.challengeName === 'NEW_PASSWORD_REQUIRED') {
+        this.context.handleSetSessionInfo({ sessionInfo: resp })
+        this.context.redirect({ to: '/change-password?newPasswordRequired=1' })
+      } else {
+        this.context.handleLogin({ session: await Auth.currentSession() })
+        this.context.redirect({ to: '/home' })
+      }
     } catch (e) {
       onError(e)
     }

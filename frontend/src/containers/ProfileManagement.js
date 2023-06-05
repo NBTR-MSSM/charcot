@@ -92,6 +92,10 @@ class ProfileManagement extends Component {
     })
   }
 
+  /**
+   * Children of this class get this method for free, which updates the ReactJS state with
+   * values entered into the form. This reduces a lot of boilerplate in profile related containers.
+   */
   handleFormChange = (event) => {
     const newState = {}
     const {

@@ -13,6 +13,7 @@ export const AppContext = createContext({
   transactionData: {
     requests: 0
   },
+  sessionInfo: undefined,
   transactionItem: undefined,
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   redirectToPrevious: () => {},
@@ -37,5 +38,7 @@ export const AppContext = createContext({
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   handleTransactionUpdate: () => {},
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  handleSetTransactionItem: () => {}
+  handleSetTransactionItem: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  handleSetSessionInfo: () => {}
 })

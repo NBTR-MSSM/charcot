@@ -4,7 +4,6 @@ import './Splash.css'
 
 class Splash extends Component {
   componentDidMount () {
-    console.log('JMQ: mounted splash')
     this.context.pushToHistory()
   }
 
