@@ -80,9 +80,9 @@ export default class App extends Component {
     }
   }
 
-  redirectToPrevious = () => {
+  redirectToPrevious = (queryString = undefined) => {
     const history = this.state.navHistory
-    this.redirect({ to: history[history.length - 2] })
+    this.redirect({ to: `${history[history.length - 2] + (queryString ? ('?' + queryString) : '')}` })
   }
 
   onLoad = async () => {

@@ -14,37 +14,43 @@ import sortService from '../lib/SortService'
 
 const formattedDateTime = () => LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyyMMdd-HH-mm-ss'))
 
+let savedState = {
+  orders: [],
+  selectedOrders: undefined,
+  ordersSerialized: [],
+  page: 1,
+  isLoading: false,
+  pageSize: 10,
+  totalPages: 0,
+  sortBy: 'created',
+  sortOrder: 'desc',
+  orderCount: 0,
+  size: 0,
+  slides: 0,
+  uniqueUsers: 0,
+  searchTerm: '',
+  initialOrderRetrieveHappened: false
+}
 class Transaction extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      orders: [],
-      selectedOrders: undefined,
-      ordersSerialized: [],
-      page: 1,
-      isLoading: false,
-      pageSize: 10,
-      totalPages: 0,
-      sortBy: 'created',
-      sortOrder: 'desc',
-      orderCount: 0,
-      size: 0,
-      slides: 0,
-      uniqueUsers: 0,
-      searchTerm: ''
+      ...savedState
     }
   }
 
   async componentDidMount() {
-    console.log('transaction mounted')
     this.context.pushToHistory()
-    await this.retrieveOrders()
+    if (!savedState.initialOrderRetrieveHappened) {
+      await this.retrieveOrders()
+      savedState.initialOrderRetrieveHappened = true
+    }
     this.refreshSelectedOrders()
   }
 
   createDownloadUrl = () => {
     // eslint-disable-next-line no-undef
-    return window.URL.createObjectURL(new Blob([this.state.ordersSerialized.join('\n')], { type: 'text/plain' }))
+    return window.URL.createObjectURL(new Blob([savedState.ordersSerialized.join('\n')], { type: 'text/plain' }))
   }
 
   retrieveOrdersAsDelimiterSeparatedRecords = async () => {
@@ -81,26 +87,32 @@ class Transaction extends Component {
       isLoading: true
     })
     const res = await this.fetchOrders({})
+    const { orders, totalPages, orderCount, size, slides, uniqueUsers } = res
+
+    // From fetchOrder response saved to state only a few select properties,
+    // because we don't want others to interfere with the client side pagination
+    savedState = {
+      ...savedState,
+      orders,
+      totalPages,
+      orderCount,
+      size,
+      slides,
+      uniqueUsers
+    }
 
     /*
      * TODO: Keep an eye on performance and if impacted, retrieve for-download orders ('ordersSerialized') on demand only,
      *  as opposed to everytime we render
      */
     this.setState({
-      orders: res.orders,
-      ordersSerialized: await this.retrieveOrdersAsDelimiterSeparatedRecords(),
-      totalPages: res.totalPages,
-      orderCount: res.orderCount,
-      size: res.size,
-      slides: res.slides,
-      uniqueUsers: res.uniqueUsers,
       isLoading: false
     })
     this.context.handleTransactionUpdate({
-      requests: this.state.orderCount,
-      size: this.state.size,
-      slides: this.state.slides,
-      uniqueUsers: this.state.uniqueUsers
+      requests: savedState.orderCount,
+      size: savedState.size,
+      slides: savedState.slides,
+      uniqueUsers: savedState.uniqueUsers
     })
 
     this.refreshSelectedOrders()
@@ -134,22 +146,32 @@ class Transaction extends Component {
   }
 
   updatePagination = ({
-    pageSize = this.state.pageSize,
-    page = this.state.page
+    pageSize = savedState.pageSize,
+    page = savedState.page
   } = {}) => {
     pageSize = pageSize < 1 ? 10 : pageSize
     page = page < 1 ? 1 : page
-    this.setState({
-      page,
+    savedState = {
+      ...savedState,
       pageSize,
-      totalPages: Math.ceil(this.state.orderCount / pageSize)
+      page,
+      totalPages: Math.ceil(savedState.orderCount / pageSize)
+    }
+    this.setState({
+      page: savedState.page,
+      pageSize: savedState.pageSize,
+      totalPages: savedState.totalPages
     })
   }
 
   applySearchTerm = searchTerm => {
     const trimmedSearchTerm = searchTerm && searchTerm.trim()
-    this.setState({
+    savedState = {
+      ...savedState,
       searchTerm: trimmedSearchTerm
+    }
+    this.setState({
+      searchTerm: savedState.searchTerm
     })
   }
 
@@ -171,15 +193,15 @@ class Transaction extends Component {
         break
       case '‹':
       case '‹Previous':
-        page = this.state.page <= 1 ? 1 : this.state.page - 1
+        page = savedState.page <= 1 ? 1 : savedState.page - 1
         break
       case '›':
       case '›Next':
-        page = this.state.page >= this.state.totalPages ? this.state.totalPages : this.state.page + 1
+        page = savedState.page >= savedState.totalPages ? savedState.totalPages : savedState.page + 1
         break
       case '»':
       case '»Last':
-        page = this.state.totalPages
+        page = savedState.totalPages
         break
       default:
       // It's a number
@@ -192,11 +214,16 @@ class Transaction extends Component {
   handleSort = (event) => {
     event.preventDefault()
     const { name: sortBy } = event.target
-    const sortOrder = this.state.sortOrder === 'desc' ? 'asc' : 'desc'
-    this.setState({
+    const sortOrder = savedState.sortOrder === 'desc' ? 'asc' : 'desc'
+    savedState = {
+      ...savedState,
       sortBy,
-      sortOrder,
-      orders: sortService.sort(this.state.orders, sortBy, sortOrder)
+      sortOrder
+    }
+    this.setState({
+      sortBy: savedState.sortBy,
+      sortOrder: savedState.sortOrder,
+      orders: sortService.sort(savedState.orders, savedState.sortBy, savedState.sortOrder)
     })
     this.refreshSelectedOrders()
   }
@@ -207,10 +234,14 @@ class Transaction extends Component {
 
   updateSelectedOrders = () => {
     // First navigate to page based on user page selections, then apply search term, if any
-    let selectedOrders = paginationService.goToPage(this.state.orders, this.state.page, this.state.pageSize)
-    selectedOrders = this.state.searchTerm ? selectedOrders.filter((e) => `${e.email}${e.institutionName}${e.requester}${e.status}`.match(new RegExp(this.state.searchTerm, 'i'))) : selectedOrders
-    this.setState({
+    let selectedOrders = paginationService.goToPage(savedState.orders, savedState.page, savedState.pageSize)
+    selectedOrders = savedState.searchTerm ? selectedOrders.filter((e) => `${e.email}${e.institutionName}${e.requester}${e.status}`.match(new RegExp(savedState.searchTerm, 'i'))) : selectedOrders
+    savedState = {
+      ...savedState,
       selectedOrders
+    }
+    this.setState({
+      selectedOrders: savedState.selectedOrders
     })
   }
 
@@ -224,9 +255,15 @@ class Transaction extends Component {
           <Form.Control
             aria-describedby="basic-addon1"
             type="text"
-            value={this.state.pageSize}
+            value={savedState.pageSize}
             onChange={this.handlePageSizeChange}
-            onFocus={() => this.setState({ pageSize: '' })}
+            onFocus={() => {
+              savedState = {
+                ...savedState,
+                pageSize: ''
+              }
+              this.setState({ pageSize: savedState.pageSize })
+            }}
           />
         </InputGroup>
         <Form.Group controlId="searchTerm" size="sm">
@@ -235,10 +272,10 @@ class Transaction extends Component {
             <Form.Control
               aria-describedby="basic-addon1"
               type="text"
-              value={this.state.searchTerm}
+              value={savedState.searchTerm}
               onChange={this.handleSearchTermChange}/>
 
-            {this.state.searchTerm
+            {savedState.searchTerm
               ? (<button className="search-term-clear-btn" onClick={(e) => {
                   e.preventDefault()
                   this.applySearchTerm('')
@@ -255,10 +292,10 @@ class Transaction extends Component {
 
   renderPagination = () => {
     const items = []
-    for (let number = 1; number <= this.state.totalPages; number++) {
+    for (let number = 1; number <= savedState.totalPages; number++) {
       items.push(
         <Pagination.Item name={number} onClick={this.handlePageChange} key={number}
-                         active={number === this.state.page}>
+                         active={number === savedState.page}>
           {number}
         </Pagination.Item>
       )
@@ -268,7 +305,7 @@ class Transaction extends Component {
       <span>
               <span className="totalRecords">Total records: </span>
               <a href={this.createDownloadUrl()}
-                 download={`charcot-transactions-${formattedDateTime()}.csv`}>{this.state.orderCount} (Click to download as a plaintext CSV file)</a>
+                 download={`charcot-transactions-${formattedDateTime()}.csv`}>{savedState.orderCount} (Click to download as a plaintext CSV file)</a>
               </span>
     )
 
@@ -297,17 +334,17 @@ class Transaction extends Component {
   }
 
   renderSortIcon = (field) => {
-    if (field !== this.state.sortBy) {
+    if (field !== savedState.sortBy) {
       return <></>
     }
 
-    return this.state.sortOrder === 'desc' ? <BsSortDownAlt/> : <BsSortUpAlt/>
+    return savedState.sortOrder === 'desc' ? <BsSortDownAlt/> : <BsSortUpAlt/>
   }
 
   renderLoaded = () => {
     const pagination = this.renderPagination()
     const pageSizeChangeForm = this.renderControlForm()
-    const orders = this.state.selectedOrders || this.state.orders
+    const orders = savedState.selectedOrders || savedState.orders
     return <div className="Transaction">
       {pageSizeChangeForm}
       {pagination}
