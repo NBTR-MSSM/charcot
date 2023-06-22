@@ -13,7 +13,7 @@ docker container rm charcot-fulfillment
 cd ~/git/charcot/fulfillment
 echo 'Maven build...'
 mvn -U clean install
-echo "Bulding docker image with stage '$stage'..."
+echo "Building docker image with stage '$stage'..."
 $(echo "docker build --tag charcot-fulfillment --build-arg STAGE=$stage .")
 echo 'Running...'
 docker run --rm -dit -v ~/.aws:/root/.aws:ro -e IS_LOCAL='true' -p 80:80 --name charcot-fulfillment charcot-fulfillment:latest
