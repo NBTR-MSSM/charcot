@@ -87,12 +87,16 @@ export function FulfillmentStack({ stack }: sst.StackContext) {
     minCapacity: 1
   })
 
-  const orderQueue = sqs.Queue.fromQueueArn(stack, 'orderQueue', cerebrumImageOrderQueueArn)
   /*
-   * Keep 5 instances running as long as there are in-flight requests
+   * Keep 5 instances running as long as there are in-flight requests in the
+   * order SQS queue. Why do we use SQS metricApproximateNumberOfMessagesNotVisible()
+   * ands not SQS.metricApproximateNumberOfMessagesVisible() metric to scale out? Because we'd kill instances
+   * handling messages if we rely on SQS.metricApproximateNumberOfMessagesVisible(), since the minute all available messages
+   * are picked up by workers, SQS.metricApproximateNumberOfMessagesVisible() == 0, at which point scaling in would start,
+   * killing all those requests in progress.
    */
   scalableTaskCount.scaleOnMetric('fulfillmentScaleOutPolicy', {
-    metric: orderQueue.metricApproximateNumberOfMessagesNotVisible(),
+    metric: sqs.Queue.fromQueueArn(stack, 'orderQueue', cerebrumImageOrderQueueArn).metricApproximateNumberOfMessagesNotVisible(),
     // adjustmentType: AdjustmentType.EXACT_CAPACITY,
     scalingSteps: [
       {

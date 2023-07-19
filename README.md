@@ -32,13 +32,22 @@ The below steps assume MacOS or Unix-like systems only.
 4. The `aws cli`. The steps on how to do this are beyond the scope of this document, but on mac you can do `brew install aws`
 5. Admin level key id/key screte pair for both Mt Sinai ODP and paid accounts. The AWS in profiles respectively have to be named `mssm` and `mssm-odp` in your `~/.aws/credentials` file. You can use `aws configure` from the command line to configure access to your AWS accounts.
 6. [zx](https://www.npmjs.com/package/zx)
+7. Java OpenJDK 17 or above
+   1. Install `SDKMAN!` as per [here](http://sdkman.io/install)
+   2. Run command `sdk use java 17.0.4-tem` to activate Java 17 in your system (any Java version >= 17 will do)
+8. [Maven](https://maven.apache.org/install.html)
 
 #### Steps
-1. Git clone repo at https://github.com/joquijada/charcot,
-   `git clone git@github.com:joquijada/charcot.git`
+1. Git clone repo at https://github.com/NBTR-MSSM/charcot,
+   `git clone git@github.com:NBTR-MSSM/charcot.git`
 2. Install dependencies by running this command in the parent folder of the code cloned above, `npm install`
-3. Deploy the app to the cloud, `AWS_PROFILE=<your AWS profile> npx sst deploy:<env>`
-4. Populate image metadata in AWS: `script/post-metadata.mjs -s debug`
+3. Build the fulfillment module Java code,
+   ```
+   cd fulfillment/
+   mvn -U clean install
+   ```
+4. Deploy the app to the cloud, `AWS_PROFILE=<your AWS profile> npx sst deploy:<env>`
+5. Populate image metadata in AWS: `script/post-metadata.mjs -s debug`
 
 ### Usage
 Once deployment completes, open https://<stage>.mountsinaicarcot.org/.
