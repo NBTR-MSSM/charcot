@@ -99,7 +99,7 @@ class FulfillmentService implements CommandLineRunner {
           continue
         }
         def orderInfoDto = retrieveOrderInfo(orderInfoFromSqs.orderId)
-        updateSqsReceiptHande(orderInfoFromSqs.orderId, orderInfoFromSqs.sqsReceiptHandle)
+        updateSqsReceiptHandle(orderInfoFromSqs.orderId, orderInfoFromSqs.sqsReceiptHandle)
         if (orderInfoDto.status != 'received') {
           /*
            * Another worker already processed or processing this order. If the request is large,
@@ -108,7 +108,7 @@ class FulfillmentService implements CommandLineRunner {
            * that is to rely on order status to know whenever the worker is done processing the order. Also this fetch has
            * the effect of extending the visibility timeout by another 12 hours on behalf of the worker
            * handling this request. One caveat is that we have to record the "refreshed" receipt handle because the
-           * previous has now gone stale.
+           * previous one has now gone stale.
            */
           continue
         }
@@ -170,9 +170,16 @@ class FulfillmentService implements CommandLineRunner {
         try {
           // Do not fail-fast if a file fails to download, just continue with the rest
           def startCurrent = System.currentTimeMillis()
-          downloadS3Object(orderInfoDto, fileName)
+
+          if (!fileName.endsWith('/')) {
+            // If it doesn't end in '/', assumption is that there's a top level
+            // file name ala .mrxs. Below we grab the folder component of this
+            // image as well
+            downloadS3Object(orderInfoDto, fileName)
+          }
+
           // Check if cancel requested right before we commit to downloading
-          // entire .mrxs image folder
+          // entire image folder
           if (cancelIfRequested(orderId)) {
             return true
           }
@@ -285,7 +292,7 @@ class FulfillmentService implements CommandLineRunner {
     log.info "Updated request $orderId fileCount to $fileCount, ${updateItemResult.toString()}"
   }
 
-  void updateSqsReceiptHande(String orderId, String sqsReceiptHandle) {
+  void updateSqsReceiptHandle(String orderId, String sqsReceiptHandle) {
     AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
     Map<String, AttributeValueUpdate> attributeUpdates = [:]
     attributeUpdates.put('sqsReceiptHandle', new AttributeValueUpdate().withValue(new AttributeValue().withS(sqsReceiptHandle)))
@@ -336,18 +343,17 @@ class FulfillmentService implements CommandLineRunner {
     AmazonS3 s3 = AmazonS3ClientBuilder.standard().build()
     List<String> keysToDownload = []
     if (key.endsWith('/')) {
-      new File(Paths.get(orderInfoDto.outputPath, key).toString()).mkdirs()
       ObjectListing objectListing = s3.listObjects(s3OdpBucketName, key)
       keysToDownload += objectListing.objectSummaries.collect {
         it.key
       }
     } else {
-      new File(Paths.get(orderInfoDto.outputPath).toString()).mkdirs()
       keysToDownload << key
     }
 
     try (def s3Client = S3AsyncClient.crtBuilder().build(); S3TransferManager transferManager = S3TransferManager.builder().s3Client(s3Client).build()) {
       keysToDownload.each { String keyToDownload ->
+        new File(Paths.get(orderInfoDto.outputPath, new File(keyToDownload).parent).toString()).mkdirs()
         FileDownload download =
                 transferManager.downloadFile({ b ->
                   b.destination(Paths.get(orderInfoDto.outputPath, keyToDownload)).getObjectRequest({ req -> req.bucket(s3OdpBucketName).key(keyToDownload)
@@ -505,8 +511,8 @@ class FulfillmentService implements CommandLineRunner {
 
   /**
    * Creates buckets numbered 0 through N, where each buckets contains a maximum of FILE_BUCKET_SIZE. The reason
-   * for this is that we make it deterministic the size of each Zip generated.
-   * It also calculates total order size in bytes. All of this info is store in the passed in
+   * for this is to make deterministic the size of each Zip generated.
+   * It also calculates total order size in bytes. All of this info is stored in the passed in
    * order info DTO object.
    */
   void calculateOrderSizeAndPartitionIntoBuckets(OrderInfoDto orderInfoDto) {
@@ -515,6 +521,7 @@ class FulfillmentService implements CommandLineRunner {
     Integer bucketNum = 0
     Long cumulativeObjectsSize = 0
     orderInfoDto.bucketToFileList = orderInfoDto.fileNames.inject([:] as Map<Integer, List<String>>) { Map<Integer, List<String>> bucketToImages, String file ->
+      // FIXME: Are we missing the .mrxs file size?
       ObjectListing objectListing = s3.listObjects(s3OdpBucketName, file.replace('.mrxs', '/'))
       cumulativeObjectsSize = objectListing.objectSummaries.inject(cumulativeObjectsSize) { Long size, S3ObjectSummary objectSummary ->
         size + s3.getObjectMetadata(s3OdpBucketName, objectSummary.key).contentLength

@@ -130,7 +130,7 @@ private CliBuilder buildCli() {
   def cli = new CliBuilder(usage: this.class.getName() + ' [options]')
   cli.with {
     h longOpt: 'help', 'Show usage information'
-    s longOpt: 'source-stage', argName: 'source stage', 'The source stage to copy FROM', defaultValue: 'prod'
+    s longOpt: 'source-stage', argName: 'source stage', args: 1, 'The source stage to copy FROM', defaultValue: 'prod'
     t longOpt: 'target-stage', argName: 'target stage', required: true, args: 1, 'The target stage to copy TO'
   }
   return cli
