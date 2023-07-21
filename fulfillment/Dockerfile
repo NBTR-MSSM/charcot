@@ -1,8 +1,8 @@
 FROM eclipse-temurin:17.0.4_8-jre
 
-# FIXME: Why did I make STAGE and argument that then gets handed off to an ENV? Can't it just be an ENV directly, and thus turn it into
-#  a parameter available at runtime??? Because otherwise (under the current setup) , the stage is just baked into the image, yet the image
-#  name is not reflective of the stage either, see /Users/jmquij0106/git/charcot/fulfillment/script/charcot-fulfillment.sh
+# The STAGE needs to be a build-time argument because at build time is the only chance
+# we gert to specify the stage, a constraint created by aws-cdk-lib ContainerImage.fromAsset(), which accepts DockerImageAssetOptions.buildArgs(),
+# but nothing to override ENV's at runtime.
 ARG STAGE=debug
 ENV SPRING_PROFILE=$STAGE
 ENV AWS_PROFILE=mssm

@@ -9,7 +9,7 @@ process.env.IS_DEPLOY_SCRIPT = 1
  * Use this script and this script only to deploy. The reason is that the
  * the stacks are split across two different AWS accounts (Paid and ODP). SST
  * disallows use of 'env' to specify target account/region for a stack. Instead account/region come from
- * the passed in AWS CLI counterparts (E.g. AWS_PROFILE=... or 'aws --profile ...'. This script
+ * the passed in AWS CLI counterparts (E.g. AWS_PROFILE=... or 'aws --profile ...'). This script
  * allows one to specify the Mt Sinai paid and ODP account AWS profiles individually.<br/>
  * Must still use the 'npx sst start..' command to start the debug environment, which will
  * deploy all stacks to the same account. This simplifies things when it comes to debugging, for

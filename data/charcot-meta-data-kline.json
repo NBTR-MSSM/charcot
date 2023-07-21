@@ -1,0 +1,2468 @@
+[
+  {
+    "FileName": "mri/sub-FNK_2126/",
+    "SubNum": 799963,
+    "Age": 82,
+    "Sex": "Female",
+    "Race": "",
+    "Disorder": "Probable Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2129/",
+    "SubNum": 599957,
+    "Age": 86,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2130/",
+    "SubNum": 62204,
+    "Age": 88,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2131/",
+    "SubNum": 347568,
+    "Age": 79,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2132/",
+    "SubNum": 739977,
+    "Age": 84,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Pick's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2133/",
+    "SubNum": 74721,
+    "Age": 41,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2134/",
+    "SubNum": 713177,
+    "Age": 65,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2135/",
+    "SubNum": 564748,
+    "Age": 62,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2136/",
+    "SubNum": 107236,
+    "Age": 58,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2137/",
+    "SubNum": 707457,
+    "Age": 88,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2138/",
+    "SubNum": 59042,
+    "Age": 94,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Probable Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2139/",
+    "SubNum": 581663,
+    "Age": 66,
+    "Sex": "Male",
+    "Race": "Black",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2140/",
+    "SubNum": 663018,
+    "Age": 67,
+    "Sex": "Female",
+    "Race": "Black",
+    "Disorder": "Lewy Dody Dementia w/Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2141/",
+    "SubNum": 181455,
+    "Age": 63,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2142/",
+    "SubNum": 536322,
+    "Age": 78,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2143/",
+    "SubNum": 946594,
+    "Age": 72,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Vascular Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2144/",
+    "SubNum": 928696,
+    "Age": 67,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Lewy Dody Dementia w/Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2145/",
+    "SubNum": 977521,
+    "Age": 67,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2146/",
+    "SubNum": 119538,
+    "Age": 73,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Vascular Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2147/",
+    "SubNum": 114382,
+    "Age": 75,
+    "Sex": "Male",
+    "Race": "",
+    "Disorder": "Definite Parkinson's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2148/",
+    "SubNum": 731611,
+    "Age": 81,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2149/",
+    "SubNum": 180862,
+    "Age": 63,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Major Depressive Disorder",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2150/",
+    "SubNum": 771075,
+    "Age": 83,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Lewy Dody Dementia w/o Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2151/",
+    "SubNum": 134394,
+    "Age": 86,
+    "Sex": "Female",
+    "Race": "",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2152/",
+    "SubNum": 101974,
+    "Age": 93,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2153/",
+    "SubNum": 647268,
+    "Age": 78,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Vascular Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2154/",
+    "SubNum": 56080,
+    "Age": 98,
+    "Sex": "Female",
+    "Race": "",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2155/",
+    "SubNum": 728919,
+    "Age": 56,
+    "Sex": "Male",
+    "Race": "Black",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2156/",
+    "SubNum": 420418,
+    "Age": 81,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Lewy Dody Dementia w/Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2157/",
+    "SubNum": 34016,
+    "Age": 91,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Probable Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2158/",
+    "SubNum": 20102,
+    "Age": 90,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2159/",
+    "SubNum": 467956,
+    "Age": 80,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Lewy Dody Dementia w/Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2160/",
+    "SubNum": 475531,
+    "Age": 95,
+    "Sex": "Male",
+    "Race": "",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2162/",
+    "SubNum": 953922,
+    "Age": 79,
+    "Sex": "Male",
+    "Race": "",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2163/",
+    "SubNum": 662448,
+    "Age": 73,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Lewy Dody Dementia w/Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2164/",
+    "SubNum": 422937,
+    "Age": 76,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2165/",
+    "SubNum": 262237,
+    "Age": 70,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Possible Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2166/",
+    "SubNum": 354049,
+    "Age": 85,
+    "Sex": "Male",
+    "Race": "",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2167/",
+    "SubNum": 434915,
+    "Age": 68,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2168/",
+    "SubNum": 13571,
+    "Age": 94,
+    "Sex": "Female",
+    "Race": "",
+    "Disorder": "Possible Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2169/",
+    "SubNum": 11396,
+    "Age": 95,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2170/",
+    "SubNum": 633390,
+    "Age": 82,
+    "Sex": "Male",
+    "Race": "Black",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2171/",
+    "SubNum": 836627,
+    "Age": 73,
+    "Sex": "Female",
+    "Race": "Black",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2172/",
+    "SubNum": 13514,
+    "Age": 95,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2174/",
+    "SubNum": 350826,
+    "Age": 70,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2176/",
+    "SubNum": 272264,
+    "Age": 74,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2177/",
+    "SubNum": 27234,
+    "Age": 90,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2178/",
+    "SubNum": 622938,
+    "Age": 41,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Tumor",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2179/",
+    "SubNum": 703503,
+    "Age": 77,
+    "Sex": "Female",
+    "Race": "Black",
+    "Disorder": "Uncertain Parkinson's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2180/",
+    "SubNum": 414785,
+    "Age": 55,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2182/",
+    "SubNum": 392252,
+    "Age": 64,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2183/",
+    "SubNum": 40935,
+    "Age": 94,
+    "Sex": "Female",
+    "Race": "",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2184/",
+    "SubNum": 33338,
+    "Age": 58,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2185/",
+    "SubNum": 841919,
+    "Age": 68,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2186/",
+    "SubNum": 30414,
+    "Age": 97,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Probable Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2187/",
+    "SubNum": 77500,
+    "Age": 51,
+    "Sex": "Male",
+    "Race": "Black",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2188/",
+    "SubNum": 14965,
+    "Age": 36,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Vascular Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2189/",
+    "SubNum": 495182,
+    "Age": 60,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2190/",
+    "SubNum": 867466,
+    "Age": 82,
+    "Sex": "Female",
+    "Race": "",
+    "Disorder": "Lewy Dody Dementia w/Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2191/",
+    "SubNum": 64657,
+    "Age": 50,
+    "Sex": "Male",
+    "Race": "",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2192/",
+    "SubNum": 710124,
+    "Age": 81,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2193/",
+    "SubNum": 934006,
+    "Age": 49,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2194/",
+    "SubNum": 306762,
+    "Age": 99,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2195/",
+    "SubNum": 45340,
+    "Age": 90,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2196/",
+    "SubNum": 305776,
+    "Age": 58,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2197/",
+    "SubNum": 99077,
+    "Age": 87,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2198/",
+    "SubNum": 864630,
+    "Age": 63,
+    "Sex": "Male",
+    "Race": "",
+    "Disorder": "Definite Parkinson's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2199/",
+    "SubNum": 435781,
+    "Age": 80,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Lewy Dody Dementia w/Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2200/",
+    "SubNum": 904597,
+    "Age": 28,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2201/",
+    "SubNum": 638820,
+    "Age": 74,
+    "Sex": "Female",
+    "Race": "Black",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2202/",
+    "SubNum": 494263,
+    "Age": 61,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2203/",
+    "SubNum": 149110,
+    "Age": 66,
+    "Sex": "Female",
+    "Race": "Black",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2204/",
+    "SubNum": 570561,
+    "Age": 52,
+    "Sex": "Female",
+    "Race": "Asian",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2205/",
+    "SubNum": 320446,
+    "Age": 76,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2206/",
+    "SubNum": 344067,
+    "Age": 88,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2207/",
+    "SubNum": 979257,
+    "Age": 76,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2208/",
+    "SubNum": 586796,
+    "Age": 89,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2209/",
+    "SubNum": 254931,
+    "Age": 75,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2210/",
+    "SubNum": 97136,
+    "Age": 85,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2211/",
+    "SubNum": 686900,
+    "Age": 63,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2212/",
+    "SubNum": 449588,
+    "Age": 27,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2213/",
+    "SubNum": 270973,
+    "Age": 68,
+    "Sex": "Male",
+    "Race": "Black",
+    "Disorder": "Probable Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2214/",
+    "SubNum": 693376,
+    "Age": 67,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2215/",
+    "SubNum": 413722,
+    "Age": 76,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2217/",
+    "SubNum": 769439,
+    "Age": 78,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Lewy Dody Dementia w/o Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2218/",
+    "SubNum": 95409,
+    "Age": 80,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2219/",
+    "SubNum": 85716,
+    "Age": 84,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Lewy Dody Dementia w/Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2220/",
+    "SubNum": 980596,
+    "Age": 64,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2221/",
+    "SubNum": 84197,
+    "Age": 63,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2222/",
+    "SubNum": 840752,
+    "Age": 66,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2223/",
+    "SubNum": 154509,
+    "Age": 66,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2224/",
+    "SubNum": 142095,
+    "Age": 43,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2225/",
+    "SubNum": 307560,
+    "Age": 68,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2226/",
+    "SubNum": 570004,
+    "Age": 44,
+    "Sex": "Female",
+    "Race": "Black",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2227/",
+    "SubNum": 686509,
+    "Age": 61,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2228/",
+    "SubNum": 483533,
+    "Age": 68,
+    "Sex": "Female",
+    "Race": "Black",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2229/",
+    "SubNum": 626101,
+    "Age": 68,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2230/",
+    "SubNum": 350122,
+    "Age": 88,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2231/",
+    "SubNum": 598923,
+    "Age": 94,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2232/",
+    "SubNum": 490440,
+    "Age": 79,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Lewy Dody Dementia w/Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2233/",
+    "SubNum": 46231,
+    "Age": 78,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2234/",
+    "SubNum": 554485,
+    "Age": 65,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2235/",
+    "SubNum": 802634,
+    "Age": 95,
+    "Sex": "Female",
+    "Race": "Black",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2236/",
+    "SubNum": 829686,
+    "Age": 92,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2237/",
+    "SubNum": 971551,
+    "Age": 74,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2238/",
+    "SubNum": 52210,
+    "Age": 77,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Vascular Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2239/",
+    "SubNum": 52208,
+    "Age": 48,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2240/",
+    "SubNum": 753158,
+    "Age": 78,
+    "Sex": "Male",
+    "Race": "Asian",
+    "Disorder": "Lewy Dody Dementia w/o Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2242/",
+    "SubNum": 904490,
+    "Age": 60,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Vascular Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2243/",
+    "SubNum": 264185,
+    "Age": 43,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2244/",
+    "SubNum": 458379,
+    "Age": 72,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2245/",
+    "SubNum": 531577,
+    "Age": 67,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2246/",
+    "SubNum": 62537,
+    "Age": 88,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2247/",
+    "SubNum": 999852,
+    "Age": 65,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2248/",
+    "SubNum": 790934,
+    "Age": 71,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Lewy Dody Dementia w/Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2249/",
+    "SubNum": 124561,
+    "Age": 26,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2250/",
+    "SubNum": 265765,
+    "Age": 94,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2251/",
+    "SubNum": 140321,
+    "Age": 74,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2252/",
+    "SubNum": 378342,
+    "Age": 49,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2253/",
+    "SubNum": 28290,
+    "Age": 85,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2254/",
+    "SubNum": 501346,
+    "Age": 23,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2255/",
+    "SubNum": 145640,
+    "Age": 35,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2256/",
+    "SubNum": 250589,
+    "Age": 84,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Lewy Dody Dementia w/o Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2257/",
+    "SubNum": 880517,
+    "Age": 74,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Definite Parkinson's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2258/",
+    "SubNum": 202387,
+    "Age": 78,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2259/",
+    "SubNum": 532147,
+    "Age": 92,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Probable Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2260/",
+    "SubNum": 128854,
+    "Age": 93,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Vascular Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2261/",
+    "SubNum": 260467,
+    "Age": 76,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2262/",
+    "SubNum": 932439,
+    "Age": 76,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2263/",
+    "SubNum": 454590,
+    "Age": 90,
+    "Sex": "Female",
+    "Race": "Black",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2264/",
+    "SubNum": 488346,
+    "Age": 64,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2265/",
+    "SubNum": 359298,
+    "Age": 79,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2266/",
+    "SubNum": 180990,
+    "Age": 83,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2267/",
+    "SubNum": 821247,
+    "Age": 64,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2268/",
+    "SubNum": 45570,
+    "Age": 88,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2269/",
+    "SubNum": 452119,
+    "Age": 66,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2270/",
+    "SubNum": 60912,
+    "Age": 88,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2271/",
+    "SubNum": 926406,
+    "Age": 64,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2272/",
+    "SubNum": 201630,
+    "Age": 75,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2273/",
+    "SubNum": 315438,
+    "Age": 57,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2274/",
+    "SubNum": 616180,
+    "Age": 77,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2275/",
+    "SubNum": 711386,
+    "Age": 88,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Probable Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2276/",
+    "SubNum": 152327,
+    "Age": 69,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2277/",
+    "SubNum": 928507,
+    "Age": 79,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Lewy Dody Dementia w/o Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2278/",
+    "SubNum": 131852,
+    "Age": 82,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2279/",
+    "SubNum": 2700,
+    "Age": 69,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2280/",
+    "SubNum": 662081,
+    "Age": 85,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2281/",
+    "SubNum": 40625,
+    "Age": 90,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2282/",
+    "SubNum": 639378,
+    "Age": 88,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2283/",
+    "SubNum": 871998,
+    "Age": 53,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2284/",
+    "SubNum": 328436,
+    "Age": 89,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Lewy Dody Dementia w/o Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2285/",
+    "SubNum": 795576,
+    "Age": 64,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2286/",
+    "SubNum": 50719,
+    "Age": 95,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2287/",
+    "SubNum": 403925,
+    "Age": 84,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2288/",
+    "SubNum": 983759,
+    "Age": 52,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2289/",
+    "SubNum": 5198,
+    "Age": 73,
+    "Sex": "Female",
+    "Race": "Black",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2290/",
+    "SubNum": 691243,
+    "Age": 74,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Vascular Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2291/",
+    "SubNum": 302449,
+    "Age": 61,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Vascular Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2292/",
+    "SubNum": 127524,
+    "Age": 83,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2293/",
+    "SubNum": 48891,
+    "Age": 85,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2294/",
+    "SubNum": 85836,
+    "Age": 92,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2296/",
+    "SubNum": 383590,
+    "Age": 89,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Lewy Dody Dementia w/Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2297/",
+    "SubNum": 745041,
+    "Age": 77,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2298/",
+    "SubNum": 203448,
+    "Age": 70,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Vascular Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2299/",
+    "SubNum": 913508,
+    "Age": 67,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2300/",
+    "SubNum": 10662,
+    "Age": 96,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2301/",
+    "SubNum": 46192,
+    "Age": 64,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2302/",
+    "SubNum": 828988,
+    "Age": 100,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Vascular Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2303/",
+    "SubNum": 875080,
+    "Age": 88,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Probable Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2304/",
+    "SubNum": 231657,
+    "Age": 84,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2305/",
+    "SubNum": 531784,
+    "Age": 92,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2306/",
+    "SubNum": 82411,
+    "Age": 64,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2307/",
+    "SubNum": 972133,
+    "Age": 80,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2308/",
+    "SubNum": 433292,
+    "Age": 78,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2309/",
+    "SubNum": 644748,
+    "Age": 75,
+    "Sex": "Male",
+    "Race": "Black",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2310/",
+    "SubNum": 33839,
+    "Age": 74,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2311/",
+    "SubNum": 917808,
+    "Age": 68,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Schizophrenia",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2312/",
+    "SubNum": 325737,
+    "Age": 86,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2313/",
+    "SubNum": 197881,
+    "Age": 70,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2314/",
+    "SubNum": 426021,
+    "Age": 70,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Vascular Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2315/",
+    "SubNum": 64444,
+    "Age": 72,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2317/",
+    "SubNum": 666221,
+    "Age": 73,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2318/",
+    "SubNum": 273955,
+    "Age": 54,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2319/",
+    "SubNum": 828063,
+    "Age": 80,
+    "Sex": "Female",
+    "Race": "",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2320/",
+    "SubNum": 424523,
+    "Age": 86,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2321/",
+    "SubNum": 149483,
+    "Age": 80,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Vascular Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2322/",
+    "SubNum": 719535,
+    "Age": 103,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2323/",
+    "SubNum": 576635,
+    "Age": 79,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2324/",
+    "SubNum": 8029,
+    "Age": 77,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2325/",
+    "SubNum": 55377,
+    "Age": 92,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2326/",
+    "SubNum": 663744,
+    "Age": 65,
+    "Sex": "Female",
+    "Race": "Black",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2328/",
+    "SubNum": 989288,
+    "Age": 65,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2329/",
+    "SubNum": 1811,
+    "Age": 59,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2330/",
+    "SubNum": 6570,
+    "Age": 57,
+    "Sex": "Male",
+    "Race": "Black",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2331/",
+    "SubNum": 179087,
+    "Age": 73,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2332/",
+    "SubNum": 737220,
+    "Age": 70,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2333/",
+    "SubNum": 436721,
+    "Age": 96,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2334/",
+    "SubNum": 727069,
+    "Age": 78,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Lewy Dody Dementia w/Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2335/",
+    "SubNum": 136371,
+    "Age": 88,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2336/",
+    "SubNum": 79960,
+    "Age": 87,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2337/",
+    "SubNum": 914387,
+    "Age": 60,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2338/",
+    "SubNum": 587476,
+    "Age": 89,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Possible Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2339/",
+    "SubNum": 976963,
+    "Age": 62,
+    "Sex": "Male",
+    "Race": "Black",
+    "Disorder": "Down's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2340/",
+    "SubNum": 722238,
+    "Age": 50,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2341/",
+    "SubNum": 450300,
+    "Age": 58,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2342/",
+    "SubNum": 706984,
+    "Age": 76,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2343/",
+    "SubNum": 746042,
+    "Age": 78,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2344/",
+    "SubNum": 550500,
+    "Age": 79,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Definite Parkinson's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2345/",
+    "SubNum": 320868,
+    "Age": 64,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Huntington's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2347/",
+    "SubNum": 207853,
+    "Age": 80,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2348/",
+    "SubNum": 860367,
+    "Age": 65,
+    "Sex": "Male",
+    "Race": "Black",
+    "Disorder": "Vascular Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2349/",
+    "SubNum": 173213,
+    "Age": 76,
+    "Sex": "Female",
+    "Race": "Asian",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2350/",
+    "SubNum": 467093,
+    "Age": 51,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Lewy Dody Dementia w/o Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2351/",
+    "SubNum": 818157,
+    "Age": 71,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Multiple Sclerosis",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2352/",
+    "SubNum": 445440,
+    "Age": 68,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2353/",
+    "SubNum": 792963,
+    "Age": 76,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2354/",
+    "SubNum": 768869,
+    "Age": 90,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2355/",
+    "SubNum": 99267,
+    "Age": 84,
+    "Sex": "Female",
+    "Race": "",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2356/",
+    "SubNum": 847718,
+    "Age": 69,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2357/",
+    "SubNum": 671314,
+    "Age": 64,
+    "Sex": "Male",
+    "Race": "Asian",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2358/",
+    "SubNum": 752467,
+    "Age": 92,
+    "Sex": "Male",
+    "Race": "Other",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2359/",
+    "SubNum": 522352,
+    "Age": 42,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2360/",
+    "SubNum": 537990,
+    "Age": 93,
+    "Sex": "Male",
+    "Race": "Hispanic",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2361/",
+    "SubNum": 4671,
+    "Age": 98,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2362/",
+    "SubNum": 30499,
+    "Age": 71,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2364/",
+    "SubNum": 55134,
+    "Age": 80,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2365/",
+    "SubNum": 67806,
+    "Age": 80,
+    "Sex": "Female",
+    "Race": "Asian",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2366/",
+    "SubNum": 780631,
+    "Age": 71,
+    "Sex": "Female",
+    "Race": "",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2367/",
+    "SubNum": 335275,
+    "Age": 68,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2368/",
+    "SubNum": 655807,
+    "Age": 75,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2369/",
+    "SubNum": 241471,
+    "Age": 60,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Lewy Dody Dementia w/Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2370/",
+    "SubNum": 538731,
+    "Age": 82,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Lewy Dody Dementia w/Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2371/",
+    "SubNum": 311286,
+    "Age": 82,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2372/",
+    "SubNum": 53636,
+    "Age": 89,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2373/",
+    "SubNum": 195302,
+    "Age": 53,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2374/",
+    "SubNum": 708259,
+    "Age": 84,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2375/",
+    "SubNum": 304680,
+    "Age": 101,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Probable Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2376/",
+    "SubNum": 30630,
+    "Age": 81,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2377/",
+    "SubNum": 986638,
+    "Age": 88,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2378/",
+    "SubNum": 966845,
+    "Age": 93,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2379/",
+    "SubNum": 938324,
+    "Age": 60,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2380/",
+    "SubNum": 639667,
+    "Age": 84,
+    "Sex": "Female",
+    "Race": "Black",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2382/",
+    "SubNum": 876075,
+    "Age": 88,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2383/",
+    "SubNum": 970833,
+    "Age": 92,
+    "Sex": "Female",
+    "Race": "Black",
+    "Disorder": "Lewy Dody Dementia w/o Alzheimer's",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2384/",
+    "SubNum": 862018,
+    "Age": 81,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2385/",
+    "SubNum": 878151,
+    "Age": 82,
+    "Sex": "Female",
+    "Race": "Black",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2386/",
+    "SubNum": 400449,
+    "Age": 87,
+    "Sex": "Female",
+    "Race": "Black",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2387/",
+    "SubNum": 913848,
+    "Age": 50,
+    "Sex": "Female",
+    "Race": "Black",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2388/",
+    "SubNum": 561589,
+    "Age": 79,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2389/",
+    "SubNum": 837835,
+    "Age": 76,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Normal Brain",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2391/",
+    "SubNum": 38830,
+    "Age": 77,
+    "Sex": "Male",
+    "Race": "",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2392/",
+    "SubNum": 579981,
+    "Age": 94,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2393/",
+    "SubNum": 131350,
+    "Age": 73,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Vascular Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2394/",
+    "SubNum": 475110,
+    "Age": 94,
+    "Sex": "Male",
+    "Race": "Black",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2395/",
+    "SubNum": 353275,
+    "Age": 84,
+    "Sex": "Female",
+    "Race": "Asian",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2396/",
+    "SubNum": 354022,
+    "Age": 79,
+    "Sex": "Male",
+    "Race": "Black",
+    "Disorder": "Vascular Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2397/",
+    "SubNum": 250440,
+    "Age": 86,
+    "Sex": "Female",
+    "Race": "Black",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2398/",
+    "SubNum": 65300,
+    "Age": 88,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2399/",
+    "SubNum": 741291,
+    "Age": 59,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Definite Alzheimer's Disease",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2400/",
+    "SubNum": 757288,
+    "Age": 97,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Other",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2401/",
+    "SubNum": 190124,
+    "Age": 87,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2402/",
+    "SubNum": 856715,
+    "Age": 78,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2403/",
+    "SubNum": 525735,
+    "Age": 88,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2404/",
+    "SubNum": 584249,
+    "Age": 77,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2405/",
+    "SubNum": 495045,
+    "Age": 82,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2406/",
+    "SubNum": 462502,
+    "Age": 92,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2407/",
+    "SubNum": 627973,
+    "Age": 83,
+    "Sex": "Male",
+    "Race": "Black",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2408/",
+    "SubNum": 792437,
+    "Age": 83,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2409/",
+    "SubNum": 370368,
+    "Age": 91,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2410/",
+    "SubNum": 504146,
+    "Age": 79,
+    "Sex": "Female",
+    "Race": "Hispanic",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2411/",
+    "SubNum": 306092,
+    "Age": 80,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2412/",
+    "SubNum": 240677,
+    "Age": 85,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2413/",
+    "SubNum": 519658,
+    "Age": 83,
+    "Sex": "Male",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  },
+  {
+    "FileName": "mri/sub-FNK_2414/",
+    "SubNum": 36471,
+    "Age": 93,
+    "Sex": "Female",
+    "Race": "White",
+    "Disorder": "Pending",
+    "Stain": "mri"
+  }
+]
