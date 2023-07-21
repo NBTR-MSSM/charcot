@@ -353,7 +353,7 @@ class FulfillmentService implements CommandLineRunner {
 
     try (def s3Client = S3AsyncClient.crtBuilder().build(); S3TransferManager transferManager = S3TransferManager.builder().s3Client(s3Client).build()) {
       keysToDownload.each { String keyToDownload ->
-        new File(Paths.get(orderInfoDto.outputPath, new File(keyToDownload).parent).toString()).mkdirs()
+        new File(Paths.get(orderInfoDto.outputPath, new File(keyToDownload).parent ?: "").toString()).mkdirs()
         FileDownload download =
                 transferManager.downloadFile({ b ->
                   b.destination(Paths.get(orderInfoDto.outputPath, keyToDownload)).getObjectRequest({ req -> req.bucket(s3OdpBucketName).key(keyToDownload)
