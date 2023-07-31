@@ -52,3 +52,7 @@
     --bs-btn-hover-bg: white;
     --bs-btn-hover-color: steelblue;
 }
+
+.Search .charcot-search-tooltip-btn {
+    margin-top: -10px;
+}

@@ -31,7 +31,6 @@ const parseOrder = async (event: APIGatewayProxyEventV2): Promise<CerebrumImageO
 const fetchFileNames = async (filter: Filter): Promise<string[]> => {
   const res = await imageSearch.search(filter)
   const items = res.body as DocumentClient.ItemList
-  // console.log(`JMQ: items is ${JSON.stringify(items)}`)
   return items.map((e) => e.fileName)
 }
 
@@ -72,7 +71,6 @@ class OrderManagement {
         return new HttpResponse(401, `Request in status ${order.status} cannot be canceled`)
       }
       const requester = (event.queryStringParameters && event.queryStringParameters.requester) as string
-      console.log(`JMQ: request ${orderId} for cancel`)
       await dynamoDbClient.update({
         TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME,
         Key: { orderId },

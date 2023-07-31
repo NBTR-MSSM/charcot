@@ -146,10 +146,6 @@ export default class BaseHighchartsComponent extends Component {
     })
   }
 
-  componentDidMount() {
-    console.log('JMQ: componentDidMount()')
-  }
-
   componentDidUpdate(prevProps) {
     // FIXME: This is doing object identity comparison, is this what I really want?
     if (this.props.filter !== prevProps.filter) {

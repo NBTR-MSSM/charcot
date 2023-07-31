@@ -18,7 +18,9 @@ export function FrontendStack({ app, stack }: sst.StackContext) {
     REACT_APP_REGION: stack.region,
     REACT_APP_USER_POOL_ID: userPoolId!,
     REACT_APP_USER_POOL_CLIENT_ID: userPoolClientId!,
-    REACT_APP_IDENTITY_POOL_ID: cognitoIdentityPoolId!
+    REACT_APP_IDENTITY_POOL_ID: cognitoIdentityPoolId!,
+    REACT_APP_FEAT_TOGGLE_LOGICAL_OP_ENABLED: process.env.FEAT_TOGGLE_LOGICAL_OP_ENABLED || 'false',
+    TEST_ENV: 'test'
   }
   const stage = stack.stage
   const hostedZone = route53.HostedZone.fromHostedZoneAttributes(stack, 'HostedZone', {

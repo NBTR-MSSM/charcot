@@ -12,6 +12,13 @@ const isFilter = (input: unknown): input is Filter => {
   return typeof input === 'string'
 }
 
+interface PrepareCallbackArgs {
+  dimension: string
+  event: APIGatewayProxyEventV2
+  isNumeric?: boolean
+  results?: Dimension[]
+}
+
 class ImageSearch extends Search {
   async search(event: APIGatewayProxyEventV2 | Filter): Promise<Record<string, unknown>> {
     const params: DocumentClient.QueryInput = {
@@ -20,16 +27,14 @@ class ImageSearch extends Search {
 
     const filter: Filter = isFilter(event) ? event : (event.queryStringParameters && event.queryStringParameters.filter) as string
     this.addFilter(filter, params)
-    let responseCode = 404
     let retItems: DocumentClient.ItemList = []
     const callback = (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => {
       retItems = retItems.concat(items)
-      responseCode = 200
     }
     await this.handleSearch(params, callback)
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    return new HttpResponse(responseCode, '', {
+    return new HttpResponse(200, '', {
       headers: {
         'Content-Type': 'application/json'
       },
@@ -50,61 +55,102 @@ class ImageSearch extends Search {
     const params: DocumentClient.QueryInput = {
       ExpressionAttributeNames: attrExpNames,
       ProjectionExpression: '#dimension',
-      TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string,
-      IndexName: `${dimension}Index`
+      TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string
     }
+
     this.addFilter((event.queryStringParameters && event.queryStringParameters.filter) as Filter, params)
     this.addEnabledOnlyCondition(params)
 
-    let ret: Dimension[] = []
-    let responseCode = 404
-
-    const callback = (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => {
-      responseCode = 200
-      // Ranging only applies to dimensions that are numeric
-      // in nature only. Yet we do this here for all for sake of simplicity,
-      // namely generating a RangeMap needlessly if the dimension in question
-      // is not numeric in nature.
-      const interval = Number.parseInt((event.queryStringParameters && event.queryStringParameters.interval) || '10')
-      const max = Number.parseInt((event.queryStringParameters && event.queryStringParameters.max) || '90')
-      const start = Number.parseInt((event.queryStringParameters && event.queryStringParameters.start) || interval.toString())
-      const ranges: RangeMap = new RangeMap(interval, max, start)
-      ret = Array.from(items.reduce((prev: Map<string | number, Dimension>, cur: DocumentClient.AttributeMap) => {
-        const val = Number.isInteger(cur[dimension]) && isNumeric ? cur[dimension] : paramCase(`${cur[dimension]}`)
-        let obj: Dimension | undefined
-        if (!(obj = prev.get(val))) {
-          // Seeing this item for the first time
-          obj = {
-            count: 0,
-            title: cur[dimension],
-            value: val,
-            range: undefined,
-            rank: -1
-          }
-          prev.set(val, obj as Dimension)
-
-          // Ranging applies to dimensions numeric in nature only (E.g. Age) and where
-          // caller indeed wants to treat those as range-able (numeric=true in query string params)
-          if (Number.isInteger(val) && isNumeric) {
-            const rangeInfo = ranges.get(val)
-            obj.range = rangeInfo?.range
-            obj.rank = rangeInfo?.rank as number
-          }
-        }
-        ++obj.count
-        return prev
-      }, new Map<string | number, Dimension>(ret.map((obj) => [obj.value, obj]))).values())
-        .sort((a, b): number => b.rank - a.rank || rank(dimension, a.title) - rank(dimension, b.title))
-    }
+    const {
+      callback,
+      results
+    } = this.prepareCallback({
+      dimension,
+      event,
+      isNumeric
+    })
     await this.handleSearch(params, callback)
-    return new HttpResponse(responseCode, '', {
-      body: ret
+    return new HttpResponse(200, '', {
+      body: results
     })
   }
 
   /**
+   * This function returns a JSON object with the fields:
+   *   callback: This function creates search "facets". Facets are nothing more than search results grouped by
+   *     the unique categories associated with a dimension, along with the count for each group of categories.
+   *   results: The results produced by the callback as an array of objects, where each object is f type Dimension
+   * @param dimension - The field which unique values (aka categories) are to be grouped and a count of each group produced
+   * @param event - The AWS API Gateway event that triggered this Lambda
+   * @param isNumeric - Boolean that when true means that ranging such be applied. This applies to dimensions that are numeric in nature,
+   *   for example Age. If the dimension is not numeric (E.g. Stain) then this boolean is ignored even if True.
+   * @param initialResults - If provided, additional results are added to this array. Useful for merging previous results with
+   *   new ones. The counts for each category are added onto the counts in the initial results
+   * @private
+   */
+  private prepareCallback({
+    dimension,
+    event,
+    isNumeric,
+    results: initialResults
+  }: PrepareCallbackArgs): { callback: (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => void, results: Dimension[] } {
+    /*
+     * The idiom of passing 'results' below to the constructor of Map of reduce() init arg is used because DynamoDB
+     * scan() paginates results, so the callback defined below will get called several times. This way we can pass 'results'
+     * results from previous to next call of callback, as many times as necessary until scan results reaches the end.
+     */
+    const results: Dimension[] = []
+    let temp: Dimension[] = initialResults || []
+    return {
+      callback: (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => {
+        /*
+         * Ranging only applies to dimensions that are numeric
+         * in nature only. Yet we do this here for all for sake of simplicity,
+         * namely generating a RangeMap needlessly if the dimension in question
+         * is not numeric in nature.
+         */
+        const interval = Number.parseInt((event.queryStringParameters && event.queryStringParameters.interval) || '10')
+        const max = Number.parseInt((event.queryStringParameters && event.queryStringParameters.max) || '90')
+        const start = Number.parseInt((event.queryStringParameters && event.queryStringParameters.start) || interval.toString())
+        const ranges: RangeMap = new RangeMap(interval, max, start)
+        temp = Array.from(items.reduce((prev: Map<string | number, Dimension>, cur: DocumentClient.AttributeMap) => {
+          const category = Number.isInteger(cur[dimension]) && isNumeric ? cur[dimension] : paramCase(`${cur[dimension]}`)
+          let obj: Dimension | undefined
+          if (!(obj = prev.get(category))) {
+            // Seeing this category of the dimension for the first time
+            obj = {
+              count: 0,
+              title: cur[dimension],
+              category,
+              range: undefined,
+              rank: -1
+            }
+            prev.set(category, obj as Dimension)
+
+            // Ranging applies to dimensions numeric in nature only (E.g. Age) and where
+            // caller indeed wants to treat those as range-able (numeric=true in query string params)
+            if (Number.isInteger(category) && isNumeric) {
+              const rangeInfo = ranges.get(category)
+              obj.range = rangeInfo?.range
+              obj.rank = rangeInfo?.rank as number
+            }
+          }
+          ++obj.count
+          return prev
+        }, new Map<string | number, Dimension>(temp.map((obj) => [obj.category, obj]))).values())
+          .sort((a, b): number => b.rank - a.rank || rank(dimension, a.title) - rank(dimension, b.title))
+        results.length = 0
+        for (const d of temp) {
+          results.push(d)
+        }
+      },
+      results
+    }
+  }
+
+  /**
    * Augments the passed in DynamoDB query with the string filter found in the
-   * request query string, if any, converting it to a DynamoDB filter. Otherwise it leaves
+   * request query string, if any, converting it to a DynamoDB filter. Otherwise, it leaves
    * the DynamoDB query untouched.
    * WARNING: Fairly heavy use of RegEx alert.
    */
@@ -115,62 +161,66 @@ class ImageSearch extends Search {
 
     const exprAttrNames: Record<string, string> = {}
     const exprAttrValues: Record<string, string | number> = {}
-    let dynamoFilter = filter
+    let dynamoDbFilter = filter
 
     /*
      * Deal with the numeric range categories (E.g. age)
      */
     // First deal with the less than and greater than ranges (the bottom and top ones in the chart)
     for (const m of filter.matchAll(/((\w+)\s=\s(?:'(\d+)\+'|'<\s(\d+)'))/g)) {
-      const category = m[2]
-      const categoryPlaceholder = `#${category.replace(/\s+/g, '')}`
+      const dimension = m[2]
+      const dimensionPlaceholder = `#${dimension.replace(/\s+/g, '')}`
       const greaterThanOrEqualTo = m[3]
       const lt = m[4]
       const num = greaterThanOrEqualTo || lt
       const searchStr = m[1]
-      const replaceStr = greaterThanOrEqualTo ? `${categoryPlaceholder} >= :${num}` : `${categoryPlaceholder} < :${num}`
-      exprAttrNames[categoryPlaceholder] = category
+      const replaceStr = greaterThanOrEqualTo ? `${dimensionPlaceholder} >= :${num}` : `${dimensionPlaceholder} < :${num}`
+      exprAttrNames[dimensionPlaceholder] = dimension
       exprAttrValues[`:${num}`] = Number.parseInt(num)
-      dynamoFilter = dynamoFilter.replace(searchStr, replaceStr)
+      dynamoDbFilter = dynamoDbFilter.replace(searchStr, replaceStr)
     }
 
     // Now deal with the ranges in between
     for (const m of filter.matchAll(/(\w+)\s=\s'(\d+)\s-\s(\d+)'/g)) {
-      const category = m[1]
-      const categoryPlaceholder = `#${category.replace(/\s+/g, '')}`
+      const dimension = m[1]
+      const dimensionPlaceholder = `#${dimension.replace(/\s+/g, '')}`
       const from = m[2]
       const to = m[3]
-      exprAttrNames[categoryPlaceholder] = category
+      exprAttrNames[dimensionPlaceholder] = dimension
       exprAttrValues[`:${from}`] = Number.parseInt(from)
       exprAttrValues[`:${to}`] = Number.parseInt(to)
-      dynamoFilter = dynamoFilter.replace(m[0], `${categoryPlaceholder} BETWEEN :${from} AND :${to}`)
+      dynamoDbFilter = dynamoDbFilter.replace(m[0], `${dimensionPlaceholder} BETWEEN :${from} AND :${to}`)
     }
 
     // Deal with the text categories (E.g. stain, region, sex, race, diagnosis)
-    for (const m of dynamoFilter.matchAll(/(\w+)\s=\s'([^']+)'/g)) {
-      // Globally handle category replacement upon the first iteration and
-      // upon the first iteration only. Why though? This is idempotent so can run many times
-      // harmlessly, right?
-      const category = m[1]
-      const categoryPlaceholder = `#${category.replace(/\s+/g, '')}`
-      if (!exprAttrNames[categoryPlaceholder]) {
-        exprAttrNames[categoryPlaceholder] = category
-        dynamoFilter = dynamoFilter.replace(new RegExp(category, 'g'), categoryPlaceholder)
+    for (const m of dynamoDbFilter.matchAll(/(\w+)\s=\s'([^']+)'|contains\((\w+),\s'([^']+)'\)/g)) {
+      /*
+       * Globally handle dimension replacement upon the first iteration and
+       * first iteration only. Applies to cases where a dimension appears multiple times in the
+       * query (I.e. there are multiple predicates for the dimension). Why though? This is idempotent so can run many times
+       * harmlessly, right?
+       */
+      const dimension = m[1] || m[3]
+      const dimensionPlaceholder = `#${dimension.replace(/\s+/g, '')}`
+      if (!exprAttrNames[dimensionPlaceholder]) {
+        exprAttrNames[dimensionPlaceholder] = dimension
+        dynamoDbFilter = dynamoDbFilter.replace(new RegExp(dimension, 'g'), dimensionPlaceholder)
       }
 
-      const val = m[2]
-      const valuePlaceHolder = `:${val.replace(/\W+/g, '')}`
+      const category = m[2] || m[4]
+      const categoryPlaceHolder = `:${category.replace(/\W+/g, '')}`
+
       // Ensure numeric values are stored as JavaScript numeric type, else DynamoDB
       // returns results because it won't coerce to number strings that  are numeric
       // in nature
-
-      exprAttrValues[valuePlaceHolder] = val.match(/^\d+$/) ? parseInt(val) : val.replace(/__QUOTE__/g, "'")
-      dynamoFilter = dynamoFilter.replace(`'${val}'`, valuePlaceHolder)
+      exprAttrValues[categoryPlaceHolder] = category.match(/^\d+$/) ? parseInt(category) : category.replace(/__QUOTE__/g, '\'')
+      dynamoDbFilter = dynamoDbFilter.replace(`'${category}'`, categoryPlaceHolder)
     }
 
-    params.FilterExpression = dynamoFilter
+    params.FilterExpression = dynamoDbFilter
     params.ExpressionAttributeNames = { ...params.ExpressionAttributeNames, ...exprAttrNames }
     params.ExpressionAttributeValues = exprAttrValues
+    console.log(`JMQ: params is ${JSON.stringify(params)}`)
   }
 
   private addEnabledOnlyCondition(params: DocumentClient.QueryInput) {

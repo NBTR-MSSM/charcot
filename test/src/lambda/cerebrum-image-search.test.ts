@@ -44,7 +44,7 @@ describe('cerebrum-image-search', () => {
     })
   })
 
-  it('returns 404 if no results found for a dimension', async () => {
+  it('handles case when no results are found for a dimension', async () => {
     // @ts-ignore
     dynamoDbClient.scan.mockResolvedValueOnce({})
     const event = {} as APIGatewayProxyEventV2
@@ -54,7 +54,7 @@ describe('cerebrum-image-search', () => {
     }
     const res = await lambda.dimension(event, {} as Context, jest.fn())
     expect(res).toEqual({
-      statusCode: 404,
+      statusCode: 200,
       body: JSON.stringify([])
     })
     expect(dynamoDbClient.scan).toHaveBeenCalledWith({
@@ -67,8 +67,7 @@ describe('cerebrum-image-search', () => {
       },
       FilterExpression: '#enabled = :true',
       ProjectionExpression: '#dimension',
-      TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string,
-      IndexName: 'ageIndex'
+      TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string
     })
   })
 
@@ -98,8 +97,7 @@ describe('cerebrum-image-search', () => {
       },
       FilterExpression: '#enabled = :true',
       ProjectionExpression: '#dimension',
-      TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string,
-      IndexName: 'ageIndex'
+      TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string
     })
   })
 
@@ -129,8 +127,7 @@ describe('cerebrum-image-search', () => {
       },
       FilterExpression: '#enabled = :true',
       ProjectionExpression: '#dimension',
-      TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string,
-      IndexName: 'diagnosisIndex'
+      TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string
     })
   })
 
@@ -141,7 +138,7 @@ describe('cerebrum-image-search', () => {
       dimension: 'regions'
     }
     event.queryStringParameters = {
-      filter: '(age = \'84 - 89\' OR age = \'90+\' OR age = \'< 10\') AND diagnosis = \'Probable Alzheimer__QUOTE__s Disease\' AND subjectNumber = \'12345\''
+      filter: '(age = \'84 - 89\' OR age = \'90+\' OR age = \'< 10\') AND diagnosis = \'Probable Alzheimer__QUOTE__s Disease\' AND subjectNumber = \'12345\' AND contains(stain, \'myl\')'
     }
     await lambda.dimension(event, {} as Context, jest.fn())
     expect(dynamoDbClient.scan).toHaveBeenCalledWith({
@@ -152,19 +149,20 @@ describe('cerebrum-image-search', () => {
         ':10': 10,
         ':ProbableAlzheimer__QUOTE__sDisease': 'Probable Alzheimer\'s Disease',
         ':12345': 12345,
-        ':true': 'true'
+        ':true': 'true',
+        ':myl': 'myl'
       },
       ExpressionAttributeNames: {
         '#age': 'age',
         '#dimension': 'region',
         '#diagnosis': 'diagnosis',
         '#enabled': 'enabled',
+        '#stain': 'stain',
         '#subjectNumber': 'subjectNumber'
       },
-      FilterExpression: '(#age BETWEEN :84 AND :89 OR #age >= :90 OR #age < :10) AND #diagnosis = :ProbableAlzheimer__QUOTE__sDisease AND #subjectNumber = :12345 AND #enabled = :true',
+      FilterExpression: '(#age BETWEEN :84 AND :89 OR #age >= :90 OR #age < :10) AND #diagnosis = :ProbableAlzheimer__QUOTE__sDisease AND #subjectNumber = :12345 AND contains(#stain, :myl) AND #enabled = :true',
       ProjectionExpression: '#dimension',
-      TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string,
-      IndexName: 'regionIndex'
+      TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string
     })
   })
 
@@ -192,8 +190,7 @@ describe('cerebrum-image-search', () => {
       },
       FilterExpression: '#enabled = :true',
       ProjectionExpression: '#dimension',
-      TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string,
-      IndexName: 'ageIndex'
+      TableName: process.env.CEREBRUM_IMAGE_METADATA_TABLE_NAME as string
     }
     expect(dynamoDbClient.scan).toHaveBeenNthCalledWith(1, expectedScanParams)
     expect(dynamoDbClient.scan).toHaveBeenNthCalledWith(2, {

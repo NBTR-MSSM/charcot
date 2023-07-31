@@ -140,7 +140,6 @@ class OrderSearch extends Search {
        */
       const callback = (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => {
         retItems = retItems.concat(items)
-        // console.log(`JMQ: retItems is ${JSON.stringify(retItems)}`)
       }
 
       await this.handleSearch(params, callback)

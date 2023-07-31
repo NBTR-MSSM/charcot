@@ -10,7 +10,6 @@
 }
 
 .FilterComponent .clear-predicate-btn {
-    background-color: #46d246;
     height: 32px;
     border-radius: 18px;
     font-size: 10px;
@@ -20,7 +19,25 @@
 .FilterComponent .remove {
     font-weight: bolder;
     line-height: 10px;
-    font-size: 18px;
+    font-size: 11px;
     color: red;
     margin-left: 4px;
+    text-decoration: underline dotted;
+}
+
+.FilterComponent .category-logical-operator-toggle {
+    font-weight: bolder;
+    line-height: 10px;
+    font-size: 11px;
+    color: blue;
+    margin-left: 4px;
+    text-decoration: underline dotted;
+}
+
+.FilterComponent .clear-predicate-btn-color-or {
+    background-color: #46d246;
+}
+
+.FilterComponent .clear-predicate-btn-color-and {
+    background-color: #ffa500;
 }

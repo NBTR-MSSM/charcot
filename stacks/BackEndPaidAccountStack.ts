@@ -39,16 +39,19 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
     fields: {
       fileName: 'string',
       region: 'string',
+      allSubjectRegions: 'string',
       stain: 'string',
+      allSubjectStains: 'string',
       age: 'number',
       race: 'string',
       sex: 'string',
       diagnosis: 'string',
       subjectNumber: 'number',
       uploadDate: 'string',
-      enabled: 'string'
+      enabled: 'string' // This should be a boolean, but alas, SST supports only string/binary/number, not sure why: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_dynamodb.AttributeType.html
     },
     primaryIndex: { partitionKey: 'fileName' },
+    // TODO: Are these indices needed? Nowhere in code is it querying indexes
     globalIndexes: {
       regionIndex: { partitionKey: 'region' },
       stainIndex: { partitionKey: 'stain' },

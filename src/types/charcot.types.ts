@@ -48,7 +48,7 @@ export interface OrderRetrievalOutput extends OrderTotals, Pagination {
 export type Range = string
 
 export interface Dimension {
-  value: string | number
+  category: string | number
   title: string
   count: number
   range: Range | undefined

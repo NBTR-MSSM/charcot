@@ -25,7 +25,6 @@ describe('cerebrum-image-user', () => {
     }
 
     const res = await lambda.retrieve(event, {} as Context, jest.fn()) as APIGatewayProxyStructuredResultV2
-    console.log(`JMQ: res is ${JSON.stringify(res)}`)
     expect(res).toEqual({
       statusCode: 200,
       body: JSON.stringify({
@@ -58,7 +57,6 @@ describe('cerebrum-image-user', () => {
 
     event.body = JSON.stringify(updateRequest)
     const res = await lambda.update(event, {} as Context, jest.fn()) as APIGatewayProxyStructuredResultV2
-    console.log(`JMQ: res is ${JSON.stringify(res)}`)
     expect(cognitoIdentityServiceProviderClient.adminUpdateUserAttributes).toHaveBeenCalledWith({
       UserPoolId: process.env.CEREBRUM_COGNITO_USER_POOL_ID as string,
       Username: 'test@test.com',
@@ -84,7 +82,6 @@ describe('cerebrum-image-user', () => {
 
     event.body = JSON.stringify(updateRequest)
     const res = await lambda.update(event, {} as Context, jest.fn()) as APIGatewayProxyStructuredResultV2
-    console.log(`JMQ: res is ${JSON.stringify(res)}`)
     expect(cognitoIdentityServiceProviderClient.adminSetUserPassword).toHaveBeenCalledWith({
       UserPoolId: process.env.CEREBRUM_COGNITO_USER_POOL_ID as string,
       Username: 'test@test.com',

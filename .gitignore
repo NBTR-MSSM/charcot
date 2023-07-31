@@ -28,7 +28,7 @@ yarn-debug.log*
 yarn-error.log*
 
 .idea/
-.run/
+#.run/
 
 *.swp
 target/

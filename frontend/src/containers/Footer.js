@@ -21,7 +21,7 @@ class Footer extends Component {
       this.context.redirect({ to: '/login' })
     } else {
       this.setState({ isProcessing: true })
-      const filter = this.props.filter.serialize()
+      const filter = this.props.filter.serialize({ isSubmission: true })
       await API.post('charcot', '/cerebrum-image-orders', {
         body: {
           filter,
@@ -49,23 +49,26 @@ class Footer extends Component {
       buttonInfo.function = this.handleSubmitButtonClick
     }
 
-    const backButton = <LinkContainer to='/search'>
-      <Button id='back-btn'>Back</Button>
+    const backButton = <LinkContainer to="/search">
+      <Button id="back-btn">Back</Button>
     </LinkContainer>
 
     const isProcessing = this.state.isProcessing
     const dimensionData = this.context.dimensionData
     return (
-      <footer className='Footer fixed-bottom'>
-        <Stack bsPrefix={'charcot-footer-hstack'} direction='horizontal' gap={3}>
+      <footer className="Footer fixed-bottom">
+        <Stack bsPrefix={'charcot-footer-hstack'} direction="horizontal" gap={3}>
           {Object.values(dimensionData.dimensions).map((e, index) => {
             return <Stat key={index} info={e}/>
           })}
           <Stat
-            info={{ selectedCategoryCount: dimensionData.selectedSlideCount, displayName: 'Total Selected Slides' }}/>
+            info={{
+              selectedCategoryCount: dimensionData.selectedSlideCount,
+              displayName: 'Total Selected Slides'
+            }}/>
           <LinkContainer to={buttonInfo.to}>
             <LoaderButton id={buttonInfo.id} onClick={isProcessing ? null : buttonInfo.function}
-                          disabled={isProcessing}
+                          disabled={isProcessing || !this.context.isResultsFound}
                           isLoading={isProcessing}>{isProcessing ? 'Processing...' : buttonInfo.text}
             </LoaderButton>
           </LinkContainer>
