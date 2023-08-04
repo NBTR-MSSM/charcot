@@ -17,6 +17,7 @@
     "import:data:debug": "./script/post-metadata.mjs -s debug"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@tsconfig/node18": "^1.0.1",
     "@types/aws-lambda": "^8.10.70",
     "@types/jest": "^27.0.3",
