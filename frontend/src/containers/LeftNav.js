@@ -6,7 +6,7 @@ export default class LeftNav extends Component {
   render () {
     return (
       <div className='LeftNav'>
-        <DimensionAccordion/>
+        <DimensionAccordion autoExpandActiveDimensions={true}/>
       </div>
     )
   }

@@ -5,7 +5,7 @@
     margin-top: 10px;
 }
 
-.Footer #next-btn, #submit-btn {
+.Footer #next-btn, #submit-btn, #back-btn {
     float: right;
     margin-top: 0px;
     margin-right: 50px;
@@ -14,6 +14,10 @@
     background-color: steelblue;
     color: white;
     font-weight: bold;
+}
+
+.Footer #back-btn {
+    margin-right: 25px;
 }
 
 .charcot-footer-hstack {

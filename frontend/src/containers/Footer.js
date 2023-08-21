@@ -6,9 +6,10 @@ import Stack from 'react-bootstrap/Stack'
 import Stat from './Stat'
 import LoaderButton from '../components/LoaderButton'
 import { AppContext } from '../lib/context'
+import Button from 'react-bootstrap/Button'
 
 class Footer extends Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = {
       isProcessing: false
@@ -32,7 +33,7 @@ class Footer extends Component {
     }
   }
 
-  render () {
+  render() {
     const buttonInfo = {
       text: 'Next',
       to: '/review',
@@ -48,6 +49,10 @@ class Footer extends Component {
       buttonInfo.function = this.handleSubmitButtonClick
     }
 
+    const backButton = <LinkContainer to='/search'>
+      <Button id='back-btn'>Back</Button>
+    </LinkContainer>
+
     const isProcessing = this.state.isProcessing
     const dimensionData = this.context.dimensionData
     return (
@@ -56,13 +61,15 @@ class Footer extends Component {
           {Object.values(dimensionData.dimensions).map((e, index) => {
             return <Stat key={index} info={e}/>
           })}
-          <Stat info={{ selectedCategoryCount: dimensionData.selectedSlideCount, displayName: 'Total Selected Slides' }}/>
+          <Stat
+            info={{ selectedCategoryCount: dimensionData.selectedSlideCount, displayName: 'Total Selected Slides' }}/>
           <LinkContainer to={buttonInfo.to}>
             <LoaderButton id={buttonInfo.id} onClick={isProcessing ? null : buttonInfo.function}
                           disabled={isProcessing}
                           isLoading={isProcessing}>{isProcessing ? 'Processing...' : buttonInfo.text}
             </LoaderButton>
           </LinkContainer>
+          {this.context.currentPage() === '/review' ? backButton : ''}
         </Stack>
       </footer>)
   }

@@ -7,7 +7,7 @@ import { LinkContainer } from 'react-router-bootstrap'
 import { AppContext } from '../lib/context'
 
 class Review extends Component {
-  componentDidMount () {
+  componentDidMount() {
     this.context.pushToHistory()
   }
 
@@ -18,8 +18,12 @@ class Review extends Component {
         <LinkContainer to='/search'>
           <Button id='back-to-search-btn'>{'< Back to Search'}</Button>
         </LinkContainer>
+        <span className="filter-container">
+          <span className="label">Your Filter:</span>
+          <span className="contents">{this.context.filter.serialize()}</span>
+        </span>
         <Container bsPrefix={'charcot-review-container'}>
-          <DimensionAccordion />
+          <DimensionAccordion displayCategoryPredicates={true}/>
         </Container>
       </div>)
   }

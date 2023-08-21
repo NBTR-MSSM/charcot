@@ -1,12 +1,18 @@
 .Review #back-to-search-btn {
     margin-top: 10px;
+    margin-bottom: 20px;
     width: 175px;
     border: 1px solid lightgray;
     background-color: transparent;
     color: #0d6efd;
     font-weight: normal;
+    display: block;
 }
 
+.Review .filter-container .label {
+    margin-right: 10px;
+    font-weight: bolder;
+}
 .charcot-review-container {
     margin-top: 50px;
     background-color: white !important;
@@ -27,5 +33,12 @@
     font-family: "Open Sans", sans-serif;
     font-weight: 600;
     padding-bottom: 30px;
+}
+
+.Review .charcot-accordion-item .categoryPredicates {
+    font-size: 12px;
+    margin-left: 20px;
+    color: #46d246;
+    font-weight: bolder;
 }
 

@@ -89,7 +89,7 @@ class Transaction extends Component {
     const res = await this.fetchOrders({})
     const { orders, totalPages, orderCount, size, slides, uniqueUsers } = res
 
-    // From fetchOrder response saved to state only a few select properties,
+    // From fetchOrder response save to state only a few select properties,
     // because we don't want others to interfere with the client side pagination
     savedState = {
       ...savedState,
@@ -103,7 +103,8 @@ class Transaction extends Component {
 
     /*
      * TODO: Keep an eye on performance and if impacted, retrieve for-download orders ('ordersSerialized') on demand only,
-     *  as opposed to everytime we render
+     *  as opposed to everytime we render Update 08/24/2023: This is mitigated by the fact that refresh is effectuated
+     *  on deman only via the refresh icon button
      */
     this.setState({
       isLoading: false

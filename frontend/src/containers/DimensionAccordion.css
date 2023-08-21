@@ -1,0 +1,10 @@
+.DimensionAccordion .control {
+    margin-top: 15px;
+    margin-left: 20px;
+    display: block;
+    font-size: 12px;
+}
+
+.DimensionAccordion .control a {
+    margin-right: 5px;
+}

@@ -151,9 +151,8 @@ export default class BaseHighchartsComponent extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    console.log('JMQ: componentDidUpdate()')
+    // FIXME: This is doing object identity comparison, is this what I really want?
     if (this.props.filter !== prevProps.filter) {
-      console.log('JMQ: update worthy change')
       this.updateChart()
     }
   }
