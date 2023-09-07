@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="kline-copy-from-s3-to-s3" type="NodeJSConfigurationType" application-parameters="copy-from-s3-to-s3.mjs -k ***REMOVED*** -s ***REMOVED*** -f fcp-indi -p data/Projects/EXVIVO -t nbtr-production -d mri -r data/Projects/EXVIVO/sub-FNK_2414/ses-20230525/dwi/sub-FNK_2414_ses-20230525_run-04_dsi_q5.json" path-to-node="$USER_HOME$/.nvm/versions/node/v18.14.0/bin/node" path-to-js-file="$USER_HOME$/.nvm/versions/node/v18.14.0/bin/zx" working-dir="$PROJECT_DIR$/script">
+    <envs>
+      <env name="AWS_PROFILE" value="mssm-odp" />
+    </envs>
+    <method v="2" />
+  </configuration>
+</component>

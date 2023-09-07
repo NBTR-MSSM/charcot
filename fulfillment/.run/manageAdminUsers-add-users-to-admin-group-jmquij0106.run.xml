@@ -1,9 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="syncData-prod-to-debug" type="GroovyScriptRunConfiguration" factoryName="Groovy">
+  <configuration default="false" name="manageAdminUsers-add-users-to-admin-group-jmquij0106" type="GroovyScriptRunConfiguration" factoryName="Groovy">
     <module name="fulfillment" />
-    <setting name="path" value="file://$PROJECT_DIR$/script/syncData.groovy" />
+    <setting name="path" value="file://$PROJECT_DIR$/script/manageAdminUsers.groovy" />
     <setting name="vmparams" value="" />
-    <setting name="params" value="--source-stage prod --target-stage debug" />
+    <setting name="params" value="-a charcot-admin=joquijada2010@gmail.com -s jmquij0106" />
     <setting name="workDir" value="file://$PROJECT_DIR$/script" />
     <setting name="debug" value="false" />
     <env name="AWS_PROFILE" value="mssm" />
