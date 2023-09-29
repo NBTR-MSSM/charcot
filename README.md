@@ -24,7 +24,7 @@ The below steps assume MacOS or Unix-like systems only.
    ```
    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
    ```
-2. `node 16`, using `nvm` command that you installed above,
+2. `node 18`, using `nvm` command that you installed above,
    ```
    nvm install node@16
    ```
@@ -36,8 +36,11 @@ The below steps assume MacOS or Unix-like systems only.
    1. Install `SDKMAN!` as per [here](http://sdkman.io/install)
    2. Run command `sdk use java 17.0.4-tem` to activate Java 17 in your system (any Java version >= 17 will do)
 8. [Maven](https://maven.apache.org/install.html)
+9. [Docker](https://docs.docker.com/engine/install/)
 
 #### Steps
+_In the steps below, replace `<env>` with the stage name. When running locally the default stage name will be your username, so use that as the value of `<env>`._
+
 1. Git clone repo at https://github.com/NBTR-MSSM/charcot,
    `git clone git@github.com:NBTR-MSSM/charcot.git`
 2. Install dependencies by running this command in the parent folder of the code cloned above, `npm install`
@@ -47,7 +50,7 @@ The below steps assume MacOS or Unix-like systems only.
    mvn -U clean install
    ```
 4. Deploy the app to the cloud, `AWS_PROFILE=<your AWS profile> npx sst deploy:<env>`
-5. Populate image metadata in AWS: `script/post-metadata.mjs -s debug`
+5. Populate image metadata in AWS: `script/post-metadata.mjs -s <env>`
 
 ### Usage
 Once deployment completes, open https://<stage>.mountsinaicarcot.org/.
