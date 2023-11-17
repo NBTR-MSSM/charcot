@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "test": "jest --config=\"./jest.config.ts\" --coverage",
-    "dev": "AWS_PROFILE=mssm sst dev --stage debug",
+    "dev": "AWS_PROFILE=mssm sst dev",
     "build": "AWS_PROFILE=mssm sst build",
     "deploy:debug": "./script/deploy.mjs deploy -p mssm -o mssm -s debug",
     "deploy:dev": "./script/deploy.mjs deploy -p mssm -o mssm-odp -s dev",
@@ -17,6 +17,7 @@
     "import:data:debug": "./script/post-metadata.mjs -s debug"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@tsconfig/node18": "^1.0.1",
     "@types/aws-lambda": "^8.10.70",
     "@types/jest": "^27.0.3",
@@ -35,6 +36,7 @@
     "jest": "^28.1.3",
     "json-array-streams": "^1.0.1",
     "sst": "^2.0.23",
+    "through2": "^4.0.2",
     "ts-jest": "^28.0.7",
     "yargs": "^17.3.1"
   },

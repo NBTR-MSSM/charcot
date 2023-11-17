@@ -4,7 +4,7 @@ import * as route53 from 'aws-cdk-lib/aws-route53'
 import { BackEndPaidAccountStack } from './BackEndPaidAccountStack'
 import { use } from 'sst/constructs'
 
-export function FrontendStack({ stack }: sst.StackContext) {
+export function FrontendStack({ app, stack }: sst.StackContext) {
   const {
     api,
     userPoolId,
@@ -18,7 +18,9 @@ export function FrontendStack({ stack }: sst.StackContext) {
     REACT_APP_REGION: stack.region,
     REACT_APP_USER_POOL_ID: userPoolId!,
     REACT_APP_USER_POOL_CLIENT_ID: userPoolClientId!,
-    REACT_APP_IDENTITY_POOL_ID: cognitoIdentityPoolId!
+    REACT_APP_IDENTITY_POOL_ID: cognitoIdentityPoolId!,
+    REACT_APP_FEAT_TOGGLE_LOGICAL_OP_ENABLED: process.env.FEAT_TOGGLE_LOGICAL_OP_ENABLED || 'false',
+    TEST_ENV: 'test'
   }
   const stage = stack.stage
   const hostedZone = route53.HostedZone.fromHostedZoneAttributes(stack, 'HostedZone', {
@@ -44,7 +46,7 @@ export function FrontendStack({ stack }: sst.StackContext) {
    * After SST 2.x upgrade, need to comment out below block entirely when removing stack:
    * https://discord.com/channels/983865673656705025/983866416832864350/1076597603220848690
    */
-  if (stack.stage !== 'debug') {
+  if (app.mode === 'deploy') {
     stack.addOutputs({
       SiteUrl: (site.customDomainUrl || site.url) as string,
       DistributionDomain: site.cdk.distribution.distributionDomainName,

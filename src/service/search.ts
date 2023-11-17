@@ -8,7 +8,6 @@ export default abstract class Search {
       const lastEvaluatedKey = res.LastEvaluatedKey
       if (res.Items && res.Items.length) {
         const items: DocumentClient.ItemList = res.Items
-        // console.log(`JMQ: items is ${JSON.stringify(items)}`)
         callback(res, items)
       }
 

@@ -15,6 +15,7 @@ import { Auth } from 'aws-amplify'
 import { Redirect } from 'react-router-dom'
 import { onError } from './lib/error'
 import TransactionFooter from './containers/TransactionFooter'
+import ConfirmationModal from './components/ConfirmationModal'
 
 const savedState = {
   filter: new Filter()
@@ -30,6 +31,7 @@ export default class App extends Component {
     this.state = {
       isAuthenticated: false,
       isAdmin: false,
+      // TODO: Is this flag (isAuthenticating) needed???
       isAuthenticating: true,
       otherUserEmail: '',
       email: '',
@@ -51,12 +53,15 @@ export default class App extends Component {
       handleSetSessionInfo: this.handleSetSessionInfo,
       handleLogin: this.handleLogin,
       handleLogout: this.handleLogout,
+      handleChartDataStateUpdate: this.handleChartDataStateUpdate,
       redirect: this.redirect,
       currentPage: this.currentPage,
       redirectTo: '',
       redirectToPrevious: this.redirectToPrevious,
       navHistory: [],
-      pushToHistory: this.pushToHistory
+      pushToHistory: this.pushToHistory,
+      isResultsFound: false,
+      isShowNoResultsConfirmationModal: false
     }
   }
 
@@ -99,7 +104,12 @@ export default class App extends Component {
     this.setState({
       isAuthenticating: false
     })
+    // FIXME: This needs to execute only when on /search. Try below approach but when I navigated to /search page the first time,
+    //  this.currenPage didn't match '/search'. Need to debug further. This is an optimization so we don't be refreshing chart data
+    //  willy nilly in places where it's not relevant
+    // if (this.currentPage() === '/search') {
     await this.updateChartDataState({ filter: this.state.filter })
+    // }
   }
 
   handleLogin = ({ session }) => {
@@ -160,10 +170,7 @@ export default class App extends Component {
    * Updates the filter with the selected dimension/category and
    * refreshes the state
    */
-  handleCategorySelect = async ({
-    dimension,
-    category
-  }) => {
+  handleCategorySelect = async ({ dimension, category }) => {
     const filter = this.state.filter
     filter.add({
       dimension,
@@ -182,10 +189,7 @@ export default class App extends Component {
    * Does the opposite of 'Search.handleSelect'
    * and refreshes the state.
    */
-  handleCategoryUnselect = async ({
-    dimension,
-    category
-  }) => {
+  handleCategoryUnselect = async ({ dimension, category }) => {
     const filter = this.state.filter
     filter.remove({
       dimension,
@@ -194,8 +198,18 @@ export default class App extends Component {
     await this.updateChartDataState({ filter })
   }
 
+  handleToggleCategoryLogicalOperator = async ({ dimension }) => {
+    const filter = this.state.filter
+    filter.toggleCategoryLogicalOperator({ dimension })
+    await this.updateChartDataState({ filter })
+  }
+
   handleClearFilter = async () => {
     await this.updateChartDataState({ filter: this.state.filter.clear() })
+  }
+
+  handleChartDataStateUpdate = async ({ filter = this.state.filter }) => {
+    await this.updateChartDataState({ filter })
   }
 
   currentPage = () => {
@@ -220,8 +234,19 @@ export default class App extends Component {
     savedState.filter = filter
     this.setState({
       filter: savedState.filter,
+      isResultsFound: dimensionData.isResultsFound,
+      isShowNoResultsConfirmationModal: !dimensionData.isResultsFound,
       dimensionData
     })
+  }
+
+  renderNoResultsConfirmationModal = () => {
+    return <ConfirmationModal header="No Results Found"
+                              body="Please update your filter parameters"
+                              show={this.state.isShowNoResultsConfirmationModal}
+                              handleClose={() => {
+                                this.setState({ isShowNoResultsConfirmationModal: false })
+                              }}/>
   }
 
   /**
@@ -272,6 +297,7 @@ export default class App extends Component {
 
     return !this.state.isAuthenticating && (
       <div className="App container py-3">
+        {this.renderNoResultsConfirmationModal()}
         <AppContext.Provider value={this.state}>
           <Stack hidden={this.currentPage() === '/'} direction="horizontal" gap={3}>
             {leftNav}

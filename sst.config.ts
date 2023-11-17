@@ -30,20 +30,25 @@ export default {
         stackName: `${stage}-${app.name}-backend-paid-account`,
         tags: { created_by: 'sst' }
       })
-      .stack(FulfillmentStack, {
+
+    // FIXME: FulfillmentStack creation times out SST 'dev' mode,
+    //  fix and then remove this "if()"
+    if (app.mode !== 'dev') {
+      app.stack(FulfillmentStack, {
         id: 'fulfillment',
         stackName: `${stage}-${app.name}-fulfillment`,
         tags: { created_by: 'sst' }
-      })
-      .stack(FrontendStack, {
-        id: 'frontend',
-        stackName: `${stage}-${app.name}-frontend`,
-        tags: { created_by: 'sst' }
-      })
-      .stack(BackEndOdpStack, {
+      }).stack(BackEndOdpStack, {
         id: 'backend-odp',
         stackName: `${stage}-${app.name}-backend-odp`,
         tags: { created_by: 'sst' }
       })
+    }
+
+    app.stack(FrontendStack, {
+      id: 'frontend',
+      stackName: `${stage}-${app.name}-frontend`,
+      tags: { created_by: 'sst' }
+    })
   }
 } satisfies SSTConfig

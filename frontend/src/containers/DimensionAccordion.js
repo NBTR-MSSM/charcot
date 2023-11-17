@@ -18,11 +18,14 @@ class DimensionAccordion extends Component {
     }
   }
 
-  componentDidUpdate(prevProps, prevState, snapshot) {
+  componentDidUpdate(prevProps, prevState) {
     if (!this.props.autoExpandActiveDimensions) {
       return
     }
 
+    // Skip triggering another state update when dimension was
+    // manually changed by user. This avoids logic
+    // below which would override the latest user accordion changes
     if (this.isManuallyExpandedOrCollapsedDimension.current) {
       this.isManuallyExpandedOrCollapsedDimension.current = false
       return

@@ -3,6 +3,9 @@ import Filter from './Filter'
 import SubjectNumberEntry from '../components/SubjectNumberEntry'
 import SexStatCustomDisplay from '../components/SexStatCustomDisplay'
 
+// Our bonafide cache
+const CACHE = new Map()
+
 /*
  * Every time a chart needs to me modified and/or a new one added, add the corresponding config here
  */
@@ -12,7 +15,13 @@ const DIMENSION_CONFIGS = {
     displayName: 'Subject Number',
     endpoint: '/cerebrum-images/subjectNumbers',
     statToDisplay: 'filteredCategoryCount',
-    body: <SubjectNumberEntry/>
+    body: <SubjectNumberEntry/>,
+    // use this dimension when determining if results found. Ideally only one dimension should bear this designation
+    isResultsFoundDeterminant: true,
+    // Subject Numbers is special in that it's not really a dimension, it serves more as a stat which number
+    // selected varies depending on the filter of other dimension categories. For this reason we care only
+    // about viewing a count of subject numbers that reflect the filtered results
+    isViewFilteredOnly: true
   },
   age: {
     name: 'age',
@@ -25,7 +34,7 @@ const DIMENSION_CONFIGS = {
     displayName: 'Sex',
     endpoint: '/cerebrum-images/sexes',
     customStatDisplay: function (info) {
-      return <SexStatCustomDisplay info={info} />
+      return <SexStatCustomDisplay info={info}/>
     }
   },
   region: {
@@ -68,16 +77,12 @@ const calculateTickInterval = (categories) => {
 /**
  * Contacts endpoint which returns array of dimension/category data.
  */
-const retrieveData = async ({
-  config,
-  dimension,
-  filter
-}) => {
+const retrieveData = async ({ config, dimension, filter, isAddMultiValueDimensionFilter }) => {
   const key = `${dimension}-${filter.serialize()}`
   if (!CACHE.has(key)) {
     CACHE.set(key, await API.get('charcot', config.endpoint, {
       queryStringParameters: {
-        filter: filter.serialize(dimension),
+        filter: filter.serialize({ dimensionToIgnore: dimension, isAddMultiValueDimensionFilter }),
         numeric: config.isNumeric
       }
     }))
@@ -85,30 +90,58 @@ const retrieveData = async ({
   return CACHE.get(key)
 }
 
-const prepareCategoryData = ({
-  config,
-  dimension,
-  filter,
-  values,
-  resetCountToZero = false
-}) => {
-  const selectedCategories = new Set()
+/**
+ * Produces search facets from the raw dimension query results. This method will aggregate the categories found, producing a count
+ * for each group of unique categories found for the dimension in question.
+ * The term "facets" is borrowed from Solr,https://solr.apache.org/guide/solr/latest/query-guide/faceting.html
+ * @param config - Config data object for this dimension. See below for description of each attribute<br/>
+ * @param dimension - The dimension in question (Age, Sex, Region, Stain, Race, Diagnosis)<br/>
+ * @param filter - The current filter selected by the user in the UI<br/>
+ * @param values - The raw data of dimension categories that came from the API, in the form of an array of JSON objects<br/>
+ * @param countHandling - When an initialCategories Map is specified, three possible values define the strategy to use to
+ *   merge counts of categories between initialCategories Map and the passed in API result categories:<br/><br/>
+ *     If category exists in both result sets:<br/>
+ *       1. 'sum': Add them. The use case to which this logic apply is numeric categories that are grouped into ranges, where the same result set will contain the range repeated
+ *         multiple times, and we have to aggregate the ranges into a sum per range group. Not currently in use, the use case for this came in error
+ *         and has gone away, specifically related to displaying correct counts of AND'ed categories in the chart UI<br/>
+ *       2. 'override': Override initialCategories count with count from the passed in results set's<br/>
+ *       3. undefined: Passed in results category count inherits the initialCategories count. This is so that subsequent filter-less queries
+ *         retain the count of the categories from the previous filtered query<br/>
+ *     If category is not found in initialCategories<br/>
+ *       4. N/A: Set count to zero regardless of countHandling passed, effectively ignoring countHandling. The use case here is to represent
+ *          in the chart UI categories which did not match the previous filtered query, which would otherwise be absent from the chart UI
+ *          if it wasn't for this logic.<br/>
+ * @param initialCategories - Optional Map of categories from a previous query. These will get merged into the newly produced Map
+ * @returns {{selectedCategories: Set<unknown>, selectedSlideCount: unknown, categories: *}} - A JSON object that contains these three fields:<br/>
+ *   - selectedCategories: A set of the unique categories that user has selected in the UI<br/>
+ *   - selectedSlideCount: The slide count that corresponds to the selected category(ies) for this dimension<br/>
+ *   - categories: A Map keyed by category, where the value is a JSON object containing data such as the count for the category, etc.<br/>
+ */
+const prepareCategoryData = ({ config, dimension, filter, values, initialCategories = undefined, countHandling = undefined }) => {
+  const categoryNameField = config.isNumeric ? 'range' : 'title'
   const categories = values.reduce((prev, cur) => {
     const currentCategory = {
-      count: resetCountToZero ? 0 : cur.count
+      count: cur.count
     }
 
-    if (config.isNumeric) {
-      // Things like 'age' dimension will have the range repeated in the payload, because the ID is the age
-      // but ranges group 2 or more age groups, hence the reason for logic below to keep track of ranges
-      // seen thus far.
-      currentCategory.name = cur.range
-      let existingCategory
-      if ((existingCategory = prev.get(currentCategory.name))) {
-        currentCategory.count += existingCategory.count
+    currentCategory.name = cur[categoryNameField]
+
+    const existingCategory = prev.get(currentCategory.name)
+    if (existingCategory) {
+      switch (countHandling) {
+        case 'sum':
+          currentCategory.count += existingCategory.count
+          break
+        case 'override':
+          existingCategory.count = currentCategory.count
+          break
+        default:
+          currentCategory.count = existingCategory.count
       }
-    } else {
-      currentCategory.name = cur.title
+    } else if (initialCategories) {
+      // Previous query did not return this category as part of the filter, display it in the chart UI but with a 0 count as it did not match
+      // the filter.
+      currentCategory.count = 0
     }
 
     prev.set(currentCategory.name, currentCategory)
@@ -117,13 +150,13 @@ const prepareCategoryData = ({
       dimension,
       category: currentCategory.name
     })) {
-      selectedCategories.add(currentCategory.name)
       currentCategory.selected = true
     }
 
     return prev
-  }, new Map())
+  }, initialCategories || new Map())
 
+  const selectedCategories = new Set(Array.from(categories.values()).filter(e => e.selected).map(e => e.name))
   return {
     categories,
     selectedCategories,
@@ -131,24 +164,14 @@ const prepareCategoryData = ({
   }
 }
 
-// Our bonafide cache
-const CACHE = new Map()
-
 /**
  * TODO: Use guava for cache management. Right now using a poor man's version that caches
  *       dimension-filter combo
  */
 class DataService {
-  async fetch({
-    dimension,
-    filter
-  }) {
+  async fetch({ dimension, filter }) {
     const config = DIMENSION_CONFIGS[dimension]
-    const filteredValues = await retrieveData({
-      config,
-      dimension,
-      filter
-    })
+    const isFilterEmpty = filter.isEmpty()
     const {
       categories: filteredCategories,
       selectedCategories,
@@ -157,42 +180,51 @@ class DataService {
       config,
       dimension,
       filter,
-      values: filteredValues
-    })
-
-    /*
-     * Do a filter-less fetch to get super set of all the dimensions/categories. The filter
-     * might have excluded dimensions/categories, yet we need them all available for user selection
-     */
-    let unfilteredCategories = new Map()
-    if (!filter.isEmpty()) {
-      const unfilteredValues = await retrieveData({
-        config,
-        dimension,
-        filter: new Filter()
-      })
-      ;({ categories: unfilteredCategories } = prepareCategoryData({
+      countHandling: config.isNumeric ? 'sum' : undefined,
+      values: await retrieveData({
         config,
         dimension,
         filter,
-        values: unfilteredValues,
-        resetCountToZero: true
+        isAddMultiValueDimensionFilter: true
+      })
+    })
+
+    /*
+     * Do a filter-less fetch to get super set of all the categories for the given dimension. The filtered list above
+     * might have excluded dimensions/categories, yet we need them all available for user selection. This is just merely
+     * to ensure that all dimension categories are present for selection (not just the selected ones) in the charts when
+     * the user wants to update the filter.
+     * (This applies only when AND'ing) Multi-value dimensions like Stain and Region is another use case where this is necessary,
+     * with the difference that the filtered category counts ARE summed to the unfiltered ones. Why? Because we applied
+     * the multi-value dimension filter to the dimension itself (see Filter.js serialize() method), which gives filtered counts,
+     * in the chart for the dimension, but we need the full count w/o the filter as well to reflect accurate counts in
+     * the chart of the UI.
+     */
+    // const isFilteringOnMultiValueDimension = filter.isFilteringOnMultiValueDimension({ dimension })
+    let allCategories = filteredCategories
+    if (!isFilterEmpty && !config.isViewFilteredOnly) {
+      const unfilteredResults = await retrieveData({ config, dimension, filter: new Filter() })
+      ;({ categories: allCategories } = prepareCategoryData({
+        config,
+        dimension,
+        filter,
+        values: unfilteredResults,
+        // countHandling: isFilteringOnMultiValueDimension ? 'override' : undefined,
+        initialCategories: allCategories
       }))
     }
 
-    const mergedCategories = new Map([...unfilteredCategories, ...filteredCategories])
-
-    const categoryCount = Array.from(mergedCategories.keys()).length
+    const categoryCount = Array.from(allCategories.keys()).length
     const chartHeight = categoryCount * 30
     return {
       dimension,
       displayName: config.displayName,
-      categories: mergedCategories,
+      categories: allCategories,
       selectedCategories,
       chartHeight: `${chartHeight < 200 ? 200 : (chartHeight > 600 ? 600 : chartHeight)}px`,
       expandable: chartHeight > 200,
       realHeight: `${chartHeight}px`,
-      tickInterval: calculateTickInterval(mergedCategories),
+      tickInterval: calculateTickInterval(allCategories),
       selectedCategoryCount: selectedCategories.size,
       selectedSlideCount,
       categoryCount,
@@ -201,7 +233,8 @@ class DataService {
       hideInAccordion: config.hideInAccordion,
       body: config.body,
       customStatDisplay: config.customStatDisplay,
-      filteredCategories
+      filteredCategories,
+      isResultsFoundDeterminant: config.isResultsFoundDeterminant
     }
   }
 
@@ -219,13 +252,17 @@ class DataService {
       dimensions: []
     }
     let selectedSlideCount = 0
-    for (let i = 0; i < res.length; i++) {
-      const dimensionObj = res[i]
+    let isResultsFound = false
+    for (const dimensionObj of res) {
       ret.dimensions.push(dimensionObj)
-      // calculate total number of slides across all the dimensions
+      // calculate a few running totals across all the dimensions
       selectedSlideCount = dimensionObj.selectedSlideCount || selectedSlideCount
+      if (dimensionObj.isResultsFoundDeterminant) {
+        isResultsFound = dimensionObj.filteredCategoryCount
+      }
     }
     ret.selectedSlideCount = selectedSlideCount
+    ret.isResultsFound = isResultsFound
     return ret
   }
 }

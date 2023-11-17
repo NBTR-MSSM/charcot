@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="manageAdminUsers-add-users-to-admin-group-debug" type="GroovyScriptRunConfiguration" factoryName="Groovy">
+    <module name="fulfillment" />
+    <setting name="path" value="file://$PROJECT_DIR$/script/manageAdminUsers.groovy" />
+    <setting name="vmparams" value="" />
+    <setting name="params" value="-a charcot-admin=joquijada2010@gmail.com,maxwell.bustamante@mssm.edu -s debug" />
+    <setting name="workDir" value="file://$PROJECT_DIR$/script" />
+    <setting name="debug" value="false" />
+    <env name="AWS_PROFILE" value="mssm" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

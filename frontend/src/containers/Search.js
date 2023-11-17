@@ -8,11 +8,24 @@ import DiagnosisChart from './DiagnosisChart'
 import './Search.css'
 import FilterComponent from '../components/FilterComponent'
 import { AppContext } from '../lib/context'
-import { Table } from 'react-bootstrap'
+import { OverlayTrigger, Table, Tooltip } from 'react-bootstrap'
+import { BsFillQuestionCircleFill } from 'react-icons/bs'
+import Button from 'react-bootstrap/Button'
 
 class Search extends Component {
   componentDidMount() {
     this.context.pushToHistory()
+  }
+
+  renderTooltip = () => {
+    if (!this.context.filter.isFilterHasMultiValueDimension()) {
+      return ''
+    }
+
+    return (<OverlayTrigger placement="right"
+                           overlay={<Tooltip id="button-tooltip-2">Region and Stain are by default OR'ed together. When two or more of these are selected, you can toggle to AND.</Tooltip>}>
+      <Button className="charcot-search-tooltip-btn" variant="link"><BsFillQuestionCircleFill/></Button>
+    </OverlayTrigger>)
   }
 
   render() {
@@ -23,7 +36,7 @@ class Search extends Component {
 
     return (
       <div className="Search">
-        <h3>Data Search</h3>
+        <h3>Data Search{this.renderTooltip()}</h3>
         {filterComponent}
         <Table bsPrefix="charcot-search-table">
           <tbody>

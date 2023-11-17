@@ -5,6 +5,7 @@ export const AppContext = createContext({
   isAuthenticated: false,
   otherUserEmail: '',
   isAdmin: false,
+  isResultsFound: false,
   email: '',
   filter: new Filter(),
   dimensionData: {
@@ -40,5 +41,7 @@ export const AppContext = createContext({
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   handleSetTransactionItem: () => {},
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  handleSetSessionInfo: () => {}
+  handleSetSessionInfo: () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  handleChartDataStateUpdate: () => {}
 })
