@@ -145,6 +145,18 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
      *   'It seems you are configuring custom domains for you URL. And SST is not able to find the hosted zone "mountsinaicharcot.org" in your AWS Route 53 account. Please double check and make sure the zone exists, or pass in a different zone.'
      */
   const api = new sst.Api(stack, 'Api', {
+    authorizers: {
+      jwt: {
+        type: 'user_pool',
+        userPool: {
+          id: auth.userPoolId,
+          clientIds: [auth.userPoolClientId]
+        }
+      }
+    },
+    defaults: {
+      authorizer: 'jwt'
+    },
     customDomain: {
       domainName: `${stage === 'prod' ? 'api.mountsinaicharcot.org' : `api-${stage}.mountsinaicharcot.org`}`,
       cdk: {
@@ -250,7 +262,6 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
         }
       },
       'POST /cerebrum-image-orders': {
-        authorizer: 'iam',
         function: {
           functionName: `create-cerebrum-image-order-${stage}`,
           handler: 'src/lambda/cerebrum-image-order.create',

@@ -1,4 +1,4 @@
-import { API } from 'aws-amplify'
+import { API, Auth } from 'aws-amplify'
 import Filter from './Filter'
 import SubjectNumberEntry from '../components/SubjectNumberEntry'
 import SexStatCustomDisplay from '../components/SexStatCustomDisplay'
@@ -81,6 +81,11 @@ const retrieveData = async ({ config, dimension, filter, isAddMultiValueDimensio
   const key = `${dimension}-${filter.serialize()}`
   if (!CACHE.has(key)) {
     CACHE.set(key, await API.get('charcot', config.endpoint, {
+      headers: {
+        Authorization: `Bearer ${(await Auth.currentSession())
+          .getAccessToken()
+          .getJwtToken()}`
+      },
       queryStringParameters: {
         filter: filter.serialize({ dimensionToIgnore: dimension, isAddMultiValueDimensionFilter }),
         numeric: config.isNumeric

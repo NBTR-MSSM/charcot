@@ -13,7 +13,7 @@ process.env.IS_DEPLOY_SCRIPT = 1
  * allows one to specify the Mt Sinai paid and ODP account AWS profiles individually.<br/>
  * Must still use the 'npx sst start..' command to start the local environment, which will
  * deploy all stacks to the same account. This simplifies things when it comes to debugging, for
- * we can then use a single node process to test flows that would otherwise do cross-account access,
+ * we can then use a single Node.js process to test flows that would otherwise do cross-account access,
  * for example image transfer lambda.
  * TODO: Query CloudFormation to get outputs instead of relying on environment variables. See how I did it in niko-stack
  */
