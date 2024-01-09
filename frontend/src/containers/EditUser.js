@@ -1,5 +1,5 @@
 import ProfileManagement from './ProfileManagement'
-import { API } from 'aws-amplify'
+import { API, Auth } from 'aws-amplify'
 import { onError } from '../lib/error'
 import LoaderButton from '../components/LoaderButton'
 import ConfirmationModal from '../components/ConfirmationModal'
@@ -67,7 +67,13 @@ export default class EditUser extends ProfileManagement {
   }
 
   async retrieveUserDetails() {
-    return await API.get('charcot', `/cerebrum-image-users/${this.context.otherUserEmail}`, undefined)
+    return await API.get('charcot', `/cerebrum-image-users/${this.context.otherUserEmail}`, {
+      headers: {
+        Authorization: `Bearer ${(await Auth.currentSession())
+          .getAccessToken()
+          .getJwtToken()}`
+      }
+    })
   }
 
   validateForm() {

@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { LinkContainer } from 'react-router-bootstrap'
 import './Footer.css'
-import { API } from 'aws-amplify'
+import { API, Auth } from 'aws-amplify'
 import Stack from 'react-bootstrap/Stack'
 import Stat from './Stat'
 import LoaderButton from '../components/LoaderButton'
@@ -23,6 +23,11 @@ class Footer extends Component {
       this.setState({ isProcessing: true })
       const filter = this.props.filter.serialize({ isSubmission: true })
       await API.post('charcot', '/cerebrum-image-orders', {
+        headers: {
+          Authorization: `Bearer ${(await Auth.currentSession())
+            .getAccessToken()
+            .getJwtToken()}`
+        },
         body: {
           filter,
           email: this.context.email

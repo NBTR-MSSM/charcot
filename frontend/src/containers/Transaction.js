@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { AppContext } from '../lib/context'
 import './Transaction.css'
-import { API } from 'aws-amplify'
+import { API, Auth } from 'aws-amplify'
 import TransactionItem from '../components/TransactionItem'
 import { InputGroup, Modal, Spinner, Table } from 'react-bootstrap'
 import Pagination from 'react-bootstrap/Pagination'
@@ -75,6 +75,11 @@ class Transaction extends Component {
 
   fetchOrders = async (queryParams) => {
     return await API.get('charcot', '/cerebrum-image-orders', {
+      headers: {
+        Authorization: `Bearer ${(await Auth.currentSession())
+          .getAccessToken()
+          .getJwtToken()}`
+      },
       queryStringParameters: {
         page: -1,
         ...queryParams
