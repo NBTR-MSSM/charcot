@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="FulfillmentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+    <option name="ACTIVE_PROFILES" value="debug" />
+    <envs>
+      <env name="AWS_PROFILE" value="mssm" />
+    </envs>
+    <module name="fulfillment" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="org.mountsinaicharcot.fulfillment.FulfillmentApplication" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

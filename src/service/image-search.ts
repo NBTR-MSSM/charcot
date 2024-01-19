@@ -32,6 +32,10 @@ class ImageSearch extends Search {
       retItems = retItems.concat(items)
     }
     await this.handleSearch(params, callback)
+
+    // FIXME: Do we need to worry about pagination here, because if this response is too large, it will blow
+    //        up as an error, similar to what I observe when using the '/search' endpoint. Might need
+    //        a comprehensive solution here.
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     return new HttpResponse(200, '', {
