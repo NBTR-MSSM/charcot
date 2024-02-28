@@ -7,6 +7,7 @@ import { APIGatewayProxyEventV2 } from 'aws-lambda'
 import { singular } from 'pluralize'
 import { rank } from '../common/rank'
 import Search from './search'
+import Pagination from './pagination'
 
 const isFilter = (input: unknown): input is Filter => {
   return typeof input === 'string'
@@ -33,9 +34,14 @@ class ImageSearch extends Search {
     }
     await this.handleSearch(params, callback)
 
-    // FIXME: Do we need to worry about pagination here, because if this response is too large, it will blow
-    //        up as an error, similar to what I observe when using the '/search' endpoint. Might need
-    //        a comprehensive solution here.
+    if (!isFilter(event)) {
+      const pageSize = Number.parseInt((event.queryStringParameters && event.queryStringParameters.pageSize) || '10')
+      const page = Number.parseInt((event.queryStringParameters && event.queryStringParameters.page) || '-1')
+      retItems = Pagination.goToPage(retItems, page, pageSize, retItems.length)
+    }
+
+    // FIXME: Change return type to an object that includes the total number of
+    //  images found, so that client knows how much to paginate
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     return new HttpResponse(200, '', {
@@ -171,7 +177,7 @@ class ImageSearch extends Search {
      * Deal with the numeric range categories (E.g. age)
      */
     // First deal with the less than and greater than ranges (the bottom and top ones in the chart)
-    for (const m of filter.matchAll(/((\w+)\s=\s(?:'(\d+)\+'|'<\s(\d+)'))/g)) {
+    for (const m of filter.matchAll(/((\w+)=(?:'(\d+)\+'|'<(\d+)'))/g)) {
       const dimension = m[2]
       const dimensionPlaceholder = `#${dimension.replace(/\s+/g, '')}`
       const greaterThanOrEqualTo = m[3]
@@ -185,7 +191,7 @@ class ImageSearch extends Search {
     }
 
     // Now deal with the ranges in between
-    for (const m of filter.matchAll(/(\w+)\s=\s'(\d+)\s-\s(\d+)'/g)) {
+    for (const m of filter.matchAll(/(\w+)='(\d+)-(\d+)'/g)) {
       const dimension = m[1]
       const dimensionPlaceholder = `#${dimension.replace(/\s+/g, '')}`
       const from = m[2]
@@ -197,7 +203,7 @@ class ImageSearch extends Search {
     }
 
     // Deal with the text categories (E.g. stain, region, sex, race, diagnosis)
-    for (const m of dynamoDbFilter.matchAll(/(\w+)\s=\s'([^']+)'|contains\((\w+),\s'([^']+)'\)/g)) {
+    for (const m of dynamoDbFilter.matchAll(/(\w+)='([^']+)'|contains\((\w+),'([^']+)'\)/g)) {
       /*
        * Globally handle dimension replacement upon the first iteration and
        * first iteration only. Applies to cases where a dimension appears multiple times in the
