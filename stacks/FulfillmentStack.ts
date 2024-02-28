@@ -10,11 +10,10 @@ import * as sqs from 'aws-cdk-lib/aws-sqs'
 import * as ecs from 'aws-cdk-lib/aws-ecs'
 import { BackEndPaidAccountStack } from './BackEndPaidAccountStack'
 import { CommonStack } from './CommonStack'
+import { Vpc } from 'aws-cdk-lib/aws-ec2'
 // eslint-disable-next-line camelcase
 import ecs_patterns = require('aws-cdk-lib/aws-ecs-patterns')
 import path = require('path')
-import { Vpc } from 'aws-cdk-lib/aws-ec2'
-import { AdjustmentType } from 'aws-cdk-lib/aws-autoscaling'
 
 export function FulfillmentStack({ stack }: sst.StackContext) {
   const {

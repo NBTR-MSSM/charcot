@@ -119,7 +119,7 @@ export default class Filter {
     if (!categories.size) {
       delete this.filter[dimension]
     } else if (categories.size < 2) {
-      // if selected category is less than 2, than change to OR logical operator to
+      // if selected categories is less than 2, then change to OR logical operator to
       // the multi value dimension filtering behavior which is relevant only when AND'ing 2 or
       // more categories
       this.filter[dimension].logicalOperator = 'OR'
@@ -176,10 +176,10 @@ export default class Filter {
        */
       categoryPredicates = [...multiValueDimensionInfo.value]
       if (!isAddMultiValueDimensionFilterOnly) {
-        categoryPredicates = [...categoryPredicates, `(${categories.map(val => `${dimension} = '${val}'`).join(' OR ')})`]
+        categoryPredicates = [...categoryPredicates, `(${categories.map(val => `${dimension}='${val}'`).join(' OR ')})`]
       }
     } else {
-      categoryPredicates = categories.map(val => `${dimension} = '${val}'`)
+      categoryPredicates = categories.map(val => `${dimension}='${val}'`)
     }
     const categoryPredicatesAsString = categoryPredicates.join(` ${logicalOperator} `)
     return categoryPredicates.length > 1 ? `(${categoryPredicatesAsString})` : categoryPredicatesAsString
@@ -201,7 +201,7 @@ export default class Filter {
     }
     const field = `allSubject${dimension[0].toUpperCase()}${dimension.substring(1)}s`
     const value = this.categoriesEscaped({ dimension }).map(e => {
-      return `contains(${field}, '${e.replace(/\s/g, '').toLowerCase()}')`
+      return `contains(${field},'${e.replace(/\s/g, '').toLowerCase()}')`
     })
     this.filter[dimension].multiValueDimensionInfo = {
       field,
