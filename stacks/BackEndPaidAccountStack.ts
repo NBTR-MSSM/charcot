@@ -348,6 +348,13 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
 const cognitoUserPool = (scope: Construct) => new sst.Cognito(scope, 'Auth', {
   login: ['email'],
   cdk: {
+    userPoolClient: {
+      authFlows: {
+        adminUserPassword: true,
+        custom: true,
+        userSrp: true
+      }
+    },
     userPool: {
       customAttributes: {
         degree: new StringAttribute({
