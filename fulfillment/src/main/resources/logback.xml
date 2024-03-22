@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <logger name="root" level="DEBUG"/>
+    <!--<logger name="org.apache" level="TRACE"/>
+    <logger name="httpclient" level="TRACE"/>-->
+</configuration>

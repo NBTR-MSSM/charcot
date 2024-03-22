@@ -76,7 +76,7 @@ private void loadUsers(String sourceStage, String targetStage) {
           isUserCreatedOrExistsAlready = true
         }
 
-        // Set a temporary password for user. If user exists already, reset it. This will take care of renewing expired
+        // Set a temporary password for user. If user exists already, reset it - this will take care of renewing expired
         // temp passwords because for instance user took to long to log back in
         if (isUserCreatedOrExistsAlready) {
           def setPasswordRequest = AdminSetUserPasswordRequest.builder()
