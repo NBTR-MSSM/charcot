@@ -19,6 +19,7 @@ const parseOrder = async (event: APIGatewayProxyEventV2): Promise<CerebrumImageO
   const orderId = uuidGenerator()
   return {
     orderId,
+    recordNumber: 0,
     email: orderObj.email as string,
     fileNames: orderObj.fileNames || await fetchFileNames(filter),
     filter,

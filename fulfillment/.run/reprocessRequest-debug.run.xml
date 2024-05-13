@@ -1,9 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="manageAdminUsers-create-admin-group" type="GroovyScriptRunConfiguration" factoryName="Groovy">
+  <configuration default="false" name="reprocessRequest-debug" type="GroovyScriptRunConfiguration" factoryName="Groovy">
     <module name="fulfillment" />
-    <setting name="path" value="file://$PROJECT_DIR$/script/manageAdminUsers.groovy" />
+    <setting name="path" value="file://$PROJECT_DIR$/script/reprocessRequest.groovy" />
     <setting name="vmparams" value="" />
-    <setting name="params" value="-c charcot-admin -s debug" />
+    <setting name="params" value="--stage debug --request 2db4824b-0672-4977-92ab-c8c6a71e9314" />
     <setting name="workDir" value="file://$PROJECT_DIR$/script" />
     <setting name="debug" value="false" />
     <env name="AWS_PROFILE" value="mssm" />

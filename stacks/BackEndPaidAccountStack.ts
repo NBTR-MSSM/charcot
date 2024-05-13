@@ -61,11 +61,13 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
       diagnosisIndex: { partitionKey: 'diagnosis' },
       subjectNumberIndex: { partitionKey: 'subjectNumber' }
     }
+
   })
 
   const cerebrumImageOrderTable = new sst.Table(stack, 'cerebrum-image-order', {
     fields: {
       orderId: 'string',
+      recordNumber: 'number',
       email: 'string',
       created: 'number',
       filter: 'string',
@@ -76,11 +78,12 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
       size: 'number',
       fileCount: 'number'
     },
-    primaryIndex: { partitionKey: 'orderId' },
+    primaryIndex: { partitionKey: 'orderId', sortKey: 'recordNumber' },
     // TODO: Is the 'created' ts index needed???
     globalIndexes: {
       createdIndex: { partitionKey: 'created' }
     }
+
   })
 
   // Mt Sinai had no concept of stages prior to Charcot, so need the below for backward compatibility

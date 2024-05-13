@@ -227,6 +227,7 @@ describe('cerebrum-image-order', () => {
     expect(res.statusCode).toEqual(202)
     expect(JSON.parse(res.body as string)).toEqual({
       orderId: jestGlobal.dummyOrderId,
+      recordNumber: 0,
       ...mockCreateOrderEventBody,
       created: currentTime.getTime(),
       remark: 'Your request has been received by Mount Sinai Charcot',
@@ -237,6 +238,7 @@ describe('cerebrum-image-order', () => {
       TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME,
       Item: {
         orderId: jestGlobal.dummyOrderId,
+        recordNumber: 0,
         created: new Date().getTime(),
         remark: 'Your request has been received by Mount Sinai Charcot',
         status: 'received',
@@ -273,6 +275,7 @@ describe('cerebrum-image-order', () => {
     expect(res.statusCode).toEqual(202)
     expect(JSON.parse(res.body as string)).toEqual({
       orderId: jestGlobal.dummyOrderId,
+      recordNumber: 0,
       email: mockCreateOrderEventBody.email,
       fileNames: allFieldsScanResult.Items!.map(e => e.fileName).concat(allFieldsScanResult.Items!.map(e => e.fileName)),
       filter: 'age = \'84 - 89\'',
