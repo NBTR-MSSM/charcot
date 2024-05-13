@@ -6,7 +6,7 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.ListUserPoo
 import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolDescriptionType
 
 
-final Map<String, String> STAGE_APP_CLIENT_ID_CONFIG = [debug: '34f6be8e87o0vobugfcajvo87j']
+final Map<String, String> STAGE_APP_CLIENT_ID_CONFIG = [debug: '2kclujbsiogn47hr7hlm14hn0n', jmquij0106: '538kf5r55ifhcq1nkjv38cf3ql']
 
 def cli = buildCli()
 def opts = cli.parse(this.args)
@@ -17,6 +17,7 @@ if (!opts) {
 
 if (opts.h) {
   cli.usage()
+  return
 }
 
 String stage = opts.stage
@@ -26,7 +27,7 @@ try (CognitoIdentityProviderClient cognitoClient = CognitoIdentityProviderClient
   ListUserPoolsResponse listPoolsResponse = cognitoClient.listUserPools(request)
   def pools = listPoolsResponse.userPools()
 
-  def cognitoPool = extractPool('debug', pools)
+  def cognitoPool = extractPool(stage, pools)
   AdminInitiateAuthRequest authRequest = AdminInitiateAuthRequest.builder().clientId(STAGE_APP_CLIENT_ID_CONFIG[stage]).userPoolId(cognitoPool.id()).authFlow("ADMIN_NO_SRP_AUTH")
           .authParameters([USERNAME: 'joquijada2010@gmail.com', PASSWORD: '***REMOVED***']).build()
   def result = cognitoClient.adminInitiateAuth(authRequest).authenticationResult()
@@ -52,7 +53,7 @@ private CliBuilder buildCli() {
   def cli = new CliBuilder(usage: this.class.getName() + ' [options]')
   cli.with {
     h longOpt: 'help', 'Show usage information'
-    s longOpt: 'stage', argName: 'stage', args: 1, 'The stage of the cognito user pool', defaultValue: 'debug'
+    s longOpt: 'stage', argName: 'stage', args: 1, required: true, 'The stage of the cognito user pool'
   }
   return cli
 }

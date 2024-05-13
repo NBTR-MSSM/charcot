@@ -8,8 +8,7 @@ jest.mock('uuid', () => ({
   v4: () => jestGlobal.dummyOrderId
 }))
 
-// Set up mocks for parts of the API we're using the in our code base,
-// and not for everything else.
+// Set up mocks for parts of the AWS API we're using the in our code base only, add more as needed
 jest.mock('@exsoinn/aws-sdk-wrappers', () => {
   const awsWrappers = jest.requireActual('@exsoinn/aws-sdk-wrappers')
   awsWrappers.axiosClient.post = jest.fn(() => Promise.resolve())

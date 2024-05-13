@@ -74,6 +74,10 @@
             <artifactId>s3-transfer-manager</artifactId>
         </dependency>
         <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>dynamodb</artifactId>
+        </dependency>
+        <dependency>
             <groupId>software.amazon.awssdk.crt</groupId>
             <artifactId>aws-crt</artifactId>
             <version>0.21.12</version>
@@ -127,6 +131,37 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.43.0</version>
+                <configuration>
+                    <groovy>
+                        <!-- These are the defaults, you can override if you want -->
+                        <includes>
+                            <include>src/main/groovy/**/*.groovy</include>
+                            <include>src/test/groovy/**/*.groovy</include>
+                        </includes>
+                        <importOrder/> <!-- standard import order -->
+                        <removeSemicolons/> <!-- removes semicolons at the end of lines -->
+                        <greclipse>
+                            <file>${project.basedir}/greclipse.properties</file> <!-- optional -->
+                        </greclipse>
+                        <!--<excludeJava/>-->
+                        <!--<licenseHeader>
+                            <content>/* (C)$YEAR */</content>  <!- or <file>${project.basedir}/license-header</file> ->
+                        </licenseHeader>-->
+                    </groovy>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>apply</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
