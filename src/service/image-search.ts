@@ -58,7 +58,7 @@ class ImageSearch extends Search {
     const attrExpNames: Record<string, string> = {}
 
     // Make dimension singular because that's how the
-    // DynamoDB tables are named
+    // DynamoDB table attributes are named
     dimension = singular(dimension)
 
     attrExpNames['#dimension'] = dimension

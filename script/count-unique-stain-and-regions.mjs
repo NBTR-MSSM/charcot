@@ -23,8 +23,4 @@ for (const obj of records) {
 
 }
 
-function addOrUpdateFieldValue(obj) {
-
-}
-
 console.log(`JMQ: res is ${JSON.stringify(res)}`)
