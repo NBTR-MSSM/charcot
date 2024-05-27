@@ -1,12 +1,11 @@
 @Grab('org.codehaus.groovy.modules.http-builder:http-builder:0.7.2')
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
-import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate
-import com.amazonaws.services.dynamodbv2.model.ScanRequest
-import com.amazonaws.services.dynamodbv2.model.ScanResult
-import com.amazonaws.services.dynamodbv2.model.UpdateItemResult
 import groovyx.net.http.RESTClient
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest
+import software.amazon.awssdk.services.dynamodb.model.ScanResponse
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse
 
 /*
  * Retrofit the order size in bytes, by looking at list of files processed
@@ -15,14 +14,14 @@ import groovyx.net.http.RESTClient
  */
 
 def table = 'prod-charcot-cerebrum-image-order'
-AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
-def scanRequest = new ScanRequest()
+DynamoDbClient dynamoDB = DynamoDbClient.builder().build()
+
 def url = 'https://api.mountsinaicharcot.org/cerebrum-images'
 def client = new RESTClient(url)
-scanRequest.tableName = table
+def scanRequest = ScanRequest.builder().tableName(table).build()
 while (true) {
-  ScanResult result = dynamoDB.scan(scanRequest)
-  result.items.each { Map<String, AttributeValue> fields ->
+  ScanResponse scanResponse = dynamoDB.scan(scanRequest as ScanRequest)
+  scanResponse.items.each { Map<String, AttributeValue> fields ->
     if (fields.status?.s) {
       return
     }
@@ -36,24 +35,25 @@ while (true) {
           it.fileName
         }
         println "JMQ: $orderId filter $filter yielded $files"
-        updateFiles(table, dynamoDB, orderId, files)
+        updateFiles(dynamoDb, table, orderId, files)
       }
     } catch (Exception e) {
       println "JMQ: $orderId filter $filter failed: $e"
     }
   }
-  if (!result.lastEvaluatedKey) {
+  if (!scanResponse.lastEvaluatedKey) {
     break
   }
-  scanRequest.exclusiveStartKey = result.lastEvaluatedKey
+  scanRequest = ScanRequest.builder().tableName(table).exclusiveStartKey(scanResponse.lastEvaluatedKey())
 }
 
-void updateFiles(String tableName, AmazonDynamoDB dynamoDB, String orderId, List<String> files) {
-  def attributeValueUpdate = new AttributeValueUpdate().withValue(new AttributeValue().withL(files.collect { new AttributeValue().withS(it) }))
-  UpdateItemResult updateItemResult = dynamoDB.updateItem(tableName,
-    [orderId: new AttributeValue().withS(orderId)],
-    [status        : new AttributeValueUpdate().withValue(new AttributeValue().withS('processed')),
-      fileNames     : attributeValueUpdate,
-      filesProcessed: attributeValueUpdate])
-  println "Updated request $orderId:  ${updateItemResult.toString()}"
+void updateFiles(DynamoDbClient dynamoDB, String tableName, String orderId, List<String> files) {
+  def filesAttributeValueUpdate = AttributeValue.builder().l(files.collect { AttributeValue.builder().s(it).build() }).build()
+  UpdateItemResponse updateItemResponse = dynamoDB.updateItem(UpdateItemRequest.builder()
+    .tableName(tableName)
+    .expressionAttributeNames(['#status': 'status', '#fileNames': 'fileNames', '#filesProcessed': 'filesProcessed'])
+    .expressionAttributeValues(['status': AttributeValue.builder().s('processed').build(), 'fileNames': filesAttributeValueUpdate, 'filesProcessed': filesAttributeValueUpdate])
+    .key(['orderId': AttributeValue.builder().s(orderId).build(), recordNumber: AttributeValue.builder().n("0").build()])
+    .updateExpression('SET #status = :status, #fileNames = :fileNames, #filesProcessed = :filesProcessed').build() as UpdateItemRequest)
+  println "Updated request $orderId:  ${updateItemResponse.toString()}"
 }
