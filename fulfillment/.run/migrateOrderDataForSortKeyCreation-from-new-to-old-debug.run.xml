@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="migrateOrderDataForSortKeyCreation-from-new-to-old-debug" type="GroovyScriptRunConfiguration" factoryName="Groovy">
+    <module name="fulfillment" />
+    <setting name="path" value="file://$PROJECT_DIR$/script/migrateOrderDataForSortKeyCreation.groovy" />
+    <setting name="vmparams" value="" />
+    <setting name="params" value="--stage debug --from-table charcot-cerebrum-image-order-new-restored --to-table charcot-cerebrum-image-order" />
+    <setting name="workDir" value="file://$PROJECT_DIR$/script" />
+    <setting name="debug" value="false" />
+    <env name="AWS_PROFILE" value="mssm" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

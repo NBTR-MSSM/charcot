@@ -1,12 +1,11 @@
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
-import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate
 import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder
 import com.amazonaws.services.sqs.model.PurgeQueueRequest
 import com.amazonaws.services.sqs.model.SendMessageRequest
 import groovy.cli.commons.CliBuilder
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest
 
 /**
  * Use this script to copy user and order data from one environment to the other.
@@ -23,7 +22,7 @@ if (opts.h) {
 }
 
 // begin: main program
-AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
+DynamoDbClient dynamoDB = DynamoDbClient.builder().build()
 String stage = opts.stage
 List<String> requests = opts.rs
 println "stage is $stage"
@@ -51,10 +50,13 @@ private CliBuilder buildCli() {
   return cli
 }
 
-void resetStatus(String requestId, String tableName, AmazonDynamoDB dynamoDB) {
-  dynamoDB.updateItem(tableName,
-          [orderId: new AttributeValue().withS(requestId)],
-          [status: new AttributeValueUpdate().withValue(new AttributeValue().withS('received'))])
+void resetStatus(String requestId, String tableName, DynamoDbClient dynamoDB) {
+  dynamoDB.updateItem(UpdateItemRequest.builder().tableName(tableName)
+          .key([orderId: AttributeValue.builder().s(requestId).build(), recordNumber: AttributeValue.builder().n('0').build()])
+          .expressionAttributeNames(['#status': 'status'])
+          .expressionAttributeValues([':status': AttributeValue.builder().s('received').build()])
+          .updateExpression('SET #status = :status')
+          .build() as UpdateItemRequest)
   println "Updated status for $requestId"
 }
 

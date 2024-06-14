@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+    <!--<include resource="org/springframework/boot/logging/logback/console-appender.xml" />
+    <include resource="org/springframework/cloud/gcp/autoconfigure/logging/logback-json-appender.xml"/>-->
+    <logger name="root" level="INFO"/>
+    <!--<logger name="org.apache" level="TRACE"/>
+    <logger name="httpclient" level="TRACE"/>-->
+</configuration>

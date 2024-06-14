@@ -1,5 +1,14 @@
 #!/usr/bin/env zx
 
+/**
+ * TODO: Automatically obtain bearer token from cognito using user/password. Add YARG arguments to collect
+ *   these, then use Cognito SDK to obtain this token and pass it in the Axios POSTS
+ *   - Can enhance the aws-sdk-wrapper cognito client to expose a method to provide the JWT given a user/password
+ * TODO: Consider populating DynamoDB image metadata from this script as well, essentially the
+ *   'npm run import:data:debug' step. Why? Make this script one stop shop to provision debug environment. Idea
+ *   occurred to me on 06/10/2024 while testing fulfillment fix to DynamoDB record size 400KB exceeded error
+ */
+
 const fs = require('fs')
 const yargs = require('yargs/yargs')
 const { Readable, Writable } = require('stream')
@@ -51,7 +60,7 @@ await pipeline(
   submitStream(),
   dummyWriteStream()
 ).catch(e => {
-  console.error('Problem uploading metadata of multil-value dimensions', e)
+  console.error('Problem uploading metadata of multi-value dimensions', e)
 })
 
 /**
@@ -201,7 +210,11 @@ function sanitize(str) {
 }
 
 async function sendData(buffer) {
-  await axiosClient.post(endpoint, buffer)
+  await axiosClient.post(endpoint, buffer, {
+    headers: {
+      Authorization: 'Bearer eyJraWQiOiJ6SlZNOHkrV2QycVFuejZNZWt0cVZXQWxTRmw0UXJKUkFROFVcLzVcL3pTWnc9IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJmNGI4YzRhOC1iMDUxLTcwOWMtOWY1OC1lODFkMjQ0ZGE1NjciLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb21cL3VzLWVhc3QtMV9sZXVXMXNhaHYiLCJjbGllbnRfaWQiOiIya2NsdWpic2lvZ240N2hyN2hsbTE0aG4wbiIsIm9yaWdpbl9qdGkiOiI0NmI0YmNmYi01NDM0LTQzZGYtYmExMS1hNjk1MTAzZTJkYzIiLCJldmVudF9pZCI6ImI5OTdmYWVhLTAzMzEtNDIxMi04NzViLTkxZDMwNjA3NmY1MyIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4iLCJhdXRoX3RpbWUiOjE3MTgwMTc2MDMsImV4cCI6MTcxODAyMTIwMywiaWF0IjoxNzE4MDE3NjAzLCJqdGkiOiIxODRjYzdiOS00OGRiLTRhODctOTMyYy02NGE4MWU4MmEwNWEiLCJ1c2VybmFtZSI6ImY0YjhjNGE4LWIwNTEtNzA5Yy05ZjU4LWU4MWQyNDRkYTU2NyJ9.A9hkt8H6T9sikud3Sy5Ge3GcNNEazq5ZKbgrEPr4JovTB8aMUqtXKEZaH1MS5fmmsM31VZepBll5te_0fH72N8ER6OJaFSf-VKBehlM0H566Y5b_U0RHeoP5xxwF3cSgnZUfjL_p0vGGOS-3lzLL-FrwEyPdNjSgU7RDctAy-YsMrMm4UG6yIglgKgjO3SV020_fTIfZLB9SPv0yc1XVcZA3PWB35JMk6goGGl9ohl_fLv-KpUfYA8Jj1K_Qho4mzeWHM81kF5puS0QyIYOXfPf4wMObayaXk1_qfuLxjYLXRMMxiGJNxOWbXvT4wPiUd9eDmpelIRVfba_ZK_Pb8g'
+    }
+  })
   // console.log(`JMQ: Successfully posted ${JSON.stringify(buffer)}`)
   return Promise.resolve()
 }

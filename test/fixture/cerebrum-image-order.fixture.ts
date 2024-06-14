@@ -53,6 +53,7 @@ export const sortedOrderOutput = (createdOrder: number[]): OrderRetrievalOutput 
 const orders: CerebrumImageOrder[] = [
   {
     orderId: 'abc123',
+    recordNumber: 0,
     email: 'clark.ken@acme.com',
     fileNames: ['XE13-009_2_HE_1.mrxs', 'XE13-009_2_Sil_1.mrxs'],
     filesProcessed: ['XE13-009_2_HE_1.mrxs', 'XE13-009_2_Sil_1.mrxs'],
@@ -62,6 +63,7 @@ const orders: CerebrumImageOrder[] = [
   },
   {
     orderId: 'def123',
+    recordNumber: 0,
     email: 'peter.parker@acme.com',
     fileNames: ['XE13-009_2_HE_1.mrxs', 'XE13-009_2_Sil_1.mrxs', 'XE12-025_1_HE_1.mrxs'],
     filesProcessed: ['XE13-009_2_HE_1.mrxs', 'XE13-009_2_Sil_1.mrxs', 'XE12-025_1_HE_1.mrxs'],
@@ -71,6 +73,7 @@ const orders: CerebrumImageOrder[] = [
   },
   {
     orderId: 'ghi123',
+    recordNumber: 0,
     email: 'bruce.wayne@acme.com',
     fileNames: ['XE13-009_2_HE_1.mrxs'],
     filesProcessed: ['XE13-009_2_HE_1.mrxs'],
@@ -80,6 +83,7 @@ const orders: CerebrumImageOrder[] = [
   },
   {
     orderId: 'jkl123',
+    recordNumber: 0,
     email: 'alan.scott@acme.com',
     fileNames: ['XE13-009_2_HE_1.mrxs'],
     filesProcessed: ['XE13-009_2_HE_1.mrxs'],
@@ -89,6 +93,7 @@ const orders: CerebrumImageOrder[] = [
   },
   {
     orderId: 'mno123',
+    recordNumber: 0,
     email: 'alan.scott@acme.com',
     fileNames: ['XE13-009_2_HE_1.mrxs'],
     filesProcessed: ['XE13-009_2_HE_1.mrxs'],
@@ -112,6 +117,7 @@ export const orderScanResultFactory = (include: number[] | undefined = undefined
 
 const dummyOrder: CerebrumImageOrder = {
   orderId: '',
+  recordNumber: 0,
   email: '',
   fileNames: [],
   filesProcessed: [],

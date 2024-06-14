@@ -83,7 +83,7 @@ class ImageSearch extends Search {
    * This function returns a JSON object with the fields:
    *   callback: This function creates search "facets". Facets are nothing more than search results grouped by
    *     the unique categories associated with a dimension, along with the count for each group of categories.
-   *   results: The results produced by the callback as an array of objects, where each object is f type Dimension
+   *   results: The results produced by the callback as an array of objects, where each object is of type Dimension
    * @param dimension - The field which unique values (aka categories) are to be grouped and a count of each group produced
    * @param event - The AWS API Gateway event that triggered this Lambda
    * @param isNumeric - Boolean that when true means that ranging such be applied. This applies to dimensions that are numeric in nature,

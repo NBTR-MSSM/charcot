@@ -49,8 +49,8 @@ export function FrontendStack({ app, stack }: sst.StackContext) {
   if (app.mode === 'deploy') {
     stack.addOutputs({
       SiteUrl: (site.customDomainUrl || site.url) as string,
-      DistributionDomain: site.cdk.distribution.distributionDomainName,
-      DistributionId: site.cdk.distribution.distributionId,
+      DistributionDomain: site.cdk?.distribution.distributionDomainName,
+      DistributionId: site.cdk?.distribution.distributionId,
       Environment: JSON.stringify(environment, null, 2)
     })
   } else {

@@ -11,4 +11,16 @@
       <option name="Make" enabled="true" />
     </method>
   </configuration>
+  <configuration default="false" name="manageAdminUsers-create-admin-group-debug" type="GroovyScriptRunConfiguration" factoryName="Groovy">
+    <module name="fulfillment" />
+    <setting name="path" value="file://$PROJECT_DIR$/script/manageAdminUsers.groovy" />
+    <setting name="vmparams" value="" />
+    <setting name="params" value="-c charcot-admin -s debug" />
+    <setting name="workDir" value="file://$PROJECT_DIR$/script" />
+    <setting name="debug" value="false" />
+    <env name="AWS_PROFILE" value="mssm" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
 </component>
