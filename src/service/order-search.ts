@@ -122,6 +122,7 @@ class OrderSearch extends Search {
         TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string,
         ExpressionAttributeNames: {
           '#orderId': 'orderId',
+          '#recordNumber': 'recordNumber',
           '#email': 'email',
           '#created': 'created',
           '#filter': 'filter',
@@ -131,7 +132,11 @@ class OrderSearch extends Search {
           '#size': 'size',
           '#fileCount': 'fileCount'
         },
-        ProjectionExpression: '#orderId, #email, #created, #filter, #status, #fulfilled, #remark, #size, #fileCount'
+        ExpressionAttributeValues: {
+          ':zero': '0'
+        },
+        ProjectionExpression: '#orderId, #email, #created, #filter, #status, #fulfilled, #remark, #size, #fileCount',
+        FilterExpression: '#recordNumber = :zero'
       }
 
       /*
@@ -139,6 +144,7 @@ class OrderSearch extends Search {
        * but unfortunately DynamoDB scan operation doesn't support sorting.
        */
       const callback = (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => {
+        // TODO: For each item, concat 'remark' value from multiple order records if any
         retItems = retItems.concat(items)
       }
 

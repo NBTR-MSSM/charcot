@@ -14,6 +14,7 @@ import { CommonStack } from './CommonStack'
 import ecs_patterns = require('aws-cdk-lib/aws-ecs-patterns')
 import path = require('path')
 import { Vpc } from 'aws-cdk-lib/aws-ec2'
+import { AdjustmentType } from 'aws-cdk-lib/aws-autoscaling'
 
 export function FulfillmentStack({ stack }: sst.StackContext) {
   const {
@@ -84,28 +85,60 @@ export function FulfillmentStack({ stack }: sst.StackContext) {
 
   const scalableTaskCount = service.service.autoScaleTaskCount({
     maxCapacity: 5,
-    minCapacity: 1
+    minCapacity: 0
   })
 
   /*
-   * Keep 5 instances running as long as there are in-flight requests in the
-   * order SQS queue. Why do we use SQS metricApproximateNumberOfMessagesNotVisible()
-   * ands not SQS.metricApproximateNumberOfMessagesVisible() metric to scale out? Because we'd kill instances
-   * handling messages if we rely on SQS.metricApproximateNumberOfMessagesVisible(), since the minute all available messages
-   * are picked up by workers, SQS.metricApproximateNumberOfMessagesVisible() == 0, at which point scaling in would start,
-   * killing all those requests in progress.
+   * This ends up indirectly setting up an alarm that will cause a scale out from 0 to 1 task
+   * when a fulfillment message arrives in the queue. AWS CDK requires two steps in Steo Scaling,
+   * else depoy of the stack fails. That's the reason for the 'upper: 0, change: 0' step, mainly to keep
+   * AWS happy, but in essence it's a NOOP because the alarm below sets up the scale in step.
    */
+  const queue = sqs.Queue.fromQueueArn(stack, 'orderQueue', cerebrumImageOrderQueueArn)
   scalableTaskCount.scaleOnMetric('fulfillmentScaleOutPolicy', {
-    metric: sqs.Queue.fromQueueArn(stack, 'orderQueue', cerebrumImageOrderQueueArn).metricApproximateNumberOfMessagesNotVisible(),
-    // adjustmentType: AdjustmentType.EXACT_CAPACITY,
+    metric: queue.metricApproximateNumberOfMessagesVisible(),
     scalingSteps: [
       {
         lower: 1,
+        change: +1
+      },
+      {
+        lower: 2,
+        change: +2
+      },
+      {
+        lower: 3,
+        change: +3
+      },
+      {
+        lower: 4,
         change: +4
       },
       {
+        lower: 5,
+        change: +5
+      },
+      {
         upper: 0,
-        change: -4
+        change: 0
+      }
+    ]
+  })
+
+  /*
+   * Sets up the scale in step to remove all running tasks once all messages in the queue have been processed. Again
+   * the NOOP scale step is to keep AWS happy, see above.
+   */
+  scalableTaskCount.scaleOnMetric('fulfillmentScaleInPolicy', {
+    metric: queue.metricApproximateNumberOfMessagesNotVisible(),
+    scalingSteps: [
+      {
+        lower: 1,
+        change: 0
+      },
+      {
+        upper: 0,
+        change: -5
       }
     ]
   })
@@ -114,7 +147,7 @@ export function FulfillmentStack({ stack }: sst.StackContext) {
   const cerebrumImageOdpBucketNameProdStage = 'nbtr-production'
   service.taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({
     effect: iam.Effect.ALLOW,
-    actions: ['dynamodb:GetItem', 'dynamodb:UpdateItem'],
+    actions: ['dynamodb:GetItem', 'dynamodb:UpdateItem', 'dynamodb:Query'],
     resources: [cerebrumImageOrderTableArn]
   }))
   service.taskDefinition.taskRole.addToPrincipalPolicy(new iam.PolicyStatement({

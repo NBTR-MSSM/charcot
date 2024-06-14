@@ -1,15 +1,14 @@
 package org.mountsinaicharcot.fulfillment.configuration
 
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 
 @Configuration
 class FulfillmentConfiguration {
   @Bean("singleThreaded")
   ExecutorService singleThreadedExecutor() {
-    return Executors.newSingleThreadExecutor();
+    return Executors.newSingleThreadExecutor()
   }
 }

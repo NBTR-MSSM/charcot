@@ -140,6 +140,8 @@ private void writeOrder(AmazonDynamoDB dynamoDB, ScanResult result, String table
   result.items.each { Map<String, AttributeValue> fields ->
     String orderId = fields.orderId.s
     //println "JMQ: Mock updating $orderId, $table with $fields"
+    // FIXME: To make this operation truly idempotent, wouldn't it be better to destroy the target order first,
+    //  and then replace it? Why? Because let's say the schema changed in the source
     UpdateItemResult updateItemResult = dynamoDB.updateItem(table,
             [orderId: new AttributeValue().withS(fields.orderId.s)],
             fields.findAll { it.key != 'orderId' }.collectEntries { String name, AttributeValue value ->

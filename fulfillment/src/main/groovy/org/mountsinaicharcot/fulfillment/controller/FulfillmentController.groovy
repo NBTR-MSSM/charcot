@@ -2,6 +2,7 @@ package org.mountsinaicharcot.fulfillment.controller
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import java.util.concurrent.ExecutorService
 import org.mountsinaicharcot.fulfillment.dto.OrderInfoDto
 import org.mountsinaicharcot.fulfillment.service.FulfillmentService
 import org.springframework.beans.factory.annotation.Autowired
@@ -9,8 +10,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
-
-import java.util.concurrent.ExecutorService
 
 @RestController
 @CompileStatic
@@ -33,7 +32,8 @@ class FulfillmentController {
         log.info "Order $orderId not found."
         return ResponseEntity.notFound().build()
       }
-      executorService.execute({ ->
+      executorService.execute( {
+        ->
         fulfillmentService.fulfill(orderInfoDto)
       })
       ResponseEntity.accepted().body("Request $orderId has been accepted for processing")
