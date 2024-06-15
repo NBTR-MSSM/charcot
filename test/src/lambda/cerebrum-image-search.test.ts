@@ -44,6 +44,36 @@ describe('cerebrum-image-search', () => {
     })
   })
 
+  it('paginates image search results', async () => {
+    // @ts-ignore
+    dynamoDbClient.scan.mockResolvedValueOnce(allFieldsScanResult)
+    const event = {} as APIGatewayProxyEventV2
+    merge(event, jestGlobal.BASE_REQUEST)
+    event.queryStringParameters = {
+      filter: 'age = \'90+\'',
+      page: '1',
+      pageSize: '2'
+    }
+    const res = await lambda.search(event, {} as Context, jest.fn())
+    expect(res).toEqual({
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(allFieldsScanResult.Items!.slice(0, 2), null, ' ')
+    })
+    expect(dynamoDbClient.scan).toHaveBeenCalledWith({
+      TableName: 'cerebrum-image-metadata',
+      FilterExpression: '#age >= :90',
+      ExpressionAttributeNames: {
+        '#age': 'age'
+      },
+      ExpressionAttributeValues: {
+        ':90': 90
+      }
+    })
+  })
+
   it('handles case when no results are found for a dimension', async () => {
     // @ts-ignore
     dynamoDbClient.scan.mockResolvedValueOnce({})

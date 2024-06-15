@@ -4,6 +4,7 @@ import Search from './search'
 import { dynamoDbClient, HttpResponse } from '@exsoinn/aws-sdk-wrappers'
 import userManagement from './user-management'
 import { CerebrumImageOrder, OrderRetrievalOutput, OrderTotals } from '../types/charcot.types'
+import Pagination from './pagination'
 
 const cancelEligibleStatuses = new Set().add('received').add('processing')
 
@@ -63,33 +64,6 @@ const sort = <T extends Record<string, string | unknown>>(items: T[], sortBy: st
   items.sort(comparator)
 }
 
-/**
- * Given an array (0-based) of items, a page and a page size (I.e. number of items per page) returns the items in the array
- * in that page.
- * Example:
- *   13 items, pageSize = 5, page = 3
- *   first = (5 * 3) - 5 = 10
- *   last = (5 * 3) - (13 % 5) = 15 - 3 = 12
- *   (1-based) 1 2 3 4 5 6 7 8 9 10 11 12 13
- *   (0-based) 0 1 2 3 4 5 6 7 8 09 10 11 12
- *
- *  5 items, pageSize = 1, page = 2
- *   first = (1 * 2) - 1 = 1
- *   last = (1 * 2) - (5 % 1) = 2 - 0 = 2
- *   (1-based) 1 2 3 4 5 6 7 8 9 10 11 12 13
- *   (0-based) 0 1 2 3 4 5 6 7 8 09 10 11 12
- */
-const goToPage = (items: DocumentClient.ItemList, page: number, pageSize: number, orderCount: number) => {
-  // If page is not a positive value, or all items fit in a single page,
-  // just grab all the records
-  if (page < 1 || orderCount <= pageSize) {
-    return items
-  }
-  const first = (pageSize * page) - pageSize
-  const last = (pageSize * page)
-  return items.slice(first, last)
-}
-
 class OrderSearch extends Search {
   /**
    * Retrieves orders and paginates as appropriate
@@ -133,7 +107,7 @@ class OrderSearch extends Search {
           '#fileCount': 'fileCount'
         },
         ExpressionAttributeValues: {
-          ':zero': '0'
+          ':zero': 0
         },
         ProjectionExpression: '#orderId, #email, #created, #filter, #status, #fulfilled, #remark, #size, #fileCount',
         FilterExpression: '#recordNumber = :zero'
@@ -161,7 +135,7 @@ class OrderSearch extends Search {
         sort(retItems, sortBy, sortOrder)
       }
 
-      retItems = goToPage(retItems, page, pageSize, orderCount)
+      retItems = Pagination.goToPage(retItems, page, pageSize, orderCount)
 
       retBody = {
         pageSize,
@@ -192,8 +166,7 @@ class OrderSearch extends Search {
     retBody.orders = retItems as CerebrumImageOrder[]
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    return new HttpResponse(200, '', retBody
-    )
+    return new HttpResponse(200, '', retBody)
   }
 
   async obtainTotals(): Promise<OrderTotals> {
