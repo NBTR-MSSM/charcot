@@ -45,6 +45,7 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager
 import software.amazon.awssdk.transfer.s3.model.FileDownload
 import software.amazon.awssdk.transfer.s3.model.FileUpload
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest
+import software.amazon.awssdk.utils.Pair
 
 @Service
 @Slf4j
@@ -286,18 +287,9 @@ class FulfillmentService implements CommandLineRunner {
       orderInfoForLastRecord = retrieveOrderInfo(orderId, lastRecordNumber)
     }
 
-    /*
-     * If adding this remark blows up current record size limit, add it in a new record
-     */
-    String newRemark = "[${currentTime()}] $remark"
-    String remarkToAdd = "${orderInfoForLastRecord.remark ?: ''}\n$newRemark"
-    Integer nextRecordNumber = orderInfoForLastRecord.recordNumber
-    if ((orderInfoForLastRecord.approximateItemSizeInBytes() + remarkToAdd.toString().getBytes('UTF-8').length) > DYNAMODB_MAX_ITEM_SIZE_IN_BYTES) {
-      nextRecordNumber += 1
-      remarkToAdd = newRemark
-    }
-
-    updateOrder(orderId, nextRecordNumber, [name: 'remark', value: remarkToAdd, dataType: 's'] as AttributeUpdateInfo)
+    String delta = "[${currentTime()}] $remark"
+    Pair<Integer, String> recordNumberAndUpdates = determineNextRecordNumberAndUpdates(orderId, lastRecordNumber, orderInfoForLastRecord.approximateItemSizeInBytes(), "$delta\n${orderInfoForLastRecord.remark ?: ''}", delta)
+    updateOrder(orderId, recordNumberAndUpdates.left(), [name: 'remark', value: recordNumberAndUpdates.right(), dataType: 's'] as AttributeUpdateInfo)
   }
 
   void recordOrderSize(OrderInfoDto orderInfo, Long size) {
@@ -334,9 +326,42 @@ class FulfillmentService implements CommandLineRunner {
   }
 
   void updateProcessedFiles(OrderInfoDto orderInfo, List<String> files) {
-    // Merge current files processed with new ones, creating a set of unique values, and store
-    // back into DB, overriding existing list of files processed
-    updateOrder(orderInfo.orderId, orderInfo.recordNumber, [name: "filesProcessed", value: (orderInfo.filesProcessed.toSet() + files.toSet()).collect { AttributeValue.builder().s(it).build() }, dataType: "l"] as AttributeUpdateInfo)
+    String orderId = orderInfo.orderId
+    Integer lastRecordNumber = orderInfo.lastRecordNumber
+    OrderInfoDto orderInfoForLastRecord = orderInfo
+    if (lastRecordNumber > 0) {
+      orderInfoForLastRecord = retrieveOrderInfo(orderId, lastRecordNumber)
+    }
+
+    /*
+     * If the added files wouldn't fit in current record, create a new one.
+     */
+    Pair<Integer, String> recordNumberAndUpdates =
+      determineNextRecordNumberAndUpdates(orderId, lastRecordNumber, orderInfoForLastRecord.approximateItemSizeInBytes(), (orderInfoForLastRecord.filesProcessed.toSet() + files.toSet()).join(','), (files.toSet() - orderInfoForLastRecord.filesProcessed.toSet()).join(','))
+    updateOrder(orderId, recordNumberAndUpdates.left(), [name: "filesProcessed", value: (recordNumberAndUpdates.right().split(',')).collect { AttributeValue.builder().s(it).build() }, dataType: "l"] as AttributeUpdateInfo)
+  }
+
+
+  /**
+   * Checks to see if the given combined updates wouldn't fit in the current DynamoDB item. If they do, then returns
+   * the combined updates and current record number. Otherwise returns the additions (delta) and an incremented record number
+   * to signal to caller that a new record in DynamoDB should be created and started with just the delta. Once/if that new record
+   * fills up, the process repeats itself.
+   *
+   */
+  private Pair<Integer, String> determineNextRecordNumberAndUpdates(String orderId, Integer currentRecordNumber, Integer currentOrderSize, String combinedUpdates, String delta) {
+    Integer nextRecordNumber = currentRecordNumber
+    Integer wouldBeOrderRecordSize = currentOrderSize + delta.getBytes('UTF-8').length
+    String updates = combinedUpdates
+    if ((currentOrderSize + updates.getBytes('UTF-8').length) > DYNAMODB_MAX_ITEM_SIZE_IN_BYTES) {
+      ++nextRecordNumber
+      updates = delta
+      log.info "DynamoDB item limit of $DYNAMODB_MAX_ITEM_SIZE_IN_BYTES exceeded. Order $orderId would have size of $wouldBeOrderRecordSize, will store '$delta' to new recordNumber $nextRecordNumber"
+    } else {
+      log.info "DynamoDB item limit of $DYNAMODB_MAX_ITEM_SIZE_IN_BYTES NOT exceeded. Storing $updates to orderId $orderId and recordNumber $nextRecordNumber"
+    }
+
+    Pair.of(nextRecordNumber, updates)
   }
 
   OrderInfoDto retrieveOrderInfo(String orderId, Integer recordNumber = 0) {
@@ -524,7 +549,7 @@ private static void diskStats() {
 }
 
 private static void memStats() {
-  log.info "Memory Stats\n${'cat /proc/meminfo'.execute().text}"
+  //log.info "Memory Stats\n${'cat /proc/meminfo'.execute().text}"
 }
 
 private static void fdStats() {
