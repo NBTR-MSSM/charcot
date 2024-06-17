@@ -157,95 +157,100 @@ class FulfillmentService implements CommandLineRunner {
     log.info "Fulfilling order ${orderInfo.toString()}"
     updateOrderStatus(orderInfo, 'processing', "Request $orderId began being processed by Mount Sinai Charcot on ${currentTime()}")
 
-    calculateOrderSizeAndPartitionIntoBuckets(orderInfo)
-    recordOrderSize(orderInfo, orderInfo.size)
-    recordFileCount(orderInfo, orderInfo.fileNames.size())
-    Map<Integer, List<String>> bucketToFileList = orderInfo.bucketToFileList
-    // Capture original number of buckets before any filtering of already processed files takes place
-    int totalZips = bucketToFileList.size()
-    orderInfo.filesProcessed && filterAlreadyProcessedFiles(bucketToFileList, orderInfo.filesProcessed)
-
-    /*
-     * In reprocess scenarios, all files might have been processed already,
-     * in which case bucketToFileList will be empty because filterAlreadyProcessedFiles() detected
-     * that all files have already been processed.
-     */
-    int zipCnt = bucketToFileList ? bucketToFileList.keySet().min() + 1 : 0
-    def canceled = bucketToFileList.find { Integer bucketNumber, List<String> filesToZip ->
-      def startAll = System.currentTimeMillis()
-      /*
-       * Download the files to zip. The closure inside the if() returns true as soon as it detects
-       * a cancel request.
-       * Check order status frequently to see if cancel has been requested. We want to be
-       * as timely as possible in honoring such requests to avoid wasteful processing
-       */
-      if (filesToZip.find { String fileName ->
-          try {
-            // Do not fail-fast if a file fails to download, just continue with the rest
-            def startCurrent = System.currentTimeMillis()
-
-            if (!fileName.endsWith('/')) {
-              // If it doesn't end in '/', assumption is that there's a top level
-              // file name ala .mrxs. Below we grab the folder component of this
-              // image as well
-              downloadS3Object(orderInfo, fileName)
-            }
-
-            // Check if cancel requested right before we commit to downloading
-            // entire image folder
-            if (cancelIfRequested(orderInfo)) {
-              return true
-            }
-            downloadS3Object(orderInfo, fileName.replace('.mrxs', '/'))
-            log.info "Took ${System.currentTimeMillis() - startCurrent} milliseconds to download $fileName for request $orderId"
-          } catch (Exception e) {
-            String msg = "Problem downloading $fileName"
-            log.error msg, e
-            updateOrderStatus(orderInfo, null, "$msg: ${e.toString()}")
-          }
-          false
-        }) {
-        log.info "Order $orderId canceled"
-        return true
-      }
-      log.info "Took ${System.currentTimeMillis() - startAll} milliseconds to download all the image slides for request $orderId"
-
-      // Create the manifest file
-      createManifestFile(orderInfo, filesToZip)
-
-      // Create zip
-      String zipName = totalZips > 1 ? "$orderId-$zipCnt-of-${totalZips}.zip" : "${orderId}.zip"
-      def startZip = System.currentTimeMillis()
-      createZip(orderInfo, zipName)
-      log.info "Took ${System.currentTimeMillis() - startZip} milliseconds to create zip for request $orderId"
-
-      // Upload zip to S3
-      def startUpload = System.currentTimeMillis()
-      uploadObjectToS3(zipName)
-      log.info "Took ${System.currentTimeMillis() - startUpload} milliseconds to upload zip for request $orderId"
-
-      // Generate a signed URL
-      String zipLink = generateSignedZipUrl(orderInfo, zipName)
-
-      // Send email
-      sendEmail(orderInfo, zipLink, zipCnt, totalZips)
-
-      // cleanup in preparation for next batch, this way
-      // we free up space so as to to avoid blowing disk space on the host
-      cleanUp(orderInfo, zipName)
-
-      ++zipCnt
+    def canceled = null
+    if (orderInfo.filesProcessed.size() != orderInfo.fileNames.size()) {
+      calculateOrderSizeAndPartitionIntoBuckets(orderInfo)
+      recordOrderSize(orderInfo, orderInfo.size)
+      recordFileCount(orderInfo, orderInfo.fileNames.size())
+      Map<Integer, List<String>> bucketToFileList = orderInfo.bucketToFileList
+      // Capture original number of buckets before any filtering of already processed files takes place
+      int totalZips = bucketToFileList.size()
+      orderInfo.filesProcessed && filterAlreadyProcessedFiles(bucketToFileList, orderInfo.filesProcessed)
 
       /*
-       * Record the batch of processed files in order table. For now just record
-       * the main .msxr file as representative of each of the sets of files in this bucket.
+       * In reprocess scenarios, all files might have been processed already,
+       * in which case bucketToFileList will be empty because filterAlreadyProcessedFiles() detected
+       * that all files have already been processed.
        */
-      updateProcessedFiles(orderInfo, filesToZip)
-      if (cancelIfRequested(orderInfo)) {
-        return true
+      int zipCnt = bucketToFileList ? bucketToFileList.keySet().min() + 1 : 0
+      canceled = bucketToFileList.find { Integer bucketNumber, List<String> filesToZip ->
+        def startAll = System.currentTimeMillis()
+        /*
+         * Download the files to zip. The closure inside the if() returns true as soon as it detects
+         * a cancel request.
+         * Check order status frequently to see if cancel has been requested. We want to be
+         * as timely as possible in honoring such requests to avoid wasteful processing
+         */
+        if (filesToZip.find { String fileName ->
+            try {
+              // Do not fail-fast if a file fails to download, just continue with the rest
+              def startCurrent = System.currentTimeMillis()
+
+              if (!fileName.endsWith('/')) {
+                // If it doesn't end in '/', assumption is that there's a top level
+                // file name ala .mrxs. Below we grab the folder component of this
+                // image as well
+                downloadS3Object(orderInfo, fileName)
+              }
+
+              // Check if cancel requested right before we commit to downloading
+              // entire image folder
+              if (cancelIfRequested(orderInfo)) {
+                return true
+              }
+              downloadS3Object(orderInfo, fileName.replace('.mrxs', '/'))
+              log.info "Took ${System.currentTimeMillis() - startCurrent} milliseconds to download $fileName for request $orderId"
+            } catch (Exception e) {
+              String msg = "Problem downloading $fileName"
+              log.error msg, e
+              updateOrderStatus(orderInfo, null, "$msg: ${e.toString()}")
+            }
+            false
+          }) {
+          log.info "Order $orderId canceled"
+          return true
+        }
+        log.info "Took ${System.currentTimeMillis() - startAll} milliseconds to download all the image slides for request $orderId"
+
+        // Create the manifest file
+        createManifestFile(orderInfo, filesToZip)
+
+        // Create zip
+        String zipName = totalZips > 1 ? "$orderId-$zipCnt-of-${totalZips}.zip" : "${orderId}.zip"
+        def startZip = System.currentTimeMillis()
+        createZip(orderInfo, zipName)
+        log.info "Took ${System.currentTimeMillis() - startZip} milliseconds to create zip for request $orderId"
+
+        // Upload zip to S3
+        def startUpload = System.currentTimeMillis()
+        uploadObjectToS3(zipName)
+        log.info "Took ${System.currentTimeMillis() - startUpload} milliseconds to upload zip for request $orderId"
+
+        // Generate a signed URL
+        String zipLink = generateSignedZipUrl(orderInfo, zipName)
+
+        // Send email
+        sendEmail(orderInfo, zipLink, zipCnt, totalZips)
+
+        // cleanup in preparation for next batch, this way
+        // we free up space so as to to avoid blowing disk space on the host
+        cleanUp(orderInfo, zipName)
+
+        ++zipCnt
+
+        /*
+         * Record the batch of processed files in order table. For now just record
+         * the main .msxr file as representative of each of the sets of files in this bucket.
+         */
+        updateProcessedFiles(orderInfo, filesToZip)
+        if (cancelIfRequested(orderInfo)) {
+          return true
+        }
+        updateOrderStatus(orderInfo, 'processing', "${bucketNumber + 1} of $totalZips zip files sent to requester.")
+        false
       }
-      updateOrderStatus(orderInfo, 'processing', "${bucketNumber + 1} of $totalZips zip files sent to requester.")
-      false
+    } else {
+      log.info "Looks like all $orderInfo.fileNames of $orderInfo.orderId were already processed"
     }
 
     performOrderProcessedActions(orderInfo, !canceled)
@@ -267,8 +272,11 @@ class FulfillmentService implements CommandLineRunner {
 
   void performOrderProcessedActions(OrderInfoDto orderInfo, boolean updateStatus = true) {
     AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
-    sqs.deleteMessage(sqsOrderQueueUrl, orderInfo.sqsReceiptHandle)
-    updateStatus && updateOrderStatus(orderInfo, 'processed', "Request processed successfully on ${currentTime()}")
+    // Refresh the SQS ReceiptHandle from DB for this order, in case the request took more than 12 hours to process
+    // and other workers refreshed the receipt on behalf for this worker while it was busy working on the longer-than-12 hours request
+    OrderInfoDto refreshedOrderInfo = retrieveOrderInfo(orderInfo.orderId)
+    sqs.deleteMessage(sqsOrderQueueUrl, refreshedOrderInfo.sqsReceiptHandle)
+    updateStatus && updateOrderStatus(refreshedOrderInfo, 'processed', "Request processed successfully on ${currentTime()}")
   }
 
   void updateOrderStatus(OrderInfoDto orderInfo, String status, String remark = null) {
@@ -386,8 +394,7 @@ class FulfillmentService implements CommandLineRunner {
     orderInfoDto.orderId = orderId
     orderInfoDto.recordNumber = item.recordNumber.n().toInteger()
     orderInfoDto.fileNames = item.fileNames?.l()?.collect { it.s() }
-    orderInfoDto.filesProcessed = item.filesProcessed?.l()?.collect { it.s() }
-    orderInfoDto.filesProcessed = orderInfoDto.filesProcessed ?: []
+    orderInfoDto.filesProcessed = collectFilesProcessed(items)
     orderInfoDto.email = item.email?.s()
     orderInfoDto.filter = item.filter?.s()
     orderInfoDto.outputPath = "$WORK_FOLDER/$orderId"
@@ -398,6 +405,12 @@ class FulfillmentService implements CommandLineRunner {
       it.recordNumber.n().toInteger()
     }.recordNumber.n().toInteger()
     orderInfoDto
+  }
+
+  private List<String> collectFilesProcessed(List<Map<String, AttributeValue>> items) {
+    items.findResults { Map<String, AttributeValue> item ->
+      item.filesProcessed?.l()?.collect { it.s() }
+    }.flatten() as List<String>
   }
 
   void downloadS3Object(OrderInfoDto orderInfoDto, String key) {

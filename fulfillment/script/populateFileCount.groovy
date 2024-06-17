@@ -17,9 +17,9 @@ def table = 'prod-charcot-cerebrum-image-order'
 AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
 def scanRequest = new ScanRequest()
 def fulfillmentService = new FulfillmentService(
-        dynamoDbOrderTableName: table,
-        s3OdpBucketName: 'nbtr-production'
-)
+  dynamoDbOrderTableName: table,
+  s3OdpBucketName: 'nbtr-production'
+  )
 
 scanRequest.tableName = table
 while (true) {
@@ -40,9 +40,7 @@ while (true) {
 void updateFileCount(String tableName, AmazonDynamoDB dynamoDB, String orderId, String fileCount) {
   def attributeValueUpdate = new AttributeValueUpdate().withValue(new AttributeValue().withN(fileCount))
   UpdateItemResult updateItemResult = dynamoDB.updateItem(tableName,
-          [orderId: new AttributeValue().withS(orderId)],
-          [fileCount: attributeValueUpdate])
+    [orderId: new AttributeValue().withS(orderId)],
+    [fileCount: attributeValueUpdate])
   println "Updated request $orderId:  ${updateItemResult.toString()}"
 }
-
-

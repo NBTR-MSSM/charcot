@@ -141,6 +141,7 @@
                         <includes>
                             <include>src/main/groovy/**/*.groovy</include>
                             <include>src/test/groovy/**/*.groovy</include>
+                            <include>script/**/*.groovy</include>
                         </includes>
                         <importOrder/> <!-- standard import order -->
                         <removeSemicolons/> <!-- removes semicolons at the end of lines -->
