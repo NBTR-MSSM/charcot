@@ -51,10 +51,9 @@ while (true) {
 void updateFiles(String tableName, AmazonDynamoDB dynamoDB, String orderId, List<String> files) {
   def attributeValueUpdate = new AttributeValueUpdate().withValue(new AttributeValue().withL(files.collect { new AttributeValue().withS(it) }))
   UpdateItemResult updateItemResult = dynamoDB.updateItem(tableName,
-          [orderId: new AttributeValue().withS(orderId)],
-          [status        : new AttributeValueUpdate().withValue(new AttributeValue().withS('processed')),
-           fileNames     : attributeValueUpdate,
-           filesProcessed: attributeValueUpdate])
+    [orderId: new AttributeValue().withS(orderId)],
+    [status        : new AttributeValueUpdate().withValue(new AttributeValue().withS('processed')),
+      fileNames     : attributeValueUpdate,
+      filesProcessed: attributeValueUpdate])
   println "Updated request $orderId:  ${updateItemResult.toString()}"
 }
-

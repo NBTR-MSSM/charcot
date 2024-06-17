@@ -52,11 +52,11 @@ private CliBuilder buildCli() {
 
 void resetStatus(String requestId, String tableName, DynamoDbClient dynamoDB) {
   dynamoDB.updateItem(UpdateItemRequest.builder().tableName(tableName)
-          .key([orderId: AttributeValue.builder().s(requestId).build(), recordNumber: AttributeValue.builder().n('0').build()])
-          .expressionAttributeNames(['#status': 'status'])
-          .expressionAttributeValues([':status': AttributeValue.builder().s('received').build()])
-          .updateExpression('SET #status = :status')
-          .build() as UpdateItemRequest)
+    .key([orderId: AttributeValue.builder().s(requestId).build(), recordNumber: AttributeValue.builder().n('0').build()])
+    .expressionAttributeNames(['#status': 'status'])
+    .expressionAttributeValues([':status': AttributeValue.builder().s('received').build()])
+    .updateExpression('SET #status = :status')
+    .build() as UpdateItemRequest)
   println "Updated status for $requestId"
 }
 
