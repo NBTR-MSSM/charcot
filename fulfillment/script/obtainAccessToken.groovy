@@ -22,21 +22,21 @@ if (opts.h) {
 
 String stage = opts.stage
 
-try (CognitoIdentityProviderClient cognitoClient = CognitoIdentityProviderClient.builder().build()) {
+CognitoIdentityProviderClient.builder().build().withCloseable { CognitoIdentityProviderClient cognitoClient ->
   ListUserPoolsRequest request = ListUserPoolsRequest.builder().build()
   ListUserPoolsResponse listPoolsResponse = cognitoClient.listUserPools(request)
   def pools = listPoolsResponse.userPools()
 
   def cognitoPool = extractPool(stage, pools)
   AdminInitiateAuthRequest authRequest = AdminInitiateAuthRequest.builder().clientId(STAGE_APP_CLIENT_ID_CONFIG[stage]).userPoolId(cognitoPool.id()).authFlow("ADMIN_NO_SRP_AUTH")
-          .authParameters([USERNAME: 'joquijada2010@gmail.com', PASSWORD: '***REMOVED***']).build()
+    .authParameters([USERNAME: 'joquijada2010@gmail.com', PASSWORD: '***REMOVED***']).build()
   def result = cognitoClient.adminInitiateAuth(authRequest).authenticationResult()
   println """\
-accessToken = ${result.accessToken()}
-idToken = ${result.idToken()}
-tokenType = ${result.tokenType()}
-expiresIn = ${result.expiresIn()}
-refreshToken = ${result.refreshToken()}"""
+    accessToken = ${result.accessToken()}
+    idToken = ${result.idToken()}
+    tokenType = ${result.tokenType()}
+    expiresIn = ${result.expiresIn()}
+    refreshToken = ${result.refreshToken()}""".stripIndent()
 }
 
 private UserPoolDescriptionType extractPool(String stage, List<UserPoolDescriptionType> pools) {

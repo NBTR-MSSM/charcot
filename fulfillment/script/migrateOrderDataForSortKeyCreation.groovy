@@ -65,10 +65,13 @@ private void writeOrder(DynamoDbClient dynamoDB, ScanResponse scanResponse, Stri
     String orderId = fields.orderId.s
     Map<String, AttributeValue> orderAttributes = fields.findAll { it.key != 'orderId' && it.key != 'recordNumber' }
     UpdateItemResponse updateItemResponse = dynamoDB.updateItem(UpdateItemRequest.builder().tableName(table).key([orderId: AttributeValue.builder().s(orderId).build(), recordNumber: AttributeValue.builder().n('0').build()])
-            .updateExpression(/SET ${orderAttributes.collect { String name, AttributeValue value -> "#$name = :$name" }.join((', '))}/)
-            .expressionAttributeNames(orderAttributes.collectEntries { String name, AttributeValue value -> [("#$name".toString()): name] })
-            .expressionAttributeValues(orderAttributes.collectEntries { String name, AttributeValue value -> [(":$name".toString()): value] })
-            .build() as UpdateItemRequest)
-    println "Updated request $orderId: ${updateItemResponse.toString()}"
-  }
+    .updateExpression("""\
+              SET ${orderAttributes.collect { String name, AttributeValue value -> "#$name = :$name"
+  }.join((', '))
+}""".stripIndent())
+.expressionAttributeNames(orderAttributes.collectEntries { String name, AttributeValue value -> [("#$name".toString()): name] })
+.expressionAttributeValues(orderAttributes.collectEntries { String name, AttributeValue value -> [(":$name".toString()): value] })
+.build() as UpdateItemRequest)
+println "Updated request $orderId: ${updateItemResponse.toString()}"
+}
 }

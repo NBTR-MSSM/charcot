@@ -19,39 +19,41 @@ if (!opts || opts.h) {
 }
 
 // begin: main program
-try (CognitoIdentityProviderClient cognitoClient = CognitoIdentityProviderClient.builder().build()) {
-  def pool = extractPool(cognitoClient, opts.s)
-  if (opts.c) {
-    createGroup(cognitoClient, opts.c, pool)
-  } else if (opts.a) {
-    opts.as[1].split(',').each {
-      addUserToGroup(cognitoClient, it, opts.as[0], pool)
+CognitoIdentityProviderClient.builder().build().withCloseable {CognitoIdentityProviderClient cognitoClient ->
+  try {
+    def pool = extractPool(cognitoClient, opts.s)
+    if (opts.c) {
+      createGroup(cognitoClient, opts.c, pool)
+    } else if (opts.a) {
+      opts.as[1].split(',').each {
+        addUserToGroup(cognitoClient, it, opts.as[0], pool)
+      }
+    } else if (opts.r) {
+      throw new UnsupportedOperationException('Have not implemented remove user from group functionality yet')
     }
-  } else if (opts.r) {
-    throw new UnsupportedOperationException('Have not implemented remove user from group functionality yet')
+  } catch (CognitoIdentityProviderException e) {
+    println e.awsErrorDetails().errorMessage()
+    System.exit(1)
   }
-} catch (CognitoIdentityProviderException e) {
-  println e.awsErrorDetails().errorMessage()
-  System.exit(1)
 }
 // end: main program
 
 
 private void addUserToGroup(CognitoIdentityProviderClient cognitoClient, String user, String group, UserPoolDescriptionType pool) {
   AdminAddUserToGroupRequest addUserToGroupRequest = AdminAddUserToGroupRequest.builder()
-          .userPoolId(pool.id())
-          .groupName(group)
-          .username(user)
-          .build()
+    .userPoolId(pool.id())
+    .groupName(group)
+    .username(user)
+    .build()
   cognitoClient.adminAddUserToGroup(addUserToGroupRequest)
   println "Added $user to $group in pool ${pool.id()} ${pool.name()}"
 }
 
 private void createGroup(CognitoIdentityProviderClient cognitoClient, String name, UserPoolDescriptionType pool) {
   CreateGroupRequest createGroupRequest = CreateGroupRequest.builder()
-          .userPoolId(pool.id())
-          .groupName(name)
-          .build()
+    .userPoolId(pool.id())
+    .groupName(name)
+    .build()
   cognitoClient.createGroup(createGroupRequest)
   println "Created group $name in pool ${pool.id()} ${pool.name()}"
 }
