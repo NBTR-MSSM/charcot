@@ -15,9 +15,9 @@ def table = 'prod-charcot-cerebrum-image-order'
 AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
 def scanRequest = new ScanRequest()
 def fulfillmentService = new FulfillmentService(
-        dynamoDbOrderTableName: table,
-        s3OdpBucketName: 'nbtr-production'
-)
+  dynamoDbOrderTableName: table,
+  s3OdpBucketName: 'nbtr-production'
+  )
 
 scanRequest.tableName = table
 while (true) {
@@ -38,4 +38,3 @@ while (true) {
   }
   scanRequest.exclusiveStartKey = result.lastEvaluatedKey
 }
-
