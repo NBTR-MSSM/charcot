@@ -29,7 +29,7 @@ CognitoIdentityProviderClient.builder().build().withCloseable { CognitoIdentityP
 
   def cognitoPool = extractPool(stage, pools)
   AdminInitiateAuthRequest authRequest = AdminInitiateAuthRequest.builder().clientId(STAGE_APP_CLIENT_ID_CONFIG[stage]).userPoolId(cognitoPool.id()).authFlow("ADMIN_NO_SRP_AUTH")
-    .authParameters([USERNAME: 'joquijada2010@gmail.com', PASSWORD: '***REMOVED***']).build()
+    .authParameters([USERNAME: opts.username, PASSWORD: opts.password]).build()
   def result = cognitoClient.adminInitiateAuth(authRequest).authenticationResult()
   println """\
     accessToken = ${result.accessToken()}
@@ -54,6 +54,8 @@ private CliBuilder buildCli() {
   cli.with {
     h longOpt: 'help', 'Show usage information'
     s longOpt: 'stage', argName: 'stage', args: 1, required: true, 'The stage of the cognito user pool'
+    u longOpt: 'username', argName: 'username', args: 1, required: true, 'Your Charcot username'
+    p longOpt: 'password', argName: 'password', args: 1, required: true, 'Your Charcot password'
   }
   return cli
 }

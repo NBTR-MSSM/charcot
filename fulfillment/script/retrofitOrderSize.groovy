@@ -1,10 +1,11 @@
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
-import com.amazonaws.services.dynamodbv2.model.ScanRequest
-import com.amazonaws.services.dynamodbv2.model.ScanResult
 import org.mountsinaicharcot.fulfillment.dto.OrderInfoDto
 import org.mountsinaicharcot.fulfillment.service.FulfillmentService
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest
+import software.amazon.awssdk.services.dynamodb.model.ScanResponse
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse
 
 /*
  * Retrofit the order size in bytes, by looking at list of files processed
@@ -12,17 +13,16 @@ import org.mountsinaicharcot.fulfillment.service.FulfillmentService
  * update the order size in DynamoDB order table
  */
 def table = 'prod-charcot-cerebrum-image-order'
-AmazonDynamoDB dynamoDB = AmazonDynamoDBClientBuilder.defaultClient()
-def scanRequest = new ScanRequest()
+DynamoDbClient dynamoDB = DynamoDbClient.builder().build()
 def fulfillmentService = new FulfillmentService(
   dynamoDbOrderTableName: table,
   s3OdpBucketName: 'nbtr-production'
   )
 
-scanRequest.tableName = table
+def scanRequest = ScanRequest.builder().tableName(table).build()
 while (true) {
-  ScanResult result = dynamoDB.scan(scanRequest)
-  result.items.each { Map<String, AttributeValue> fields ->
+  ScanResponse scanResponse = dynamoDB.scan(scanRequest)
+  scanResponse.items.each { Map<String, AttributeValue> fields ->
     if (fields.size) {
       return
     }
@@ -33,8 +33,8 @@ while (true) {
     println "JMQ: $orderInfoDto.orderId has size $orderInfoDto.size"
     fulfillmentService.recordOrderSize(orderId, orderInfoDto.size)
   }
-  if (!result.lastEvaluatedKey) {
+  if (!scanResponse.lastEvaluatedKey) {
     break
   }
-  scanRequest.exclusiveStartKey = result.lastEvaluatedKey
+  scanRequest = ScanRequest.builder().tableName(table).exclusiveStartKey(scanResponse.lastEvaluatedKey).build()
 }

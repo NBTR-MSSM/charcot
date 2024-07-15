@@ -154,6 +154,6 @@ private void writeOrder(DynamoDbClient dynamoDB, ScanResponse scanResponse, Stri
   .expressionAttributeNames(orderAttributes.collectEntries { String name, AttributeValue value -> [("#$name".toString()): name] })
   .expressionAttributeValues(orderAttributes.collectEntries { String name, AttributeValue value -> [(":$name".toString()): value] })
   .build() as UpdateItemRequest)
-println "Updated request $orderId:  ${updateItemResponse.toString()}"
+println "Updated request $orderId: ${updateItemResponse.toString()}"
 }
 }
