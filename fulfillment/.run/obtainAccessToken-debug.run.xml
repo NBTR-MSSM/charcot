@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="obtainAccessToken-debug" type="GroovyScriptRunConfiguration" factoryName="Groovy">
+    <module name="fulfillment" />
+    <setting name="path" value="file://$PROJECT_DIR$/script/obtainAccessToken.groovy" />
+    <setting name="vmparams" value="-Dlogging.level.org.apache.http.wire=ERROR" />
+    <setting name="params" value="--stage debug --username joquijada2010@gmail.com --password Latambora1+" />
+    <setting name="workDir" value="file://$PROJECT_DIR$/script" />
+    <setting name="debug" value="false" />
+    <env name="AWS_PROFILE" value="mssm" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

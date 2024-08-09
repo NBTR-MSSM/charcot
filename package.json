@@ -6,7 +6,7 @@
     "test": "jest --config=\"./jest.config.ts\" --coverage",
     "dev": "AWS_PROFILE=mssm sst dev",
     "build": "AWS_PROFILE=mssm sst build",
-    "deploy:debug": "./script/deploy.mjs deploy -p mssm -o mssm -s debug",
+    "deploy:debug": "./script/deploy.mjs deploy -p mssm -o mssm-odp -s debug",
     "deploy:dev": "./script/deploy.mjs deploy -p mssm -o mssm-odp -s dev",
     "deploy:prod": "./script/deploy.mjs deploy -p mssm -o mssm-odp -s prod",
     "lint": "eslint -c .eslintrc.yml --no-eslintrc ./",

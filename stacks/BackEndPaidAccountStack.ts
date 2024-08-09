@@ -86,11 +86,17 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
 
   })
 
+  /*
+   * TODO: IMAGE_TRANSFER_DISABLE: Add feature flag to toggle off image transfer functionality because it is no
+   *  longer needed. This will make the paid account "nbtr-odp-staging-<stage>" (source) and
+   *  "nbtr-production-<stage>" (target, created in paid account for non-prod envs only and for testing purposes)
+   *  buckets go away.
+   */
   // Mt Sinai had no concept of stages prior to Charcot, so need the below for backward compatibility
-  // with their stage-less S3 buckets which were in place already before Charcot. Renaming
+  // with their stage unaware S3 buckets which were in place already before Charcot. Renaming
   // those existing buckets is not an option
   const bucketSuffix = stage === 'prod' ? '' : `-${stage}`
-  const cerebrumImageBucketName = `nbtr-odp-staging${bucketSuffix}` // source s3 bucket
+  const cerebrumImageTransferSourceBucketName = `nbtr-odp-staging${bucketSuffix}` // source s3 bucket
   const cerebrumImageOdpBucketName = `nbtr-production${bucketSuffix}` // target s3 bucket
 
   // Buckets and notification target functions
@@ -102,7 +108,7 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: ['s3:GetObject', 's3:DeleteObject'],
-        resources: [`arn:aws:s3:::${cerebrumImageBucketName}/*`]
+        resources: [`arn:aws:s3:::${cerebrumImageTransferSourceBucketName}/*`]
       }),
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
@@ -120,13 +126,13 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
     /*
        * In 'prod' stage bucket was already there before inception
        * of Charcot, so have to work with what was there already (I.e.
-       * unable to drop and recreate it
+       * unable to drop and recreate it)
        */
-    const loadedBucket = S3Bucket.fromBucketName(stack, 'BucketLoadedByName', cerebrumImageBucketName)
+    const loadedBucket = S3Bucket.fromBucketName(stack, 'BucketLoadedByName', cerebrumImageTransferSourceBucketName)
     loadedBucket.addEventNotification(EventType.OBJECT_CREATED, new s3Notifications.LambdaDestination(handleCerebrumImageTransfer))
   } else {
-    const cerebrumImageBucket = new sst.Bucket(stack, cerebrumImageBucketName, {
-      name: cerebrumImageBucketName,
+    new sst.Bucket(stack, cerebrumImageTransferSourceBucketName, {
+      name: cerebrumImageTransferSourceBucketName,
       notifications: {
         myNotification: {
           type: 'function',
@@ -134,8 +140,7 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
           events: ['object_created']
         }
       }
-    })
-    cerebrumImageBucket.attachPermissions(['s3'])
+    }).attachPermissions(['s3'])
   }
 
   // Create an HTTP API

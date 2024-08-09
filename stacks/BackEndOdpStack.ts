@@ -42,6 +42,13 @@ export function BackEndOdpStack({ stack }: sst.StackContext) {
     }).cdk.bucket
   }
 
+  /*
+   * TODO: IMAGE_TRANSFER_DISABLE: Introduce toggle flag to disable image x-fer functionality,
+   *  not needed anymore.
+   *  Side note: Why is this block outside of the "else {}" above? Recall that updating S3 resource
+   *  policy via the AWS CDK has no effect when said bucket already existed. We take care of updating
+   *  PROD stage S3 'nbtr-production' bucket in 'deploy.mjs'.
+   */
   cerebrumImageOdpBucket.addToResourcePolicy(
     new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,

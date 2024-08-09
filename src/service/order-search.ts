@@ -3,14 +3,16 @@ import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
 import Search from './search'
 import { dynamoDbClient, HttpResponse } from '@exsoinn/aws-sdk-wrappers'
 import userManagement from './user-management'
-import { CerebrumImageOrder, OrderRetrievalOutput, OrderTotals } from '../types/charcot.types'
+import { CerebrumImageOrder, CharcotFileName, OrderRetrievalOutput, OrderTotals } from '../types/charcot.types'
 import Pagination from './pagination'
 
-const cancelEligibleStatuses = new Set().add('received').add('processing')
+const cancelEligibleStatusesSet: Set<'received' | 'processing'> = new Set()
+cancelEligibleStatusesSet.add('received')
+cancelEligibleStatusesSet.add('processing')
 
 /**
  * Enriches the order transaction passed in with information
- * to the user that created the order.
+ * of the user that created the order.
  */
 const populateUserData = async (transaction: DocumentClient.AttributeMap) => {
   const response = await userManagement.retrieve(transaction.email)
@@ -64,6 +66,67 @@ const sort = <T extends Record<string, string | unknown>>(items: T[], sortBy: st
   items.sort(comparator)
 }
 
+/**
+ * Convenient Map of the excess data (only remarks and filesProcessed at this time) to request ID stored in
+ * the auxiliary order records that didn't fit in the main order record because of DynamoDB max item size
+ * constraints.
+ */
+interface OrderData {
+    orderId: string
+    remark?: string
+    filesProcessed?: CharcotFileName[]
+}
+
+// Below method will get used in a separate PR
+/* istanbul ignore next */
+const buildOrderDataLookupMap = async (orderSearch: OrderSearch) => {
+  const params: DocumentClient.ScanInput = {
+    TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string,
+    ExpressionAttributeNames: {
+      '#orderId': 'orderId',
+      '#remark': 'remark'
+    },
+    ExpressionAttributeValues: {
+      ':zero': 0
+    },
+    ProjectionExpression: '#orderId, #filesProcessed, #remark',
+    FilterExpression: '#recordNumber > :zero'
+  }
+
+  const dataLookupMap: Map<string, OrderData> = new Map()
+  const callback = (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => {
+    for (const item of items) {
+      const orderId = item.orderId
+      let data: OrderData | undefined = dataLookupMap.get(orderId)
+      const itemContainsFilesProcessed = item.filesProcessed && item.filesProcessed.length > 0
+      if (!data && (item.remark || itemContainsFilesProcessed)) {
+        // Seeing this request for first time
+        data = {
+          orderId,
+          remark: item.remark,
+          filesProcessed: item.filesProcessed
+        }
+      } else if (data) {
+        // Already seen this requst, append remark and/or filesProcessed
+        if (data.remark && item.remark) {
+          data.remark += `\n${item.remark}`
+        } else if (item.remark) {
+          data.remark = item.remark
+        }
+
+        if (data.filesProcessed && itemContainsFilesProcessed) {
+          data.filesProcessed = data.filesProcessed.concat(item.filesProcessed)
+        } else if (itemContainsFilesProcessed) {
+          data.filesProcessed = item.filesProcessed
+        }
+      }
+    }
+  }
+
+  await orderSearch.handleSearch(params, callback)
+  return dataLookupMap
+}
+
 class OrderSearch extends Search {
   /**
    * Retrieves orders and paginates as appropriate
@@ -92,7 +155,7 @@ class OrderSearch extends Search {
         })
       }
 
-      const params: DocumentClient.QueryInput = {
+      const params: DocumentClient.ScanInput = {
         TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string,
         ExpressionAttributeNames: {
           '#orderId': 'orderId',
@@ -127,7 +190,7 @@ class OrderSearch extends Search {
       // Enrich each order record
       for (const item of retItems) {
         await populateUserData(item)
-        item.isCancellable = cancelEligibleStatuses.has(item.status)
+        item.isCancellable = cancelEligibleStatusesSet.has(item.status)
       }
 
       // apply sorting
@@ -159,7 +222,7 @@ class OrderSearch extends Search {
         })
       }
       await populateUserData(item)
-      item.isCancellable = cancelEligibleStatuses.has(item.status)
+      item.isCancellable = cancelEligibleStatusesSet.has(item.status)
       retItems.push(item)
     }
 
@@ -170,18 +233,18 @@ class OrderSearch extends Search {
   }
 
   async obtainTotals(): Promise<OrderTotals> {
-    const params: DocumentClient.QueryInput = {
+    const params: DocumentClient.ScanInput = {
       TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string,
       ExpressionAttributeNames: {
         '#size': 'size',
-        '#slides': 'filesProcessed',
+        '#filesProcessed': 'filesProcessed',
         '#email': 'email',
         '#status': 'status'
       },
       ExpressionAttributeValues: {
         ':processed': 'processed'
       },
-      ProjectionExpression: '#size, #slides, #email',
+      ProjectionExpression: '#size, #filesProcessed, #email',
       FilterExpression: '#status = :processed'
     }
     let size = 0

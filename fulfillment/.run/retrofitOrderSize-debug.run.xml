@@ -1,9 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="reprocessRequest-prod" type="GroovyScriptRunConfiguration" factoryName="Groovy">
+  <configuration default="false" name="retrofitOrderSize-debug" type="GroovyScriptRunConfiguration" factoryName="Groovy">
     <module name="fulfillment" />
-    <setting name="path" value="file://$PROJECT_DIR$/script/reprocessRequest.groovy" />
+    <setting name="path" value="file://$PROJECT_DIR$/script/retrofitOrderSize.groovy" />
     <setting name="vmparams" value="" />
-    <setting name="params" value="--stage prod --request 241b2763-b16f-4992-a78c-89447af87fa6" />
+    <setting name="params" value="--stage debug" />
     <setting name="workDir" value="file://$PROJECT_DIR$/script" />
     <setting name="debug" value="false" />
     <env name="AWS_PROFILE" value="mssm" />
