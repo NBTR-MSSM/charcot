@@ -41,7 +41,7 @@
     "yargs": "^17.3.1"
   },
   "dependencies": {
-    "@exsoinn/aws-sdk-wrappers": "^2.0.3",
+    "@exsoinn/aws-sdk-wrappers": "^2.1.1",
     "aws-cdk-lib": "^2.62.2",
     "change-case": "^4.1.2",
     "lodash.merge": "^4.6.2",
