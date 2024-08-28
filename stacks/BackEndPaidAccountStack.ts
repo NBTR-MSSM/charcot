@@ -157,9 +157,6 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
         }
       }
     },
-    defaults: {
-      authorizer: 'jwt'
-    },
     customDomain: {
       domainName: `${stage === 'prod' ? 'api.mountsinaicharcot.org' : `api-${stage}.mountsinaicharcot.org`}`,
       cdk: {
@@ -169,6 +166,7 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
     },
     routes: {
       'POST /cerebrum-images': {
+        authorizer: 'jwt',
         function: {
           functionName: `create-cerebrum-image-metadata-${stage}`,
           handler: 'src/lambda/cerebrum-image-metadata.create',
@@ -214,6 +212,7 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
         }
       },
       'GET /cerebrum-image-users/{email}': {
+        authorizer: 'jwt',
         function: {
           functionName: `retrieve-cerebrum-image-user-${stage}`,
           handler: 'src/lambda/cerebrum-image-user.retrieve',
@@ -229,6 +228,7 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
         }
       },
       'PUT /cerebrum-image-users/{email}': {
+        authorizer: 'jwt',
         function: {
           functionName: `update-cerebrum-image-user-${stage}`,
           handler: 'src/lambda/cerebrum-image-user.update',
@@ -244,6 +244,7 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
         }
       },
       'GET /cerebrum-image-orders': {
+        authorizer: 'jwt',
         function: {
           functionName: `retrieve-cerebrum-image-order-${stage}`,
           handler: 'src/lambda/cerebrum-image-order.retrieve',
@@ -265,6 +266,7 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
         }
       },
       'POST /cerebrum-image-orders': {
+        authorizer: 'jwt',
         function: {
           functionName: `create-cerebrum-image-order-${stage}`,
           handler: 'src/lambda/cerebrum-image-order.create',
@@ -292,6 +294,7 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
         }
       },
       'DELETE /cerebrum-image-orders/{orderId}': {
+        authorizer: 'jwt',
         function: {
           functionName: `cancel-cerebrum-image-order-${stage}`,
           handler: 'src/lambda/cerebrum-image-order.cancel',
