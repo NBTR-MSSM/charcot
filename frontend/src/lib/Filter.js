@@ -133,7 +133,7 @@ export default class Filter {
     isAddMultiValueDimensionFilter = false,
     isSubmission = false
   } = {}) {
-    // When submitting the request, include all the dimensions in the filter, I.e. the filter is not being used to update the UI chars
+    // When submitting the request, include all the dimensions in the filter, I.e. the filter is not being used to update the UI charts
     const dimensionPredicates = Object.entries(this.filter).filter((tup) => tup[0] !== dimensionToIgnore).map(tup => this.serializeCategories({
       dimension: tup[0],
       isSubmission
@@ -192,7 +192,7 @@ export default class Filter {
   /**
    * When AND'ing categories, we search on a field that contains ALL the categories associated with
    * a subject. We form a query that will check that ALL categories are contained in such a field. On the server
-   * side this field is stored as the subject categories concatenated into a single string, for example:
+   * side this field is stored as the subject categories concatenated into a single string with some separator, for example:
    * "allSubjectStains": "amyloidbeta||h&e||lfb-pas||modifiedbeilschowski||phosphorylatedtau||synuclein||ubiquitin"
    */
   updateMultiValueDimensions({ dimension }) {

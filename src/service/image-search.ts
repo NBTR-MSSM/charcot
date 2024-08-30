@@ -177,7 +177,7 @@ class ImageSearch extends Search {
      * Deal with the numeric range categories (E.g. age)
      */
     // First deal with the less than and greater than ranges (the bottom and top ones in the chart)
-    for (const m of filter.matchAll(/((\w+)=(?:'(\d+)\+'|'<(\d+)'))/g)) {
+    for (const m of filter.matchAll(/((\w+)\s*=\s*(?:'(\d+)\+'|'\s*<\s*(\d+)'))/g)) {
       const dimension = m[2]
       const dimensionPlaceholder = `#${dimension.replace(/\s+/g, '')}`
       const greaterThanOrEqualTo = m[3]
@@ -191,7 +191,7 @@ class ImageSearch extends Search {
     }
 
     // Now deal with the ranges in between
-    for (const m of filter.matchAll(/(\w+)='(\d+)-(\d+)'/g)) {
+    for (const m of filter.matchAll(/(\w+)\s*=\s*'(\d+)\s*-\s*(\d+)'/g)) {
       const dimension = m[1]
       const dimensionPlaceholder = `#${dimension.replace(/\s+/g, '')}`
       const from = m[2]
@@ -203,7 +203,7 @@ class ImageSearch extends Search {
     }
 
     // Deal with the text categories (E.g. stain, region, sex, race, diagnosis)
-    for (const m of dynamoDbFilter.matchAll(/(\w+)='([^']+)'|contains\((\w+),'([^']+)'\)/g)) {
+    for (const m of dynamoDbFilter.matchAll(/(\w+)\s*=\s*'([^']+)'|contains\((\w+)\s*,\s*'([^']+)'\)/g)) {
       /*
        * Globally handle dimension replacement upon the first iteration and
        * first iteration only. Applies to cases where a dimension appears multiple times in the
