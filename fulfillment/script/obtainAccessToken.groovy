@@ -40,12 +40,11 @@ CognitoIdentityProviderClient.builder().build().withCloseable { CognitoIdentityP
 }
 
 private UserPoolDescriptionType extractPool(String stage, List<UserPoolDescriptionType> pools) {
-  // response.userPools() returns an unmodifiable collection, make a copy first,
-  // else sort() call below throws UnsupportedOperationException
-  ([] + pools).findAll {
+  // Grab the most recently created pool for this stage
+  pools.findAll {
     it.name().startsWith(stage)
-  }.sort { a, b ->
-    b.creationDate() <=> a.creationDate()
+  }.sort { pool ->
+    -pool.creationDate().toEpochMilli()
   }.first()
 }
 
