@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="post-metadata-debug" type="NodeJSConfigurationType" application-parameters="post-metadata.mjs --stage debug" path-to-node="$USER_HOME$/.nvm/versions/node/v18.14.0/bin/node" path-to-js-file="$USER_HOME$/.nvm/versions/node/v18.14.0/bin/zx" working-dir="$PROJECT_DIR$/script">
+  <configuration default="false" name="post-metadata-debug" type="NodeJSConfigurationType" application-parameters="post-metadata.mjs --stage debug --username joquijada2010@gmail.com --password Latambora1+ --file charcot-meta-data-20220603.json" path-to-node="$USER_HOME$/.nvm/versions/node/v18.14.0/bin/node" path-to-js-file="$USER_HOME$/.nvm/versions/node/v18.14.0/bin/zx" working-dir="$PROJECT_DIR$/script">
     <envs>
       <env name="AWS_PROFILE" value="mssm" />
     </envs>
