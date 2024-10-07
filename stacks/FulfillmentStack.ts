@@ -89,9 +89,9 @@ export function FulfillmentStack({ stack }: sst.StackContext) {
 
   /*
    * This ends up indirectly setting up an alarm that will cause a scale out from 0 to 1 task
-   * when a fulfillment message arrives in the queue. AWS CDK requires two steps in Steo Scaling,
-   * else depoy of the stack fails. That's the reason for the 'upper: 0, change: 0' step, mainly to keep
-   * AWS happy, but in essence it's a NOOP because the alarm below sets up the scale in step.
+   * when a fulfillment message arrives in the queue. AWS CDK requires a corresponding scale in,
+   * else deploy of the stack fails. That's the reason for the 'upper: 0, change: 0' step, mainly to keep
+   * AWS happy, but in essence it's a NOOP because the alarm farther below sets up the scale in step.
    */
   const queue = sqs.Queue.fromQueueArn(stack, 'orderQueue', cerebrumImageOrderQueueArn)
   scalableTaskCount.scaleOnMetric('fulfillmentScaleOutPolicy', {
@@ -126,7 +126,7 @@ export function FulfillmentStack({ stack }: sst.StackContext) {
 
   /*
    * Sets up the scale in step to remove all running tasks once all messages in the queue have been processed. Again
-   * the NOOP scale step is to keep AWS happy, see above.
+   * the NOOP scale step is to keep AWS happy (a scale in needs a scale out defined, and vice versa), see above.
    */
   scalableTaskCount.scaleOnMetric('fulfillmentScaleInPolicy', {
     metric: queue.metricApproximateNumberOfMessagesNotVisible(),

@@ -1,4 +1,4 @@
-type CharcotFileName = string
+export type CharcotFileName = string
 
 export type Filter = string
 

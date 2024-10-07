@@ -7,7 +7,7 @@ export default abstract class Search {
    * @param params - The DynamoDB Scan params, see the DynamoDB Scan docs
    * @param callback - A consumer which gets passed a DocumentClient.ItemList for each page of results retrived from DynamoDB
    */
-  async handleSearch(params: DocumentClient.QueryInput, callback: (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => void) {
+  async handleSearch(params: DocumentClient.ScanInput, callback: (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => void) {
     while (true) {
       const res: DocumentClient.ScanOutput = await dynamoDbClient.scan(params)
       const lastEvaluatedKey = res.LastEvaluatedKey

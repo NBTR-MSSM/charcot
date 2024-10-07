@@ -102,12 +102,13 @@ class ImageSearch extends Search {
     dimension,
     event,
     isNumeric,
-    results: initialResults
+    results: initialResults // FIXME: is this argument needed? The only caller does not use it. Shall I remove it?
   }: PrepareCallbackArgs): { callback: (scanOutput: DocumentClient.ScanOutput, items: DocumentClient.ItemList) => void, results: Dimension[] } {
     /*
-     * The idiom of passing 'results' below to the constructor of Map of reduce() init arg is used because DynamoDB
-     * scan() paginates results, so the callback defined below will get called several times. This way we can pass 'results'
-     * results from previous to next call of callback, as many times as necessary until scan results reaches the end.
+     * The idiom of passing 'results' below to the constructor of the Map used as the init arg of reduce() init arg, is used because DynamoDB
+     * scan() paginates results, so the callback defined below will get called several times. This way we can pass
+     * results from previous to next call of callback, as many times as necessary, accumulating results of each page
+     * returned by DynamoDB scan(), until scan results reaches the end.
      */
     const results: Dimension[] = []
     let temp: Dimension[] = initialResults || []

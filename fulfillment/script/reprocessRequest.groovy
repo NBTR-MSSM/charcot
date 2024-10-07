@@ -3,13 +3,19 @@ import com.amazonaws.services.sqs.AmazonSQSClientBuilder
 import com.amazonaws.services.sqs.model.PurgeQueueRequest
 import com.amazonaws.services.sqs.model.SendMessageRequest
 import groovy.cli.commons.CliBuilder
+import org.slf4j.Logger
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest
 
 /**
- * Use this script to copy user and order data from one environment to the other.
+ * Use this script reset request status to 'received' for reprocessing. This is useful
+ * for orders that failed for one reason or another, and you want to retry it.
  */
+evaluate(new File('./ScriptUtil.groovy'))
+def su = new ScriptUtil()
+Logger logger = su.logger(this)
+
 def cli = buildCli()
 def opts = cli.parse(this.args)
 
@@ -25,15 +31,15 @@ if (opts.h) {
 DynamoDbClient dynamoDB = DynamoDbClient.builder().build()
 String stage = opts.stage
 List<String> requests = opts.rs
-println "stage is $stage"
-println "requests is $requests"
+logger.debug "stage is $stage"
+logger.debug "requests is $requests"
 
 def queueUrl = "https://sqs.us-east-1.amazonaws.com/045387143127/$stage-charcot-cerebrum-image-order-queue"
 purgeSqs(queueUrl)
 requests.each {
-  resetStatus(it, "$stage-charcot-cerebrum-image-order", dynamoDB)
+  resetStatus(it, "$stage-charcot-cerebrum-image-order", dynamoDB, logger)
   resubmitToSqs(it, queueUrl)
-  println "Request $it will get reprocessed"
+  logger.debug "Request $it will get reprocessed"
 }
 // end: main program
 
@@ -50,14 +56,15 @@ private CliBuilder buildCli() {
   return cli
 }
 
-void resetStatus(String requestId, String tableName, DynamoDbClient dynamoDB) {
+void resetStatus(String requestId, String tableName, DynamoDbClient dynamoDB, Logger logger) {
+  String targetStatus = 'received'
   dynamoDB.updateItem(UpdateItemRequest.builder().tableName(tableName)
     .key([orderId: AttributeValue.builder().s(requestId).build(), recordNumber: AttributeValue.builder().n('0').build()])
     .expressionAttributeNames(['#status': 'status'])
-    .expressionAttributeValues([':status': AttributeValue.builder().s('received').build()])
+    .expressionAttributeValues([':status': AttributeValue.builder().s(targetStatus).build()])
     .updateExpression('SET #status = :status')
     .build() as UpdateItemRequest)
-  println "Updated status for $requestId"
+  logger.debug "Updated status for $requestId"
 }
 
 void resubmitToSqs(String requestId, String queueUrl) {
