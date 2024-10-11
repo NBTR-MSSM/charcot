@@ -120,6 +120,15 @@ class OrderService {
     updateOrderStatus(orderId, 'processing', "Request $orderId began being processed by Mount Sinai Charcot on ${FulfillmentUtil.currentTime()}")
   }
 
+  boolean cancelIfRequested(String orderId) {
+    OrderInfoDto orderInfo = retrieveOrderInfo(orderId)
+    if (orderInfo.status == 'cancel-requested') {
+      cancelOrder(orderId)
+      return true
+    }
+    false
+  }
+
   private void updateOrderRemark(String orderId, String remark) {
     if (!remark) {
       return

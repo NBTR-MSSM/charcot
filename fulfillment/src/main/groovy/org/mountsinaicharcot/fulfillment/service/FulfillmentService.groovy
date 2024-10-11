@@ -112,14 +112,6 @@ class FulfillmentService implements CommandLineRunner {
     }
   }
 
-  boolean cancelIfRequested(String orderId, String status) {
-    if (status == 'cancel-requested') {
-      orderService.cancelOrder(orderId)
-      return true
-    }
-    false
-  }
-
   void fulfill(OrderInfoDto orderInfo) {
     systemStats()
     String orderId = orderInfo.orderId
@@ -163,7 +155,7 @@ class FulfillmentService implements CommandLineRunner {
 
               // Check if cancel requested right before we commit to downloading
               // entire image folder
-              if (cancelIfRequested(orderInfo.orderId, orderInfo.status)) {
+              if (orderService.cancelIfRequested(orderInfo.orderId)) {
                 return true
               }
               downloadS3Object(orderInfo.outputPath, fileName.replace('.mrxs', '/'))
@@ -212,7 +204,7 @@ class FulfillmentService implements CommandLineRunner {
          * the main .msxr file as representative of each of the sets of files in this bucket.
          */
         orderService.updateFilesProcessed(orderInfo.orderId, filesToZip)
-        if (cancelIfRequested(orderInfo.orderId, orderInfo.status)) {
+        if (orderService.cancelIfRequested(orderInfo.orderId)) {
           return true
         }
         orderService.updateOrderStatus(orderInfo.orderId, 'processing', "${bucketNumber + 1} of $totalZips zip files sent to requester.")
