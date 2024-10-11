@@ -12,6 +12,8 @@ import { Construct } from 'constructs'
  * This stack defines the Charcot backend AWS paid account of Mt Sinai portion of the app
  */
 export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
+  const featImageTransferEnabled = process.env.FEAT_TOGGLE_IMAGE_TRANSFER_ENABLED || false
+
   const stage = stack.stage
 
   // Auth
@@ -86,61 +88,61 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
 
   })
 
-  /*
-   * TODO: IMAGE_TRANSFER_DISABLE: Add feature flag to toggle off image transfer functionality because it is no
-   *  longer needed. This will make the paid account "nbtr-odp-staging-<stage>" (source) and
-   *  "nbtr-production-<stage>" (target, created in paid account for non-prod envs only and for testing purposes)
-   *  buckets go away.
-   */
-  // Mt Sinai had no concept of stages prior to Charcot, so need the below for backward compatibility
-  // with their stage unaware S3 buckets which were in place already before Charcot. Renaming
-  // those existing buckets is not an option
-  const bucketSuffix = stage === 'prod' ? '' : `-${stage}`
-  const cerebrumImageTransferSourceBucketName = `nbtr-odp-staging${bucketSuffix}` // source s3 bucket
-  const cerebrumImageOdpBucketName = `nbtr-production${bucketSuffix}` // target s3 bucket
+  let handleCerebrumImageTransfer
+  if (featImageTransferEnabled) {
+    // Mt Sinai had no concept of stages prior to Charcot, so need the below for backward compatibility
+    // with their stage unaware S3 buckets which were in place already before Charcot. Renaming
+    // those existing buckets is not an option
+    const bucketSuffix = stage === 'prod' ? '' : `-${stage}`
+    // Source s3 bucket, lives in the Paid account, don't let the "odp" in the name deceive you
+    const cerebrumImageTransferSourceBucketName = `nbtr-odp-staging${bucketSuffix}`
 
-  // Buckets and notification target functions
-  const handleCerebrumImageTransfer = new sst.Function(stack, 'HandleCerebrumImageTransfer', {
-    functionName: `handle-cerebrum-image-transfer-${stage}`,
-    handler: 'src/lambda/cerebrum-image-transfer.handle',
-    memorySize: 128,
-    initialPolicy: [
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['s3:GetObject', 's3:DeleteObject'],
-        resources: [`arn:aws:s3:::${cerebrumImageTransferSourceBucketName}/*`]
-      }),
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['s3:PutObject'],
-        resources: [`arn:aws:s3:::${cerebrumImageOdpBucketName}/*`]
-      })
-    ],
-    environment: {
-      CEREBRUM_IMAGE_ODP_BUCKET_NAME: cerebrumImageOdpBucketName
-    },
-    timeout: 900
-  })
+    // Target s3 bucket, lives in the ODP account
+    const cerebrumImageOdpBucketName = `nbtr-production${bucketSuffix}`
 
-  if (stage === 'prod') {
-    /*
-       * In 'prod' stage bucket was already there before inception
-       * of Charcot, so have to work with what was there already (I.e.
-       * unable to drop and recreate it)
-       */
-    const loadedBucket = S3Bucket.fromBucketName(stack, 'BucketLoadedByName', cerebrumImageTransferSourceBucketName)
-    loadedBucket.addEventNotification(EventType.OBJECT_CREATED, new s3Notifications.LambdaDestination(handleCerebrumImageTransfer))
-  } else {
-    new sst.Bucket(stack, cerebrumImageTransferSourceBucketName, {
-      name: cerebrumImageTransferSourceBucketName,
-      notifications: {
-        myNotification: {
-          type: 'function',
-          function: handleCerebrumImageTransfer,
-          events: ['object_created']
+    // Buckets and notification target functions
+    handleCerebrumImageTransfer = new sst.Function(stack, 'HandleCerebrumImageTransfer', {
+      functionName: `handle-cerebrum-image-transfer-${stage}`,
+      handler: 'src/lambda/cerebrum-image-transfer.handle',
+      memorySize: 128,
+      initialPolicy: [
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['s3:GetObject', 's3:DeleteObject'],
+          resources: [`arn:aws:s3:::${cerebrumImageTransferSourceBucketName}/*`]
+        }),
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['s3:PutObject'],
+          resources: [`arn:aws:s3:::${cerebrumImageOdpBucketName}/*`]
+        })
+      ],
+      environment: {
+        CEREBRUM_IMAGE_ODP_BUCKET_NAME: cerebrumImageOdpBucketName
+      },
+      timeout: 900
+    })
+
+    if (stage === 'prod') {
+      /*
+         * In 'prod' stage bucket was already there before inception
+         * of Charcot, so have to work with what was there already (I.e.
+         * unable to drop and recreate it)
+         */
+      const loadedBucket = S3Bucket.fromBucketName(stack, 'BucketLoadedByName', cerebrumImageTransferSourceBucketName)
+      loadedBucket.addEventNotification(EventType.OBJECT_CREATED, new s3Notifications.LambdaDestination(handleCerebrumImageTransfer))
+    } else {
+      new sst.Bucket(stack, cerebrumImageTransferSourceBucketName, {
+        name: cerebrumImageTransferSourceBucketName,
+        notifications: {
+          myNotification: {
+            type: 'function',
+            function: handleCerebrumImageTransfer,
+            events: ['object_created']
+          }
         }
-      }
-    }).attachPermissions(['s3'])
+      }).attachPermissions(['s3'])
+    }
   }
 
   // Create an HTTP API

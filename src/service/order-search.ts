@@ -78,7 +78,7 @@ interface OrderData {
 }
 
 // Below method will get used in a separate PR
-/* istanbul ignore next */
+// eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 const buildOrderDataLookupMap = async (orderSearch: OrderSearch) => {
   const params: DocumentClient.ScanInput = {
     TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME as string,

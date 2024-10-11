@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="validate-charcot-active-iam-roles-debug" type="NodeJSConfigurationType" application-parameters="validate-charcot-active-iam-roles.mjs --stage debug" path-to-js-file="$USER_HOME$/.nvm/versions/node/v18.14.0/bin/zx" working-dir="$PROJECT_DIR$/script">
+    <envs>
+      <env name="AWS_PROFILE" value="mssm" />
+    </envs>
+    <method v="2" />
+  </configuration>
+</component>
