@@ -15,7 +15,8 @@ process.env.IS_DEPLOY_SCRIPT = 1
  * deploy all stacks to the same account. This simplifies things when it comes to debugging, for
  * we can then use a single Node.js process to test flows that would otherwise do cross-account access,
  * for example image transfer lambda.
- * TODO: Query CloudFormation to get outputs instead of relying on environment variables. See how I did it in niko-stack
+ * TODO: Query CloudFormation to get outputs instead of relying on environment variables. See how I did it in niko-stack. Consider
+ *   doing this if possible too inside the stack TS code as well. This way the stacks will not be tighly bound via stack output parameters.
  */
 const argv = yargs(process.argv.slice(2))
   .usage('Usage: deploy.mjs <action> [options]')
@@ -94,7 +95,7 @@ try {
         awsProfile: odpAccountProfile,
         bucket: process.env.CerebrumImageOdpBucketName,
         imageTransferLambdaRoleArn: process.env.HandleCerebrumImageTransferRoleArn,
-        fulfillmentLambdaRoleArn: process.env.FulfillmentServiceTaskRoleArn
+        fulfillmentServiceRoleArn: process.env.FulfillmentServiceTaskRoleArn
       })
     }
   }
@@ -114,9 +115,13 @@ async function updateOdpCerebrumImageBucketPolicy ({
                                                      awsProfile,
                                                      bucket,
                                                      imageTransferLambdaRoleArn,
-                                                     fulfillmentLambdaRoleArn
+                                                     fulfillmentServiceRoleArn
                                                    }) {
-  const policyAmendments = JSON.parse(`{"Version":"2012-10-17","Statement":[{"Sid":"charcot-image-transfer-put-object","Effect":"Allow","Principal":{"AWS":"${imageTransferLambdaRoleArn}"},"Action":"s3:PutObject","Resource":"arn:aws:s3:::${bucket}/*"},{"Sid":"charcot-fulfillment-get-object","Effect":"Allow","Principal":{"AWS":"${fulfillmentLambdaRoleArn}"},"Action":"s3:GetObject","Resource":"arn:aws:s3:::${bucket}/*"},{"Sid":"charcot-fulfillment-list-bucket","Effect":"Allow","Principal":{"AWS":"${fulfillmentLambdaRoleArn}"},"Action":"s3:ListBucket","Resource":"arn:aws:s3:::${bucket}"}]}`)
+  let imageTransferPolicyStatement = ''
+  if (imageTransferLambdaRoleArn) {
+    imageTransferPolicyStatement = `{"Sid":"charcot-image-transfer-put-object","Effect":"Allow","Principal":{"AWS":"${imageTransferLambdaRoleArn}"},"Action":"s3:PutObject","Resource":"arn:aws:s3:::${bucket}/*"},`
+  }
+  const policyStatementAmendments = JSON.parse(`{"Version":"2012-10-17","Statement":[${imageTransferPolicyStatement}{"Sid":"charcot-fulfillment-get-object","Effect":"Allow","Principal":{"AWS":"${fulfillmentServiceRoleArn}"},"Action":"s3:GetObject","Resource":"arn:aws:s3:::${bucket}/*"},{"Sid":"charcot-fulfillment-list-bucket","Effect":"Allow","Principal":{"AWS":"${fulfillmentServiceRoleArn}"},"Action":"s3:ListBucket","Resource":"arn:aws:s3:::${bucket}"}]}`)
 
   // First get the current bucket policy...
   await $`AWS_PROFILE=${awsProfile} aws s3api get-bucket-policy --bucket ${bucket} --output text > /tmp/policy.json`
@@ -125,15 +130,23 @@ async function updateOdpCerebrumImageBucketPolicy ({
   const newPolicy = currentBucketPolicy
 
   /*
-   * Do this to make this operation idempotent. The Set will dedup
-   * so we don't insert duplicates when deploy is run multiple times.
+   * Do this to make this operation idempotent. The Set will de-dup so we don't insert duplicates when deploy is run multiple times. For
+   * Charcot related policy statements, read below.
    * Note: AWS replaces the policy principal with a token in scenarios where the principal resource has been deleted,
-   *   hence the reason for filtering out based on the 'sid' to avoid errors during policy update. See https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html,
+   *   hence the reason a 'Sid' was introduced. Before we would rely on the Principa ARN present in the policy statement. But in scenarios
+   *   where stacks get dropped to recreate them, AWS cleverly replaces the Principal ARN with a AWS internal ID for such, to prevent someone
+   *   from escalating their privileges by dropping/recreating the role. In that case the natural Set de-duplication will not work becuase now the
+   *   policy statements which are virtually the same have different Principal ARN's. So instead we simply exclude the Charcot Sid's and recreate
+   *   using the policy statements defined farther above.
+   *   For non-Charcot policy statements we don't worry about those because those don't usually change (I.e. no one is
+   *   actively deleting/recreating the Principal ARN's associated with them, so they sytay pretty much constant and the Set will
+   *   take care of de-dup'ing those
+   *   See https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html,
    *   search for "When this happens, the principal ID appears in resource-based policies because AWS can no longer map it back to a valid ARN"
-
+   *
    */
   const policyStatements = new Set()
-  for (const statement of currentBucketPolicy.Statement.filter(e => !e.Sid || !e.Sid.startsWith('charcot-')).concat(policyAmendments.Statement)) {
+  for (const statement of currentBucketPolicy.Statement.filter(e => !e.Sid || !e.Sid.startsWith('charcot-')).concat(policyStatementAmendments.Statement)) {
     policyStatements.add(JSON.stringify(statement))
   }
 

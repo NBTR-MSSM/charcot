@@ -26,9 +26,9 @@ export function BackEndOdpStack({ stack }: sst.StackContext) {
   const stage = stack.stage
   // See comment in BackEndPaidAccountStack.ts for the reason of this logic,
   // same applies here
+  // FIXME: This logic is duplicated in BackEndPaidAccountStack, can we consolidate it?
   const bucketSuffix = stage === 'prod' ? '' : `-${stage}`
   const cerebrumImageOdpBucketName = `nbtr-production${bucketSuffix}`
-
   const cerebrumImageZipBucketName = zipBucketName!
 
   // Buckets
@@ -42,20 +42,15 @@ export function BackEndOdpStack({ stack }: sst.StackContext) {
     }).cdk.bucket
   }
 
-  /*
-   * TODO: IMAGE_TRANSFER_DISABLE: Introduce toggle flag to disable image x-fer functionality,
-   *  not needed anymore.
-   *  Side note: Why is this block outside of the "else {}" above? Recall that updating S3 resource
-   *  policy via the AWS CDK has no effect when said bucket already existed. We take care of updating
-   *  PROD stage S3 'nbtr-production' bucket in 'deploy.mjs'.
-   */
-  cerebrumImageOdpBucket.addToResourcePolicy(
-    new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      principals: [new iam.ArnPrincipal(handleCerebrumImageTransferRoleArn)],
-      actions: ['s3:PutObject'],
-      resources: [`${cerebrumImageOdpBucket.bucketArn}/*`]
-    }))
+  if (handleCerebrumImageTransferRoleArn) {
+    cerebrumImageOdpBucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        principals: [new iam.ArnPrincipal(handleCerebrumImageTransferRoleArn)],
+        actions: ['s3:PutObject'],
+        resources: [`${cerebrumImageOdpBucket.bucketArn}/*`]
+      }))
+  }
 
   const cerebrumImageZipBucket = new sst.Bucket(stack, cerebrumImageZipBucketName, {
     name: cerebrumImageZipBucketName
