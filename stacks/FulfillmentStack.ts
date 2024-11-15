@@ -95,27 +95,14 @@ export function FulfillmentStack({ stack }: sst.StackContext) {
    */
   const queue = sqs.Queue.fromQueueArn(stack, 'orderQueue', cerebrumImageOrderQueueArn)
   scalableTaskCount.scaleOnMetric('fulfillmentScaleOutPolicy', {
-    metric: queue.metricApproximateNumberOfMessagesVisible(),
+    metric: queue.metricApproximateNumberOfMessagesVisible().with({
+      period: Duration.minutes(1)
+    }),
+    evaluationPeriods: 1,
     scalingSteps: [
       {
         lower: 1,
         change: +1
-      },
-      {
-        lower: 2,
-        change: +2
-      },
-      {
-        lower: 3,
-        change: +3
-      },
-      {
-        lower: 4,
-        change: +4
-      },
-      {
-        lower: 5,
-        change: +5
       },
       {
         upper: 0,
@@ -125,11 +112,17 @@ export function FulfillmentStack({ stack }: sst.StackContext) {
   })
 
   /*
-   * Sets up the scale in step to remove all running tasks once all messages in the queue have been processed. Again
-   * the NOOP scale step is to keep AWS happy (a scale in needs a scale out defined, and vice versa), see above.
+   * Sets up the scale in policy to remove all running tasks once all messages in the queue have been processed. Again
+   * the NOOP scale out step is to keep AWS happy (a scale in config needs a corresponding scale out defined, and vice versa), see above.
+   * Eval periods is 30 1-min period, to soften CloudWatch aggressive behavior of terminating ECS instance just spun up because SQS reporting to CW
+   * is delayed by up to 15 minutes, in this case the hidden message metric. 30 minutes gives ample time in case the message reached right after
+   * eval period if it were 15 minutes, https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-monitoring-using-cloudwatch.html#:~:text=A%20delay%20of%20up%20to%2015%20minutes%20occurs%20in%20CloudWatch%20metrics%20when%20a%20queue%20is%20activated%20from%20an%20inactive%20state
    */
   scalableTaskCount.scaleOnMetric('fulfillmentScaleInPolicy', {
-    metric: queue.metricApproximateNumberOfMessagesNotVisible(),
+    metric: queue.metricApproximateNumberOfMessagesNotVisible().with({
+      period: Duration.minutes(1)
+    }),
+    evaluationPeriods: 30,
     scalingSteps: [
       {
         lower: 1,
