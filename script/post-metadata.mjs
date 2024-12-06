@@ -7,6 +7,7 @@
  *   occurred to me on 06/10/2024 while testing fulfillment fix to DynamoDB record size 400KB exceeded error
  */
 
+const NOW = new Date().toLocaleDateString()
 const STAGE_APP_CLIENT_ID_CONFIG = {
   debug: '2kclujbsiogn47hr7hlm14hn0n',
   jmquij0106: '538kf5r55ifhcq1nkjv38cf3ql',
@@ -123,8 +124,8 @@ function preparePayloadStream() {
       sex: chunk.Sex,
       diagnosis: chunk.Disorder,
       subjectNumber: chunk.SubNum,
-      uploadDate: '09/11/2023',
-      enabled: !isStainDisabled(chunk.Stain) ? 'true' : 'false'
+      uploadDate: NOW,
+      enabled: isStainDisabled(chunk.Stain) ? 'false' : 'true'
     })
     callback()
   })
