@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="post-metadata-prod" type="NodeJSConfigurationType" application-parameters="post-metadata.mjs --stage prod --username joquijada2010@gmail.com --password Laguira1+ --file charcot-meta-data-kline-20241126.json" path-to-node="$USER_HOME$/.nvm/versions/node/v18.14.0/bin/node" path-to-js-file="$USER_HOME$/.nvm/versions/node/v18.14.0/bin/zx" working-dir="$PROJECT_DIR$/script">
+    <envs>
+      <env name="AWS_PROFILE" value="mssm" />
+    </envs>
+    <method v="2" />
+  </configuration>
+</component>
