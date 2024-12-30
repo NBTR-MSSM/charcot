@@ -5,7 +5,7 @@
     margin-top: 10px;
 }
 
-.Footer #next-btn, #submit-btn, #back-btn {
+.Footer #next-btn, .Footer #submit-btn, .Footer #back-btn {
     float: right;
     margin-top: 0px;
     margin-right: 50px;

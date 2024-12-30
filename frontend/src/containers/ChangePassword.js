@@ -35,7 +35,7 @@ export default class ChangePassword extends ProfileManagement {
 
   validateForm() {
     return (
-      (this.state.oldPassword.length || this.isNewPasswordRequiredMode()) > 0 &&
+      (this.state.oldPassword.length || this.isNewPasswordRequiredMode()) &&
       this.state.password.length > 0 &&
       this.state.password === this.state.confirmPassword
     )

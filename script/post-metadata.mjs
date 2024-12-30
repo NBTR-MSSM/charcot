@@ -8,16 +8,15 @@
  */
 
 const NOW = new Date().toLocaleDateString()
-const STAGE_APP_CLIENT_ID_CONFIG = {
+const STAGE_TO_APP_CLIENT_ID_CONFIG = {
   debug: '2kclujbsiogn47hr7hlm14hn0n',
-  jmquij0106: '538kf5r55ifhcq1nkjv38cf3ql',
+  jmquij0106: '56itugeuduoc17287neopkmh5n',
   prod: '3109so4n3homnuhjlce1fae27u'
 }
 
 const fs = require('fs')
 const yargs = require('yargs/yargs')
 const {
-  Readable,
   Writable
 } = require('stream')
 var jsonArrayStreams = require('json-array-streams')
@@ -222,7 +221,7 @@ async function obtainCognitoAccessToken(stage, username, password) {
   const userPool = userPoolResponse.UserPools.filter(e => e.Name.startsWith(stage)).sort((a, b) => b.CreationDate.getTime() - a.CreationDate.getTime())[0]
   return (await cognitoIdentityServiceProviderClient.adminInitiateAuth({
     AuthFlow: 'ADMIN_USER_PASSWORD_AUTH',
-    ClientId: STAGE_APP_CLIENT_ID_CONFIG[stage],
+    ClientId: STAGE_TO_APP_CLIENT_ID_CONFIG[stage],
     UserPoolId: userPool.Id,
     AuthParameters: {
       USERNAME: username,

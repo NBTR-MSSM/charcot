@@ -3,12 +3,24 @@ import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
 import Search from './search'
 import { dynamoDbClient, HttpResponse } from '@exsoinn/aws-sdk-wrappers'
 import userManagement from './user-management'
-import { CerebrumImageOrder, CharcotFileName, OrderRetrievalOutput, OrderTotals } from '../types/charcot.types'
+import {
+  CerebrumImageOrder,
+  CerebrumImageOrderApprovableStatus, CerebrumImageOrderCancellableStatus,
+  CharcotFileName,
+  OrderRetrievalOutput,
+  OrderTotals
+} from '../types/charcot.types'
 import Pagination from './pagination'
 
-const cancelEligibleStatusesSet: Set<'received' | 'processing'> = new Set()
+export const cancelEligibleStatusesSet: Set<CerebrumImageOrderCancellableStatus> = new Set()
 cancelEligibleStatusesSet.add('received')
+cancelEligibleStatusesSet.add('pre-processing')
+cancelEligibleStatusesSet.add('pre-processed')
 cancelEligibleStatusesSet.add('processing')
+cancelEligibleStatusesSet.add('approved')
+
+export const approveEligibleStatusesSet: Set<CerebrumImageOrderApprovableStatus> = new Set()
+approveEligibleStatusesSet.add('pre-processed')
 
 /**
  * Enriches the order transaction passed in with information
@@ -32,14 +44,14 @@ const populateUserData = async (transaction: DocumentClient.AttributeMap) => {
   transaction.userAttributes = userAttrs
 }
 
-const sort = <T extends Record<string, string | unknown>>(items: T[], sortBy: string, sortOrder: 'desc' | 'asc') => {
+const sort = <T extends Record<string, string | number>>(items: T[], sortBy: string, sortOrder: 'desc' | 'asc') => {
   const comparator = (a: T, b: T, field = sortBy): number => {
     const left = a[field]
     const right = b[field]
 
     // Determine if we're sorting numeric or string values. For everything else
     // we don't support sorting - just return 0
-    let ret = 0
+    let ret
     if (typeof left === 'number' && typeof right === 'number') {
       ret = sortOrder === 'desc' ? right - left : left - right
     } else if (typeof left === 'string' && typeof right === 'string') {
@@ -164,15 +176,15 @@ class OrderSearch extends Search {
           '#created': 'created',
           '#filter': 'filter',
           '#status': 'status',
-          '#fulfilled': 'fulfilled',
           '#remark': 'remark',
           '#size': 'size',
-          '#fileCount': 'fileCount'
+          '#fileCount': 'fileCount',
+          '#intendedUse': 'intendedUse'
         },
         ExpressionAttributeValues: {
           ':zero': 0
         },
-        ProjectionExpression: '#orderId, #email, #created, #filter, #status, #fulfilled, #remark, #size, #fileCount',
+        ProjectionExpression: '#orderId, #email, #created, #filter, #status, #remark, #size, #fileCount, #intendedUse',
         FilterExpression: '#recordNumber = :zero'
       }
 
@@ -187,11 +199,11 @@ class OrderSearch extends Search {
 
       await this.handleSearch(params, callback)
 
-      // Enrich each order record
+      /* // Enrich each order record
       for (const item of retItems) {
         await populateUserData(item)
         item.isCancellable = cancelEligibleStatusesSet.has(item.status)
-      }
+      } */
 
       // apply sorting
       if (sortOrder === 'asc' || sortOrder === 'desc') {
@@ -208,10 +220,10 @@ class OrderSearch extends Search {
         orders: []
       }
     } else {
-      // A specific order (aka request) has been requested
+      // A specific order (aka image request) has been requested
       const res = await dynamoDbClient.get({
         TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME,
-        Key: { orderId: event }
+        Key: { orderId: event, recordNumber: 0 }
       })
       const item = res.Item
       if (!item) {
@@ -221,9 +233,16 @@ class OrderSearch extends Search {
           orders: []
         })
       }
+      /* await populateUserData(item)
+      item.isCancellable = cancelEligibleStatusesSet.has(item.status) */
+      retItems.push(item)
+    }
+
+    // Enrich each order
+    for (const item of retItems) {
       await populateUserData(item)
       item.isCancellable = cancelEligibleStatusesSet.has(item.status)
-      retItems.push(item)
+      item.isApprovable = approveEligibleStatusesSet.has(item.status)
     }
 
     retBody.orders = retItems as CerebrumImageOrder[]
@@ -238,14 +257,14 @@ class OrderSearch extends Search {
       ExpressionAttributeNames: {
         '#size': 'size',
         '#filesProcessed': 'filesProcessed',
-        '#email': 'email',
-        '#status': 'status'
+        '#email': 'email'//,
+        // '#status': 'status'
       },
-      ExpressionAttributeValues: {
+      /* ExpressionAttributeValues: {
         ':processed': 'processed'
-      },
-      ProjectionExpression: '#size, #filesProcessed, #email',
-      FilterExpression: '#status = :processed'
+      }, */
+      ProjectionExpression: '#size, #filesProcessed, #email'//,
+      // FilterExpression: '#status = :processed'
     }
     let size = 0
     let slides = 0

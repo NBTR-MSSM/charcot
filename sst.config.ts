@@ -35,7 +35,7 @@ export default {
     //  fix and then remove this "if()". Implications are that when testing
     //  in local via 'sst dev', Fulfillment module won't be present. That's
     //  OK because we can test Fulfillment module separately
-    if (app.mode !== 'dev') {
+    if (app.mode !== 'dev' && app.mode !== 'remove') {
       app.stack(FulfillmentStack, {
         id: 'fulfillment',
         stackName: `${stage}-${app.name}-fulfillment`,

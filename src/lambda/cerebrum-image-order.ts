@@ -3,14 +3,22 @@ import { lambdaWrapper } from '@exsoinn/aws-sdk-wrappers'
 import orderSearch from '../service/order-search'
 import orderManagement from '../service/order-management'
 
-export const retrieve: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIGatewayProxyEventV2) => {
-  return orderSearch.retrieve(event)
+export const approve: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIGatewayProxyEventV2) => {
+  return orderManagement.approve(event)
+})
+
+export const requestMoreInfo: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIGatewayProxyEventV2) => {
+  return orderManagement.requestMoreInfo(event)
+})
+
+export const cancel: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIGatewayProxyEventV2) => {
+  return orderManagement.cancel(event)
 })
 
 export const create: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIGatewayProxyEventV2) => {
   return orderManagement.create(event)
 })
 
-export const cancel: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIGatewayProxyEventV2) => {
-  return orderManagement.cancel(event)
+export const retrieve: APIGatewayProxyHandlerV2 = lambdaWrapper(async (event: APIGatewayProxyEventV2) => {
+  return orderSearch.retrieve(event)
 })

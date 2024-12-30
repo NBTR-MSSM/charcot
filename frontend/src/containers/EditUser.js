@@ -29,7 +29,7 @@ export default class EditUser extends ProfileManagement {
       isLoading: true
     })
     try {
-      await API.put('charcot', `/cerebrum-image-users/${this.context.otherUserEmail}`, {
+      await API.patch('charcot', `/cerebrum-image-users/${this.context.otherUserEmail}`, {
         body: {
           password: this.state.password,
           ...this.userAttributes()

@@ -1,4 +1,7 @@
 charcot:
+  fulfillment:
+    host: https://debug.mountsinaicharcot.org
+    approver-emails: joquijada2010@gmail.com,jose.quijada@mssm.edu,vahram.haroutunian@mssm.edu
   sqs:
     order:
       queue:

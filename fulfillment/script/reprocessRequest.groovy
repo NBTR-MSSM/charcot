@@ -9,12 +9,12 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest
 
 /**
- * Use this script reset request status to 'received' for reprocessing. This is useful
+ * Use this script to reset request status to 'received' for reprocessing. This is useful
  * for orders that failed for one reason or another, and you want to retry it.
  */
 evaluate(new File('./ScriptUtil.groovy'))
-def su = new ScriptUtil()
-Logger logger = su.logger(this)
+def scriptUtil = new ScriptUtil()
+Logger logger = scriptUtil.logger(this)
 
 def cli = buildCli()
 def opts = cli.parse(this.args)
@@ -72,6 +72,8 @@ void resubmitToSqs(String requestId, String queueUrl) {
   sqs.sendMessage(new SendMessageRequest().withQueueUrl(queueUrl).withMessageBody(/{"orderId":"$requestId"}/))
 }
 
-void purgeSqs(String queueUrl) {
+void purgeSqs(String queueUrl, Logger logger) {
+  logger.debug "Purging queue $queueUrl..."
   AmazonSQSClientBuilder.defaultClient().purgeQueue(new PurgeQueueRequest(queueUrl))
+  logger.debug "Done purging queue $queueUrl..."
 }

@@ -40,7 +40,6 @@ class Login extends Component {
         this.context.redirect({ to: '/change-password?newPasswordRequired=1' })
       } else {
         this.context.handleLogin({ session: await Auth.currentSession() })
-        this.context.redirect({ to: '/home' })
       }
     } catch (e) {
       onError(e)

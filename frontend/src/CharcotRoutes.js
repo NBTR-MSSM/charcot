@@ -17,6 +17,8 @@ import TransactionDetail from './containers/TransactionDetail'
 
 class CharcotRoutes extends Component {
   render() {
+    const isOrderApproval = new URLSearchParams(window.location.search).get('orderApproval')
+
     return (
       <Switch>
         <Route exact path="/">
@@ -46,19 +48,17 @@ class CharcotRoutes extends Component {
         <Route exact path="/confirmation">
           <Confirmation/>
         </Route>
-        {this.context.isAdmin && (
-          <>
-            <Route exact path="/transaction">
-              <Transaction/>
-            </Route>
-            <Route exact path="/transaction-detail">
-              <TransactionDetail/>
-            </Route>
-            <Route exact path="/edit-user">
-              <EditUser/>
-            </Route>
+        {/* Leave access control up to Transaction screen: Relax access to '/transaction' screen to support arrival from request
+        approval email because the approver might not be logged in,
+        BUT that component restricts access to logged in admins, see 'componentDidMount()' of 'Transaction.js' for details */
+          (this.context.isAdmin || isOrderApproval) && <Route exact path="/transaction"><Transaction/></Route>
+        }
+        {
+          (this.context.isAdmin) && <>
+            <Route exact path="/transaction-detail"><TransactionDetail/></Route>
+            <Route exact path="/edit-user"><EditUser/></Route>
           </>
-        )}
+        }
         {/* Finally, catch all unmatched routes */}
         <Route>
           <NotFound/>

@@ -12,9 +12,7 @@ import debounce from 'lodash.debounce'
 import paginationService from '../lib/PaginationService'
 import sortService from '../lib/SortService'
 
-const formattedDateTime = () => LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyyMMdd-HH-mm-ss'))
-
-let savedState = {
+let persistedState = {
   orders: [],
   selectedOrders: undefined,
   ordersSerialized: [],
@@ -31,30 +29,56 @@ let savedState = {
   searchTerm: '',
   initialOrderRetrieveHappened: false
 }
+
+const formattedDateTime = () => LocalDateTime.now().format(DateTimeFormatter.ofPattern('yyyyMMdd-HH-mm-ss'))
+const shouldReloadTransactions = () => new URLSearchParams(window.location.search).get('reload')
+
 class Transaction extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      ...savedState
+      ...persistedState
     }
   }
 
   async componentDidMount() {
-    this.context.pushToHistory()
-    if (!savedState.initialOrderRetrieveHappened) {
+    console.log('JMQ: Transaction.componentDidMount()')
+    // Request approval feature is for logged in Admin's, enforce that here. Recall
+    // that CharcoRoutes.js relaxes access to /transaction, thus it is up to this component to
+    // enforce it here. Refer to CharcoRoutes.js for the use-case that prompted this.
+    const orderId = new URLSearchParams(window.location.search).get('orderId')
+    const isOrderApproval = new URLSearchParams(window.location.search).get('orderApproval')
+    if (orderId && isOrderApproval) {
+      console.log('JMQ: Transaction.componentDidMount() about to call App.pushToHistory()')
+      this.context.pushToHistory()
+      if (!this.context.isAuthenticated) {
+        this.context.redirect({ to: '/login' })
+        return
+      } else if (!this.context.isAdmin) {
+        this.context.redirect({ to: '/not-found' })
+        return
+      }
+    }
+    if (!persistedState.initialOrderRetrieveHappened || shouldReloadTransactions()) {
       await this.retrieveOrders()
-      savedState.initialOrderRetrieveHappened = true
+      persistedState.initialOrderRetrieveHappened = true
     }
     this.refreshSelectedOrders()
+    // Redirect to request approval screen. CharcotRoutes.js enforces that only Admin's have access
+    // to this feature.
+    if (orderId && isOrderApproval) {
+      this.context.handleSetTransactionItem(persistedState.orders.find(order => order.orderId === orderId))
+      this.context.redirect({ to: '/transaction-detail' })
+    }
   }
 
   createDownloadUrl = () => {
     // eslint-disable-next-line no-undef
-    return window.URL.createObjectURL(new Blob([savedState.ordersSerialized.join('\n')], { type: 'text/plain' }))
+    return window.URL.createObjectURL(new Blob([persistedState.ordersSerialized.join('\n')], { type: 'text/plain' }))
   }
 
   retrieveOrdersAsDelimiterSeparatedRecords = async () => {
-    let ret = ['REQUEST ID,REQUESTER,CREATED,INSTITUTION NAME,EMAIL,SIZE (GB),SLIDE COUNT,STATUS,FILTER']
+    let ret = ['REQUEST ID,REQUESTER,CREATED,INSTITUTION NAME,EMAIL,SIZE (GB),SLIDE COUNT,STATUS,INTENDED USE,FILTER']
     const res = await this.fetchOrders({ page: -1 })
     ret = ret.concat(res.orders.map(order => {
       const {
@@ -66,9 +90,10 @@ class Transaction extends Component {
         size,
         fileCount,
         status,
-        filter
+        filter,
+        intendedUse
       } = order
-      return `${orderId},${requester},${LocalDateTime.ofEpochSecond(Number.parseInt(created / 1000), ZoneOffset.UTC).format(DateTimeFormatter.ofPattern('MM/dd/yyyy HH:mm:ss'))} GMT,${institutionName},${email},${Number.parseFloat(size / Math.pow(2, 30)).toFixed(2)},${fileCount},${status},${filter}`
+      return `${orderId},${requester},${LocalDateTime.ofEpochSecond(Number.parseInt(created / 1000), ZoneOffset.UTC).format(DateTimeFormatter.ofPattern('MM/dd/yyyy HH:mm:ss'))} GMT,${institutionName},${email},${Number.parseFloat(size / Math.pow(2, 30)).toFixed(2)},${fileCount},${status},${intendedUse},${filter}`
     }))
     return ret
   }
@@ -96,8 +121,8 @@ class Transaction extends Component {
     // because we don't want others to interfere with the client side pagination
     const res = await this.fetchOrders({})
     const { orders, totalPages, orderCount, size, slides, uniqueUsers } = res
-    savedState = {
-      ...savedState,
+    persistedState = {
+      ...persistedState,
       ordersSerialized: await this.retrieveOrdersAsDelimiterSeparatedRecords(),
       orders,
       totalPages,
@@ -116,10 +141,10 @@ class Transaction extends Component {
       isLoading: false
     })
     this.context.handleTransactionUpdate({
-      requests: savedState.orderCount,
-      size: savedState.size,
-      slides: savedState.slides,
-      uniqueUsers: savedState.uniqueUsers
+      requests: persistedState.orderCount,
+      size: persistedState.size,
+      slides: persistedState.slides,
+      uniqueUsers: persistedState.uniqueUsers
     })
 
     this.refreshSelectedOrders()
@@ -153,32 +178,32 @@ class Transaction extends Component {
   }
 
   updatePagination = ({
-    pageSize = savedState.pageSize,
-    page = savedState.page
+    pageSize = persistedState.pageSize,
+    page = persistedState.page
   } = {}) => {
     pageSize = pageSize < 1 ? 10 : pageSize
     page = page < 1 ? 1 : page
-    savedState = {
-      ...savedState,
+    persistedState = {
+      ...persistedState,
       pageSize,
       page,
-      totalPages: Math.ceil(savedState.orderCount / pageSize)
+      totalPages: Math.ceil(persistedState.orderCount / pageSize)
     }
     this.setState({
-      page: savedState.page,
-      pageSize: savedState.pageSize,
-      totalPages: savedState.totalPages
+      page: persistedState.page,
+      pageSize: persistedState.pageSize,
+      totalPages: persistedState.totalPages
     })
   }
 
   applySearchTerm = searchTerm => {
     const trimmedSearchTerm = searchTerm && searchTerm.trim()
-    savedState = {
-      ...savedState,
+    persistedState = {
+      ...persistedState,
       searchTerm: trimmedSearchTerm
     }
     this.setState({
-      searchTerm: savedState.searchTerm
+      searchTerm: persistedState.searchTerm
     })
   }
 
@@ -200,15 +225,15 @@ class Transaction extends Component {
         break
       case '‹':
       case '‹Previous':
-        page = savedState.page <= 1 ? 1 : savedState.page - 1
+        page = persistedState.page <= 1 ? 1 : persistedState.page - 1
         break
       case '›':
       case '›Next':
-        page = savedState.page >= savedState.totalPages ? savedState.totalPages : savedState.page + 1
+        page = persistedState.page >= persistedState.totalPages ? persistedState.totalPages : persistedState.page + 1
         break
       case '»':
       case '»Last':
-        page = savedState.totalPages
+        page = persistedState.totalPages
         break
       default:
       // It's a number
@@ -221,16 +246,16 @@ class Transaction extends Component {
   handleSort = (event) => {
     event.preventDefault()
     const { name: sortBy } = event.target
-    const sortOrder = savedState.sortOrder === 'desc' ? 'asc' : 'desc'
-    savedState = {
-      ...savedState,
+    const sortOrder = persistedState.sortOrder === 'desc' ? 'asc' : 'desc'
+    persistedState = {
+      ...persistedState,
       sortBy,
       sortOrder
     }
     this.setState({
-      sortBy: savedState.sortBy,
-      sortOrder: savedState.sortOrder,
-      orders: sortService.sort(savedState.orders, savedState.sortBy, savedState.sortOrder)
+      sortBy: persistedState.sortBy,
+      sortOrder: persistedState.sortOrder,
+      orders: sortService.sort(persistedState.orders, persistedState.sortBy, persistedState.sortOrder)
     })
     this.refreshSelectedOrders()
   }
@@ -241,14 +266,14 @@ class Transaction extends Component {
 
   updateSelectedOrders = () => {
     // First navigate to page based on user page selections, then apply search term, if any
-    let selectedOrders = paginationService.goToPage(savedState.orders, savedState.page, savedState.pageSize)
-    selectedOrders = savedState.searchTerm ? selectedOrders.filter((e) => `${e.email}${e.institutionName}${e.requester}${e.status}`.match(new RegExp(savedState.searchTerm, 'i'))) : selectedOrders
-    savedState = {
-      ...savedState,
+    let selectedOrders = paginationService.goToPage(persistedState.orders, persistedState.page, persistedState.pageSize)
+    selectedOrders = persistedState.searchTerm ? selectedOrders.filter((e) => `${e.email}${e.institutionName}${e.requester}${e.status}${e.orderId}`.match(new RegExp(persistedState.searchTerm, 'i'))) : selectedOrders
+    persistedState = {
+      ...persistedState,
       selectedOrders
     }
     this.setState({
-      selectedOrders: savedState.selectedOrders
+      selectedOrders: persistedState.selectedOrders
     })
   }
 
@@ -262,14 +287,14 @@ class Transaction extends Component {
           <Form.Control
             aria-describedby="basic-addon1"
             type="text"
-            value={savedState.pageSize}
+            value={persistedState.pageSize}
             onChange={this.handlePageSizeChange}
             onFocus={() => {
-              savedState = {
-                ...savedState,
+              persistedState = {
+                ...persistedState,
                 pageSize: ''
               }
-              this.setState({ pageSize: savedState.pageSize })
+              this.setState({ pageSize: persistedState.pageSize })
             }}
           />
         </InputGroup>
@@ -279,10 +304,10 @@ class Transaction extends Component {
             <Form.Control
               aria-describedby="basic-addon1"
               type="text"
-              value={savedState.searchTerm}
+              value={persistedState.searchTerm}
               onChange={this.handleSearchTermChange}/>
 
-            {savedState.searchTerm
+            {persistedState.searchTerm
               ? (<button className="search-term-clear-btn" onClick={(e) => {
                   e.preventDefault()
                   this.applySearchTerm('')
@@ -299,10 +324,10 @@ class Transaction extends Component {
 
   renderPagination = () => {
     const items = []
-    for (let number = 1; number <= savedState.totalPages; number++) {
+    for (let number = 1; number <= persistedState.totalPages; number++) {
       items.push(
         <Pagination.Item name={number} onClick={this.handlePageChange} key={number}
-                         active={number === savedState.page}>
+                         active={number === persistedState.page}>
           {number}
         </Pagination.Item>
       )
@@ -312,7 +337,7 @@ class Transaction extends Component {
       <span>
               <span className="totalRecords">Total records: </span>
               <a href={this.createDownloadUrl()}
-                 download={`charcot-transactions-${formattedDateTime()}.csv`}>{savedState.orderCount} (Click to download as a plaintext CSV file)</a>
+                 download={`charcot-transactions-${formattedDateTime()}.csv`}>{persistedState.orderCount} (Click to download as a plaintext CSV file)</a>
               </span>
     )
 
@@ -341,17 +366,17 @@ class Transaction extends Component {
   }
 
   renderSortIcon = (field) => {
-    if (field !== savedState.sortBy) {
+    if (field !== persistedState.sortBy) {
       return <></>
     }
 
-    return savedState.sortOrder === 'desc' ? <BsSortDownAlt/> : <BsSortUpAlt/>
+    return persistedState.sortOrder === 'desc' ? <BsSortDownAlt/> : <BsSortUpAlt/>
   }
 
   renderLoaded = () => {
     const pagination = this.renderPagination()
     const pageSizeChangeForm = this.renderControlForm()
-    const orders = savedState.selectedOrders || savedState.orders
+    const orders = persistedState.selectedOrders || persistedState.orders
     return <div className="Transaction">
       {pageSizeChangeForm}
       {pagination}
@@ -381,7 +406,7 @@ class Transaction extends Component {
   }
 
   render() {
-    return (<div className="Transaction">{this.state.isLoading ? this.renderLoading() : this.renderLoaded()}</div>)
+    return this.state.isLoading ? this.renderLoading() : this.renderLoaded()
   }
 }
 

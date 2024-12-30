@@ -8,7 +8,7 @@ import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 
 // This is to persist state when user navigates
 // to other screens
-const savedState = {
+const persistedState = {
   isFileProcessed: false,
   isManualEntryProcessed: false,
   fileName: undefined,
@@ -43,7 +43,7 @@ class SubjectNumberEntry extends Component {
   resetIfNecessary = () => {
     // If user cleared subnum selections in the UI, or completely cleared the filter, reset ourselves.
     const filter = this.context.filter
-    if ((savedState.isFileProcessed || savedState.isManualEntryProcessed) &&
+    if ((persistedState.isFileProcessed || persistedState.isManualEntryProcessed) &&
       (!filter.has({ dimension: 'subjectNumber' }) || filter.isEmpty())) {
       this.resetState()
     }
@@ -52,14 +52,14 @@ class SubjectNumberEntry extends Component {
   handleEntryModeChange = async (event) => {
     event.preventDefault()
     // toggle between manual and file input each time this method called
-    savedState.isUserPrefersFileUpload = !savedState.isUserPrefersFileUpload
+    persistedState.isUserPrefersFileUpload = !persistedState.isUserPrefersFileUpload
     const skip = new Set()
     skip.add('subjectNumberListEntry')
 
     await this.handleClear(undefined, skip)
 
     this.setState({
-      isUserPrefersFileUpload: savedState.isUserPrefersFileUpload
+      isUserPrefersFileUpload: persistedState.isUserPrefersFileUpload
     })
   }
 
@@ -71,14 +71,14 @@ class SubjectNumberEntry extends Component {
     })
 
     let subjectNumbers
-    if (savedState.isUserPrefersFileUpload) {
+    if (persistedState.isUserPrefersFileUpload) {
       const file = this.fileInput.current.files[0]
       const data = await this.readFile(file)
       subjectNumbers = data.split(/\n/).map(num => num.trim()).filter(num => num.match(/^\d+$/)).map(num => parseInt(num))
-      savedState.isFileProcessed = true
+      persistedState.isFileProcessed = true
     } else {
-      subjectNumbers = savedState.subjectNumberListEntry.split(/,/).map(num => num.trim()).map(num => parseInt(num))
-      savedState.isManualEntryProcessed = true
+      subjectNumbers = persistedState.subjectNumberListEntry.split(/,/).map(num => num.trim()).map(num => parseInt(num))
+      persistedState.isManualEntryProcessed = true
     }
 
     for (const num of subjectNumbers) {
@@ -88,17 +88,17 @@ class SubjectNumberEntry extends Component {
       })
     }
 
-    savedState.subjectNumbers = subjectNumbers
+    persistedState.subjectNumbers = subjectNumbers
     this.setState({
       isProcessing: false,
-      ...savedState
+      ...persistedState
     })
   }
 
   handleInput = (event) => {
-    savedState.fileName = event.target.files[0].name
+    persistedState.fileName = event.target.files[0].name
     this.setState({
-      fileName: savedState.fileName
+      fileName: persistedState.fileName
     })
   }
 
@@ -113,15 +113,15 @@ class SubjectNumberEntry extends Component {
         continue
       }
       if (key.startsWith('is')) {
-        savedState[key] = false
+        persistedState[key] = false
       } else if (key === 'subjectNumberListEntry') {
-        savedState[key] = ''
+        persistedState[key] = ''
       } else if (key === 'subjectNumbers') {
-        savedState[key] = []
+        persistedState[key] = []
       } else {
-        savedState[key] = undefined
+        persistedState[key] = undefined
       }
-      newState[key] = savedState[key]
+      newState[key] = persistedState[key]
     }
     /*
      * Make sure we update the state only for the properties
@@ -132,7 +132,7 @@ class SubjectNumberEntry extends Component {
   }
 
   handleClear = async (event, skip = new Set()) => {
-    for (const num of savedState.subjectNumbers) {
+    for (const num of persistedState.subjectNumbers) {
       await this.context.handleCategoryUnselect({
         dimension: 'subjectNumber',
         category: num
@@ -155,16 +155,16 @@ class SubjectNumberEntry extends Component {
     })
   }
 
-  validateSubjectNumberListEntry = () => savedState.subjectNumberListEntry.match(/^(\d+\s*,\s*)*\d+$/)
+  validateSubjectNumberListEntry = () => persistedState.subjectNumberListEntry.match(/^(\d+\s*,\s*)*\d+$/)
 
   handleFormChange = (event) => {
     const {
       id,
       value
     } = event.target
-    savedState[id] = value
+    persistedState[id] = value
     this.setState({
-      [id]: savedState[id]
+      [id]: persistedState[id]
     })
   }
 
@@ -203,7 +203,7 @@ class SubjectNumberEntry extends Component {
         <Form.Label>Enter list of comma separated subject numbers (Ex: 23,99,754,139,5):</Form.Label>
         <Form.Control as="textarea"
                       rows={5}
-                      value={savedState.subjectNumberListEntry}
+                      value={persistedState.subjectNumberListEntry}
                       onChange={this.handleFormChange}/>
       </Form.Group>
       <LoaderButton
@@ -221,13 +221,13 @@ class SubjectNumberEntry extends Component {
   renderFileClearButton = () => (
     <>
       <Button id="clear-file-btn" type="reset" size="sm"
-              onClick={this.handleClear}>File: {savedState.fileName} (REMOVE)</Button>
+              onClick={this.handleClear}>File: {persistedState.fileName} (REMOVE)</Button>
     </>
   )
 
   renderManualEntryClearButton = () => (
     <>
-      <span id="subject-number-list">{savedState.subjectNumbers.join(', ')}</span>
+      <span id="subject-number-list">{persistedState.subjectNumbers.join(', ')}</span>
       <Button id="clear-file-btn" type="reset" size="sm"
               onClick={this.handleClear}>Clear</Button>
     </>
@@ -235,16 +235,16 @@ class SubjectNumberEntry extends Component {
 
   render() {
     let fragmentToRender
-    if (savedState.isUserPrefersFileUpload) {
-      fragmentToRender = savedState.isFileProcessed ? this.renderFileClearButton() : this.renderSubNumFileUploadForm()
+    if (persistedState.isUserPrefersFileUpload) {
+      fragmentToRender = persistedState.isFileProcessed ? this.renderFileClearButton() : this.renderSubNumFileUploadForm()
     } else {
-      fragmentToRender = savedState.isManualEntryProcessed ? this.renderManualEntryClearButton() : this.renderSubNumEntryForm()
+      fragmentToRender = persistedState.isManualEntryProcessed ? this.renderManualEntryClearButton() : this.renderSubNumEntryForm()
     }
     return (
       <div className="SubjectNumberEntry">
         <span id="sub-num-entry-mode-decision">
           <a href=""
-             onClick={this.handleEntryModeChange}>{savedState.isUserPrefersFileUpload ? 'I want to enter subject numbers manually instead' : 'I want to upload a file instead'}</a>
+             onClick={this.handleEntryModeChange}>{persistedState.isUserPrefersFileUpload ? 'I want to enter subject numbers manually instead' : 'I want to upload a file instead'}</a>
         </span>
         {fragmentToRender}
       </div>

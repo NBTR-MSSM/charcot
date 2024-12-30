@@ -17,8 +17,40 @@ import { onError } from './lib/error'
 import TransactionFooter from './containers/TransactionFooter'
 import ConfirmationModal from './components/ConfirmationModal'
 
-const savedState = {
-  filter: new Filter()
+/*
+ * Used to match URI's which are given priority when redirecting post successful login. One use case is
+ * when admin user came from request approval email link, and then need to reset their password. There are multiple
+ * hops associated with that, and the system of redirecting to previous page in the navigation history just won't cut it.
+ * In such cases the redirect saved in 'persistedState.priorityRedirect' is given precedence when redirecting post successful
+ * login.
+ * See App.handleLogin() for more details.
+ */
+const priorityRedirectMatchers = ['orderApproval']
+
+const savePriorityRedirectIfNeeded = () => {
+  console.log('JMQ: App.savePriorityRedirectIfNeeded()')
+  const currentPath = obtainCurrentLocation()
+  if (priorityRedirectMatchers.find(e => (currentPath).includes(e))) {
+    persistedState.priorityRedirect = currentPath
+  }
+}
+
+const obtainCurrentLocation = () => window.location.pathname + window.location.search
+
+const performRedirect = (componentRef) => {
+  if (persistedState.priorityRedirect) {
+    componentRef.redirect({ to: persistedState.priorityRedirect })
+    persistedState.priorityRedirect = undefined
+  } else if (componentRef.navHistoryIsEmpty()) {
+    componentRef.redirect({ to: '/home' })
+  } else {
+    componentRef.redirectToPrevious()
+  }
+}
+const persistedState = {
+  filter: new Filter(),
+  navHistory: [],
+  priorityRedirect: undefined
 }
 
 /**
@@ -66,18 +98,28 @@ export default class App extends Component {
   }
 
   async componentDidMount() {
+    console.log('JMQ: App.componentDidMount()')
     await this.onLoad()
   }
 
   pushToHistory = () => {
-    const history = this.state.navHistory
-    history.push(window.location.pathname)
+    console.log('JMQ: App.pushToHistory()')
+    persistedState.navHistory.push(obtainCurrentLocation())
+
+    // Evict oldest "bread crumb" if limit has been reached in the history
+    if (persistedState.navHistory.length > 10) {
+      persistedState.navHistory.shift()
+    }
+
+    savePriorityRedirectIfNeeded()
+
     this.setState({
-      navHistory: history
+      navHistory: persistedState.navHistory
     })
   }
 
   componentDidUpdate() {
+    console.log('JMQ: App.componentDidUpdate()')
     if (this.state.redirectTo) {
       this.setState({
         redirectTo: ''
@@ -86,11 +128,14 @@ export default class App extends Component {
   }
 
   redirectToPrevious = (queryString = undefined) => {
-    const history = this.state.navHistory
+    const history = persistedState.navHistory
     this.redirect({ to: `${history[history.length - 2] + (queryString ? ('?' + queryString) : '')}` })
   }
 
   onLoad = async () => {
+    console.log('JMQ: App.onLoad()')
+    savePriorityRedirectIfNeeded()
+
     // Load user session if any (I.e. if user is already logged in)
     try {
       const session = await Auth.currentSession()
@@ -104,6 +149,7 @@ export default class App extends Component {
     this.setState({
       isAuthenticating: false
     })
+
     // FIXME: This needs to execute only when on /search. Try below approach but when I navigated to /search page the first time,
     //  this.currenPage didn't match '/search'. Need to debug further. This is an optimization so we don't be refreshing chart data
     //  willy nilly in places where it's not relevant
@@ -121,6 +167,8 @@ export default class App extends Component {
         isAdmin: session.idToken.payload['cognito:groups'] && session.idToken.payload['cognito:groups'].includes('charcot-admin')
       }
     )
+
+    performRedirect(this)
   }
 
   /**
@@ -213,12 +261,14 @@ export default class App extends Component {
   }
 
   currentPage = () => {
-    const history = this.state.navHistory
+    const history = persistedState.navHistory
     return history.length > 0 && history[history.length - 1]
   }
 
+  navHistoryIsEmpty = () => persistedState.navHistory.length <= 0
+
   previousPage = () => {
-    const history = this.state.navHistory
+    const history = persistedState.navHistory
     return history.length > 1 && history[history.length - 2]
   }
 
@@ -231,9 +281,9 @@ export default class App extends Component {
       filter
     })
 
-    savedState.filter = filter
+    persistedState.filter = filter
     this.setState({
-      filter: savedState.filter,
+      filter: persistedState.filter,
       isResultsFound: dimensionData.isResultsFound,
       isShowNoResultsConfirmationModal: !dimensionData.isResultsFound,
       dimensionData
@@ -257,6 +307,7 @@ export default class App extends Component {
    * search for "when you go to do a comparison you are comparing the two exact same arrays ALWAYS"
    */
   render() {
+    console.log('JMQ: App.render()')
     /*
      * This is a (somewhat convoluted) way to handle redirect back to page of origin
      * during signup/login and any other scenario where applicable. The componentDidUpdate()
@@ -273,7 +324,7 @@ export default class App extends Component {
     let footer
     if (this.currentPage() === '/search' || this.currentPage() === '/review') {
       footer =
-        <Footer filter={savedState.filter.clone()}/>
+        <Footer filter={persistedState.filter.clone()}/>
     } else if (this.currentPage() === '/transaction') {
       footer = <TransactionFooter/>
     }
@@ -326,7 +377,7 @@ export default class App extends Component {
               </Navbar>
             </div>
           </Stack>
-          <CharcotRoutes filter={savedState.filter.clone()}/>
+          <CharcotRoutes filter={persistedState.filter.clone()}/>
           {footer}
         </AppContext.Provider>
       </div>)

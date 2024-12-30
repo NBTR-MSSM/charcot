@@ -1,6 +1,7 @@
 import { CerebrumImageOrder, OrderRetrievalOutput } from '../../src/types/charcot.types'
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
 import merge from 'lodash.merge'
+import { jestGlobal } from '../jest-test-setup'
 
 function createCopy<Type>(source: Type): Type {
   const copy = {} as Type
@@ -52,9 +53,10 @@ export const sortedOrderOutput = (createdOrder: number[]): OrderRetrievalOutput 
 
 const orders: CerebrumImageOrder[] = [
   {
-    orderId: 'abc123',
+    orderId: jestGlobal.dummyOrderId as string,
     recordNumber: 0,
     email: 'clark.ken@acme.com',
+    intendedUse: `Intended use ${jestGlobal.dummyOrderId}`,
     fileNames: ['XE13-009_2_HE_1.mrxs', 'XE13-009_2_Sil_1.mrxs'],
     filesProcessed: ['XE13-009_2_HE_1.mrxs', 'XE13-009_2_Sil_1.mrxs'],
     created: 1,
@@ -65,6 +67,7 @@ const orders: CerebrumImageOrder[] = [
     orderId: 'def123',
     recordNumber: 0,
     email: 'peter.parker@acme.com',
+    intendedUse: 'Intended use def123',
     fileNames: ['XE13-009_2_HE_1.mrxs', 'XE13-009_2_Sil_1.mrxs', 'XE12-025_1_HE_1.mrxs'],
     filesProcessed: ['XE13-009_2_HE_1.mrxs', 'XE13-009_2_Sil_1.mrxs', 'XE12-025_1_HE_1.mrxs'],
     created: 2,
@@ -75,6 +78,7 @@ const orders: CerebrumImageOrder[] = [
     orderId: 'ghi123',
     recordNumber: 0,
     email: 'bruce.wayne@acme.com',
+    intendedUse: 'Intended use ghi123',
     fileNames: ['XE13-009_2_HE_1.mrxs'],
     filesProcessed: ['XE13-009_2_HE_1.mrxs'],
     created: 3,
@@ -85,6 +89,7 @@ const orders: CerebrumImageOrder[] = [
     orderId: 'jkl123',
     recordNumber: 0,
     email: 'alan.scott@acme.com',
+    intendedUse: 'Intended use jkl123',
     fileNames: ['XE13-009_2_HE_1.mrxs'],
     filesProcessed: ['XE13-009_2_HE_1.mrxs'],
     created: 4,
@@ -92,9 +97,10 @@ const orders: CerebrumImageOrder[] = [
     status: 'received'
   },
   {
-    orderId: 'mno123',
+    orderId: jestGlobal.dummyOrderIdTwo as string,
     recordNumber: 0,
     email: 'alan.scott@acme.com',
+    intendedUse: `Intended use ${jestGlobal.dummyOrderIdTwo}`,
     fileNames: ['XE13-009_2_HE_1.mrxs'],
     filesProcessed: ['XE13-009_2_HE_1.mrxs'],
     created: 5,
@@ -119,6 +125,7 @@ const dummyOrder: CerebrumImageOrder = {
   orderId: '',
   recordNumber: 0,
   email: '',
+  intendedUse: '',
   fileNames: [],
   filesProcessed: [],
   created: -1,
@@ -138,7 +145,7 @@ const orderOutput: OrderRetrievalOutput = {
   orders: [
     {
       ...dummyOrder,
-      orderId: 'mno123',
+      orderId: jestGlobal.dummyOrderIdTwo as string,
       institutionName: 'University of Massachusetts',
       family_name: 'Quijada',
       requester: 'Jose Quijada',
@@ -230,7 +237,7 @@ const orderOutput: OrderRetrievalOutput = {
     },
     {
       ...dummyOrder,
-      orderId: 'abc123',
+      orderId: jestGlobal.dummyOrderId as string,
       institutionName: 'University of Massachusetts',
       family_name: 'Quijada',
       requester: 'Jose Quijada',

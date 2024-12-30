@@ -2,98 +2,41 @@ import React, { Component } from 'react'
 import { AppContext } from '../lib/context'
 import { Card, OverlayTrigger } from 'react-bootstrap'
 import { BsInfoCircleFill } from 'react-icons/bs'
-import { API } from 'aws-amplify'
-import ConfirmationModal from './ConfirmationModal'
-import Button from 'react-bootstrap/Button'
+import {
+  handleOrderApproval,
+  orderApprovalConfirmationModal,
+  successfulOrderApprovalConfirmationModal
+} from '../lib/orderApproval'
+import { handleOrderCancel, orderCancelConfirmationModal, successfulOrderCancellationConfirmationModal } from '../lib/orderCancel'
 
 const attributeOrder = ['degree', 'institutionName', 'institutionAddress', 'areasOfInterest', 'intendedUse']
 
-const savedState = {
-  isShowSuccessfulOrderCancellationConfirmation: false
+const persistedState = {
+  // isShowSuccessfulOrderApprovalConfirmation: false,
+  // isShowSuccessfulOrderCancellationConfirmation: false
 }
 
 class TransactionItem extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      isShowOrderCancelConfirmModal: false,
+      // isShowOrderApprovalConfirmationModal: false,
+      // isShowOrderCancelConfirmationModal: false,
       // Prevent impatient repeated clicks
-      isDisableOrderCancelConfirmModalButtons: false,
-      isShowSuccessfulOrderCancellationConfirmation: false
+      // isShowSuccessfulOrderCancellationConfirmation: false,
+      // isDisableOrderCancelConfirmationModalButtons: false
     }
-  }
-
-  handleOrderCancel = async (event) => {
-    event.preventDefault()
-    this.setState({
-      isShowOrderCancelConfirmModal: true
-    })
-  }
-
-  cancelOrder = async () => {
-    await API.del('charcot', `/cerebrum-image-orders/${this.props.item.orderId}`, {
-      queryStringParameters: {
-        requester: this.context.email
-      }
-    })
-  }
-
-  renderSuccessfulOrderCancellationConfirmationModal = (item) => {
-    return <ConfirmationModal header="Cancel Request Sent"
-                              body={`Cancel request sent for ${item.orderId}. Please allow a few minutes for cancellation to complete.`}
-                              show={savedState.isShowSuccessfulOrderCancellationConfirmation}
-                              handleExit={() => this.context.redirect({ to: '/transaction' })}
-                              handleClose={() => {
-                                savedState.isShowSuccessfulOrderCancellationConfirmation = false
-                                this.setState({ isShowSuccessfulOrderCancellationConfirmation: savedState.isShowSuccessfulOrderCancellationConfirmation })
-                              }}/>
-  }
-
-  renderOrderCancelConfirmModal = () => {
-    return <ConfirmationModal header={`Are you sure you want to cancel request ${this.props.item.orderId}?`}
-                              show={this.state.isShowOrderCancelConfirmModal}
-                              handleExit={() => this.context.redirect({ to: '/transaction' })}
-                              handleClose={() => this.setState({ isShowOrderCancelConfirmModal: false })}
-                              buttonJsx={
-                                <>
-                                  <Button variant="primary"
-                                          disabled={this.state.isDisableOrderCancelConfirmModalButtons}
-                                          onClick={async (e) => {
-                                            e.preventDefault()
-                                            this.setState({
-                                              isDisableOrderCancelConfirmModalButtons: true
-                                            })
-                                            await this.cancelOrder()
-                                            savedState.isShowSuccessfulOrderCancellationConfirmation = true
-                                            this.setState({
-                                              isShowOrderCancelConfirmModal: false,
-                                              isShowSuccessfulOrderCancellationConfirmation: savedState.isShowSuccessfulOrderCancellationConfirmation
-                                            })
-                                          }}>
-                                    Yes
-                                  </Button>
-                                  <Button variant="secondary"
-                                          disabled={this.state.isDisableOrderCancelConfirmModalButtons}
-                                          onClick={(e) => {
-                                            e.preventDefault()
-                                            this.setState({ isShowOrderCancelConfirmModal: false })
-                                          }}>
-                                    No
-                                  </Button>
-                                </>}/>
   }
 
   render() {
     const item = this.props.item
-    let cancelLink = <></>
-    if (item.isCancellable) {
-      cancelLink = <a href="" onClick={this.handleOrderCancel}> Cancel</a>
-    }
 
-    const userAttributesPopover = (
+    const setStateFunction = this.setState.bind(this)
+    const userAttributesPopover =
       <Card body style={{ width: '425px' }}>
       <span className="userAttribute"><span className="userAttributeName">Request ID</span>: {item.orderId}
-        {cancelLink}
+        {item.isCancellable ? <a href="" onClick={(event) => handleOrderCancel(event, setStateFunction)}> Cancel</a> : <></>}
+        {item.isApprovable ? <a href="" onClick={(event) => handleOrderApproval(event, setStateFunction)}> Approve</a> : <></>}
       </span>
         {attributeOrder.map(attrName => <span key={`${attrName}-${item.orderId}`} className="userAttribute"><span
           className="userAttributeName">{attrName}</span>: {item.userAttributes[attrName]}</span>)}
@@ -105,7 +48,6 @@ class TransactionItem extends Component {
           }
         }>Update</a>
       </Card>
-    )
 
     return <tr>
       <td>{new Date(item.created).toUTCString()}</td>
@@ -113,13 +55,16 @@ class TransactionItem extends Component {
         <OverlayTrigger rootClose={true} trigger="click" placement="right" overlay={userAttributesPopover}>
           <a href="" onClick={(e) => e.preventDefault()}><BsInfoCircleFill/> {item.requester}</a>
         </OverlayTrigger>
-        {this.renderOrderCancelConfirmModal()}
-        {this.renderSuccessfulOrderCancellationConfirmationModal(item)}
+        {orderApprovalConfirmationModal(this, this.context.email, item.orderId)}
+        {successfulOrderApprovalConfirmationModal(item, this)}
+
+        {orderCancelConfirmationModal(this, persistedState, this.context.email, item.orderId)}
+        {successfulOrderCancellationConfirmationModal(item, this)}
       </td>
       <td>{item.institutionName}</td>
       <td>{item.email}</td>
       <td>{item.filter}</td>
-      <td>{Number.parseFloat(item.size / Math.pow(2, 30)).toFixed(2)}GB</td>
+      <td>{(item.size / Math.pow(2, 30)).toFixed(2)}GB</td>
       <td>{item.fileCount}</td>
       <td>
         <a href="" onClick={(e) => {

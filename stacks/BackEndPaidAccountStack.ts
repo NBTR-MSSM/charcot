@@ -151,9 +151,9 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
     zoneName: 'mountsinaicharcot.org'
   })
   /*
-     * Note: W/o explicitly passing in hostedZone, was getting:
-     *   'It seems you are configuring custom domains for you URL. And SST is not able to find the hosted zone "mountsinaicharcot.org" in your AWS Route 53 account. Please double check and make sure the zone exists, or pass in a different zone.'
-     */
+   * Note: W/o explicitly passing in hostedZone, was getting:
+   *   'It seems you are configuring custom domains for you URL. And SST is not able to find the hosted zone "mountsinaicharcot.org" in your AWS Route 53 account. Please double check and make sure the zone exists, or pass in a different zone.'
+   */
   const api = new sst.Api(stack, 'Api', {
     authorizers: {
       jwt: {
@@ -171,6 +171,12 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
         certificate: Certificate.fromCertificateArn(stack, 'MyCert', 'arn:aws:acm:us-east-1:045387143127:certificate/1004f57f-a544-476d-8a31-5b878a71c276')
       }
     },
+    /**
+     * The presence of actions (approve, cancel, etc.) make the endpoints more readable at the expense of
+     * violation REST principle of using URI's for resources only that requests talk to, HTTP verbs for the action.
+     * In the purest REST form would need a single update() method and routing to helper methods based on field(s)
+     * in the request body, [REF|https://tinyurl.com/4e9s279w|"it might be easier to handle specific actions in dedicated code paths rather than routing different actions based on a field in the request body."]
+     */
     routes: {
       'POST /cerebrum-images': {
         authorizer: 'jwt',
@@ -234,7 +240,7 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
           }
         }
       },
-      'PUT /cerebrum-image-users/{email}': {
+      'PATCH /cerebrum-image-users/{email}': {
         authorizer: 'jwt',
         function: {
           functionName: `update-cerebrum-image-user-${stage}`,
@@ -300,7 +306,65 @@ export function BackEndPaidAccountStack({ stack }: sst.StackContext) {
           }
         }
       },
-      'DELETE /cerebrum-image-orders/{orderId}': {
+      'PATCH /cerebrum-image-orders/{orderId}/request-more-info': {
+        authorizer: 'jwt',
+        function: {
+          functionName: `request-more-info-cerebrum-image-order-${stage}`,
+          handler: 'src/lambda/cerebrum-image-order.requestMoreInfo',
+          initialPolicy: [
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              actions: ['dynamodb:UpdateItem', 'dynamodb:GetItem'],
+              resources: [cerebrumImageOrderTable.tableArn]
+            }),
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              actions: ['cognito-idp:AdminGetUser'],
+              resources: [auth.userPoolArn]
+            }),
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              actions: ['sqs:SendMessage'],
+              resources: [cerebrumImageOrderQueue.queueArn]
+            })
+          ],
+          environment: {
+            CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName,
+            CEREBRUM_IMAGE_ORDER_QUEUE_URL: cerebrumImageOrderQueue.queueUrl,
+            CEREBRUM_COGNITO_USER_POOL_ID: auth.userPoolId
+          }
+        }
+      },
+      'PATCH /cerebrum-image-orders/{orderId}/approve': {
+        authorizer: 'jwt',
+        function: {
+          functionName: `approve-cerebrum-image-order-${stage}`,
+          handler: 'src/lambda/cerebrum-image-order.approve',
+          initialPolicy: [
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              actions: ['dynamodb:UpdateItem', 'dynamodb:GetItem'],
+              resources: [cerebrumImageOrderTable.tableArn]
+            }),
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              actions: ['cognito-idp:AdminGetUser'],
+              resources: [auth.userPoolArn]
+            }),
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              actions: ['sqs:SendMessage'],
+              resources: [cerebrumImageOrderQueue.queueArn]
+            })
+          ],
+          environment: {
+            CEREBRUM_IMAGE_ORDER_TABLE_NAME: cerebrumImageOrderTable.tableName,
+            CEREBRUM_IMAGE_ORDER_QUEUE_URL: cerebrumImageOrderQueue.queueUrl,
+            CEREBRUM_COGNITO_USER_POOL_ID: auth.userPoolId
+          }
+        }
+      },
+      'PATCH /cerebrum-image-orders/{orderId}/cancel': {
         authorizer: 'jwt',
         function: {
           functionName: `cancel-cerebrum-image-order-${stage}`,

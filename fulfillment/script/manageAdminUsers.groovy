@@ -1,4 +1,5 @@
 import groovy.cli.commons.CliBuilder
+import org.slf4j.Logger
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient
 import software.amazon.awssdk.services.cognitoidentityprovider.model.AdminAddUserToGroupRequest
 import software.amazon.awssdk.services.cognitoidentityprovider.model.CognitoIdentityProviderException
@@ -11,6 +12,10 @@ import software.amazon.awssdk.services.cognitoidentityprovider.model.UserPoolDes
 /**
  * Use this script to manage admin users and groups.
  */
+evaluate(new File('./ScriptUtil.groovy'))
+def scriptUtil = new ScriptUtil()
+Logger logger = scriptUtil.logger(this)
+
 def cli = buildCli()
 def opts = cli.parse(this.args)
 
@@ -32,30 +37,30 @@ CognitoIdentityProviderClient.builder().build().withCloseable {CognitoIdentityPr
       throw new UnsupportedOperationException('Have not implemented remove user from group functionality yet')
     }
   } catch (CognitoIdentityProviderException e) {
-    println e.awsErrorDetails().errorMessage()
+    logger.error e.awsErrorDetails().errorMessage()
     System.exit(1)
   }
 }
 // end: main program
 
 
-private void addUserToGroup(CognitoIdentityProviderClient cognitoClient, String user, String group, UserPoolDescriptionType pool) {
+private void addUserToGroup(CognitoIdentityProviderClient cognitoClient, String user, String group, UserPoolDescriptionType pool, Logger logger) {
   AdminAddUserToGroupRequest addUserToGroupRequest = AdminAddUserToGroupRequest.builder()
     .userPoolId(pool.id())
     .groupName(group)
     .username(user)
     .build()
   cognitoClient.adminAddUserToGroup(addUserToGroupRequest)
-  println "Added $user to $group in pool ${pool.id()} ${pool.name()}"
+  logger.info "Added $user to $group in pool ${pool.id()} ${pool.name()}"
 }
 
-private void createGroup(CognitoIdentityProviderClient cognitoClient, String name, UserPoolDescriptionType pool) {
+private void createGroup(CognitoIdentityProviderClient cognitoClient, String name, UserPoolDescriptionType pool, Logger logger) {
   CreateGroupRequest createGroupRequest = CreateGroupRequest.builder()
     .userPoolId(pool.id())
     .groupName(name)
     .build()
   cognitoClient.createGroup(createGroupRequest)
-  println "Created group $name in pool ${pool.id()} ${pool.name()}"
+  logger.info "Created group $name in pool ${pool.id()} ${pool.name()}"
 }
 
 private CliBuilder buildCli() {

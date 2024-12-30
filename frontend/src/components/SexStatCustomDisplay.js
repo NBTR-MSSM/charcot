@@ -2,10 +2,9 @@ import React, { Component } from 'react'
 import { AppContext } from '../lib/context'
 
 class SexStatCustomDisplay extends Component {
-  constructor(props) {
+  /* constructor(props) {
     super(props)
-    this.bar = 'foo'
-  }
+  } */
 
   render() {
     const male = this.props.info.categories.get('Male')

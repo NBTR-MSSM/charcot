@@ -22,6 +22,7 @@
     "antd": "^4.18.8",
     "aws-amplify": "^4.3.14",
     "bootstrap": "^5.1.3",
+    "caniuse-lite": "^1.0.30001690",
     "highcharts": "^10.0.0",
     "highcharts-react-official": "^3.1.0",
     "js-joda": "^1.11.0",
@@ -43,7 +44,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "dev": "AWS_PROFILE=mssm sst env 'react-scripts start' --stage debug",
+    "dev": "AWS_PROFILE=mssm sst env 'react-scripts start'",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -67,6 +68,6 @@
     ]
   },
   "devDependencies": {
-    "@serverless-stack/static-site-env": "^0.63.0"
+    "@serverless-stack/static-site-env": "^1.18.4"
   }
 }

@@ -63,6 +63,12 @@ class FulfillmentService implements CommandLineRunner {
   @Value('${spring.profiles.active}')
   String activeProfile
 
+  @Value('${charcot.fulfillment.approver-emails}')
+  List<String> approverEmails
+
+  @Value('${charcot.fulfillment.host}')
+  String host
+
   @Autowired
   OrderService orderService
 
@@ -78,7 +84,8 @@ class FulfillmentService implements CommandLineRunner {
   ]
 
   /**
-   * After Spring application context starts up, set up an infinite loop of polling SQS for new messages*/
+   * After Spring application context starts up, set up an infinite loop of polling SQS for new messages
+   */
   void run(String... args) throws Exception {
     log.info "Entering queue poll loop"
     while (true) {
@@ -89,22 +96,23 @@ class FulfillmentService implements CommandLineRunner {
         if (!orderInfoFromSqs) {
           continue
         }
+        /*
+         * Another worker already processed or is processing this order. If the request is large,
+         * the AWS SQS max visibility timeout window of 12 hours can/will be exhausted and another worker will see
+         * the message again, which would result in duplicate work on this order. Our escape hatch for
+         * that is to rely on order status to know whenever the worker is done processing the order. Also this fetch has
+         * the effect of extending the visibility timeout by another 12 hours on behalf of the worker
+         * handling this request. One caveat is that we have to record the "refreshed" receipt handle because the
+         * previous one has now gone stale.
+         */
         orderInfo = orderService.retrieveOrderInfo(orderInfoFromSqs.orderId)
         orderInfo.sqsReceiptHandle = orderInfoFromSqs.sqsReceiptHandle
         orderService.updateSqsReceiptHandle(orderInfo.orderId, orderInfo.recordNumber, orderInfo.sqsReceiptHandle)
-        if (orderInfo.status != 'received') {
-          /*
-           * Another worker already processed or is processing this order. If the request is large,
-           * the AWS SQS max visibility timeout window of 12 hours can/will be exhausted and another worker will see
-           * the message again, which would result in duplicate work on this order. Our escape hatch for
-           * that is to rely on order status to know whenever the worker is done processing the order. Also this fetch has
-           * the effect of extending the visibility timeout by another 12 hours on behalf of the worker
-           * handling this request. One caveat is that we have to record the "refreshed" receipt handle because the
-           * previous one has now gone stale.
-           */
-          continue
+        if (orderInfo.status == 'approved') {
+          fulfill(orderInfo)
+        } else if (orderInfo.status == 'received') {
+          preProcess(orderInfo)
         }
-        fulfill(orderInfo)
       } catch (Exception e) {
         log.error "Problem fulfilling $orderInfoFromSqs.orderId", e
         orderService.failOrder(orderInfo.orderId, e)
@@ -112,11 +120,21 @@ class FulfillmentService implements CommandLineRunner {
     }
   }
 
+  void preProcess(OrderInfoDto orderInfo) {
+    String orderId = orderInfo.orderId
+    orderService.startOrderPreProcessing(orderId)
+    calculateOrderSizeAndPartitionIntoBuckets(orderInfo)
+    orderService.recordOrderSize(orderInfo.orderId, orderInfo.size)
+    orderService.recordFileCount(orderInfo.orderId, orderInfo.fileNames.size())
+    orderService.performOrderPreProcessedActions(orderInfo.orderId)
+    sendReadyForApprovalEmail(orderId)
+  }
+
   void fulfill(OrderInfoDto orderInfo) {
     systemStats()
     String orderId = orderInfo.orderId
     log.info "Fulfilling order ${orderInfo.toString()}"
-    orderService.startOrder(orderId)
+    orderService.startOrderProcessing(orderId)
 
     def canceled = null
     if (orderInfo.filesProcessed.size() != orderInfo.fileNames.size()) {
@@ -191,7 +209,7 @@ class FulfillmentService implements CommandLineRunner {
         String zipLink = generateSignedZipUrl(orderInfo.orderId, zipName)
 
         // Send email
-        sendEmail(orderInfo.orderId, orderInfo.email, zipLink, zipCnt, totalZips)
+        sendFulfillmentEmail(orderInfo.orderId, orderInfo.email, zipLink, zipCnt, totalZips)
 
         // cleanup in preparation for next batch, this way
         // we free up space so as to to avoid blowing disk space on the host
@@ -312,13 +330,13 @@ class FulfillmentService implements CommandLineRunner {
      *  Paid/ODP account stack split is the reason this was originally added, but do not think there's too much value in that split
      *  anymore.
      *  Update 09/27/2024: Once I change [REF|/Users/jmquij0106/git/charcot/package.json|'"deploy:debug": "./script/deploy.mjs deploy -p mssm -o mssm -s debug"']
-     *   to use the proper 'mssm-odp' profile for deployment, this logic will be mor necessary than ever. I want to use ODP for Zip bucket because
+     *   to use the proper 'mssm-odp' profile for deployment, this logic will be more necessary than ever. I want to use ODP for Zip bucket because
      *   it doesn't cost Mt Sinai $$$. Recall that S3 can get costly if we were to use the Mt Sinai paid account
      *  Update 05/27/2024: But Mt Sinai ODP account is the one where S3 storage is provided at no charge because it's for research purposes, maybe
      *    that's the reason I did the split?
      */
     if (local) {
-      // In local the 'mssm-odp' AWS profile should exist, and should have full peermission to read from Zip bucket
+      // In local the 'mssm-odp' AWS profile should exist, and should have full permissions to read from Zip bucket
       s3 = AmazonS3ClientBuilder.standard().withCredentials(new ProfileCredentialsProviderV1(odpProfileName)).build()
     }
 
@@ -363,7 +381,26 @@ class FulfillmentService implements CommandLineRunner {
     }
   }
 
-  void sendEmail(String orderId, String email, String zipLink, int zipCnt, int totalZips) {
+  void sendReadyForApprovalEmail(String orderId) {
+    String orderLink = "$host/transaction?orderId=$orderId&orderApproval=true"
+    AmazonSimpleEmailService client = AmazonSimpleEmailServiceClientBuilder.standard()
+      .withRegion(Regions.US_EAST_1).build()
+    SendEmailRequest request = new SendEmailRequest()
+      .withDestination(new Destination().withToAddresses(approverEmails))
+      .withMessage(new Message()
+      .withBody(new Body()
+      .withHtml(new Content().withCharset("UTF-8")
+      .withData("Request ready for approval, click <a href='$orderLink'>here</a> to review."))
+      .withText(new Content().withCharset("UTF-8")
+      .withData("Request ready for approval, click <a href='$orderLink'>here</a> to review.")))
+      .withSubject(new Content().withCharset("UTF-8")
+      .withData("*** Attention Required: Please Review Mount Sinai Charcot Request $orderId ")))
+      .withSource(fromEmail)
+    client.sendEmail(request)
+    log.info "Sent ready for approval email for request $orderId"
+  }
+
+  void sendFulfillmentEmail(String orderId, String email, String zipLink, int zipCnt, int totalZips) {
     String progress = totalZips > 1 ? " for Batch $zipCnt of $totalZips" : ''
     AmazonSimpleEmailService client = AmazonSimpleEmailServiceClientBuilder.standard()
       .withRegion(Regions.US_EAST_1).build()
@@ -379,7 +416,7 @@ class FulfillmentService implements CommandLineRunner {
       .withData("Mount Sinai Charcot Image Request ($orderId) Ready$progress")))
       .withSource(fromEmail)
     client.sendEmail(request)
-    log.info "Sent email for request $orderId and zip link $zipLink"
+    log.info "Sent fulfimment email for request $orderId and zip link $zipLink"
   }
 
   private static void cleanUp(String outputPath, String zipName) {

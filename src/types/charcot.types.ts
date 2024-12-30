@@ -14,6 +14,14 @@ export interface CerebrumImageMetaData {
   total: number
 }
 
+export type CerebrumImageOrderStatus = 'received' | 'pre-processing' | 'pre-processed' | 'processing' | 'processed' | 'canceled' | 'cancel-requested' | 'approved'
+
+export type CerebrumImageOrderApprovableStatus = Extract<CerebrumImageOrderStatus, 'pre-processed'>
+
+export type CerebrumImageOrderNonApprovableStatus = Exclude<CerebrumImageOrderStatus, CerebrumImageOrderApprovableStatus>
+
+export type CerebrumImageOrderCancellableStatus = Extract<CerebrumImageOrderStatus, 'approved' | 'received' | 'pre-processing' | 'pre-processed' | 'processing'>
+
 export interface CerebrumImageOrder {
   [key: string]: string | number | Array<string> | Record<string, string> | boolean | undefined
   orderId: string
@@ -23,10 +31,11 @@ export interface CerebrumImageOrder {
   filesProcessed?: CharcotFileName[]
   filter?: Filter
   email: string
-  status: 'received' | 'processing' | 'processed' | 'canceled' | 'cancel-requested'
+  status: CerebrumImageOrderStatus
   remark?: string
   size?: number
   isCancellable?: boolean
+  intendedUse: string
 }
 
 export interface Pagination {

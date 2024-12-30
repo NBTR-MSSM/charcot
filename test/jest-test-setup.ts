@@ -1,14 +1,15 @@
 import { APIGatewayProxyEventV2 } from 'aws-lambda'
 
-const jestGlobal = global as unknown as Record<string, string | unknown>
+export const jestGlobal = global as unknown as Record<string, string | unknown>
 jestGlobal.dummyOrderId = 'abc123'
+jestGlobal.dummyOrderIdTwo = 'mno123'
 
 jest.mock('ioredis')
 jest.mock('uuid', () => ({
   v4: () => jestGlobal.dummyOrderId
 }))
 
-// Set up mocks for parts of the AWS API we're using the in our code base only, add more as needed
+// Set up mocks for only parts of the AWS API we're using the in our code base, add more as needed
 jest.mock('@exsoinn/aws-sdk-wrappers', () => {
   const awsWrappers = jest.requireActual('@exsoinn/aws-sdk-wrappers')
   awsWrappers.axiosClient.post = jest.fn(() => Promise.resolve())

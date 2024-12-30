@@ -8,6 +8,7 @@ export default class ConfirmationModal extends Component {
       show,
       handleClose,
       handleExit,
+      handleHide,
       header,
       body,
       buttonJsx
@@ -20,7 +21,7 @@ export default class ConfirmationModal extends Component {
       Close
     </Button>
     return (
-      <Modal show={show} onExit={handleExit}>
+      <Modal show={show} onExit={handleExit} onHide={handleHide}>
         <Modal.Header closeButton>
           <Modal.Title>{header}</Modal.Title>
         </Modal.Header>

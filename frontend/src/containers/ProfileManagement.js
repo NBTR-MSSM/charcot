@@ -97,13 +97,9 @@ class ProfileManagement extends Component {
    * values entered into the form. This reduces a lot of boilerplate in profile related containers.
    */
   handleFormChange = (event) => {
-    const newState = {}
-    const {
-      id,
-      value
-    } = event.target
-    newState[id] = value
-    this.setState(newState)
+    this.setState({
+      [event.target.id]: event.target.value
+    })
   }
 
   renderConfirmationForm = () => {

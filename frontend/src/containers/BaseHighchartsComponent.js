@@ -148,6 +148,9 @@ export default class BaseHighchartsComponent extends Component {
 
   componentDidUpdate(prevProps) {
     // FIXME: This is doing object identity comparison, is this what I really want?
+    //   Update 12/30/2024 while working on Request Approval flow: If the component update did NOT come from
+    //   category select/unselect -> App.js state update (which clones the Filter), then the "if()" evaluates to
+    //   false below, thus avoiding an infinite loop
     if (this.props.filter !== prevProps.filter) {
       this.updateChart()
     }

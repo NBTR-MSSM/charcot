@@ -21,6 +21,7 @@ const parseOrder = async (event: APIGatewayProxyEventV2): Promise<CerebrumImageO
     orderId,
     recordNumber: 0,
     email: orderObj.email as string,
+    intendedUse: orderObj.intendedUse as string,
     fileNames: orderObj.fileNames || await fetchFileNames(filter),
     filter,
     created: new Date().getTime(),
@@ -52,16 +53,86 @@ class OrderManagement {
           body: order
         })
       } else {
-        return new HttpResponse(401, 'Request is either empty or invalid')
+        return new HttpResponse(400, 'Request is either empty or invalid')
       }
     } catch (e) {
       return new HttpResponse(500, `Something went wrong, ${e}`)
     }
   }
 
-  /**
-   * TODO: bark if I get a cancel request for an order not in a cancellable status.
-   */
+  async requestMoreInfo(event: APIGatewayProxyEventV2) {
+    const orderId = (event.pathParameters && event.pathParameters.orderId) as string
+    const res = await orderSearch.retrieve(orderId)
+    const orders = res.orders as DocumentClient.ItemList
+    if (orders && orders.length > 0) {
+      const order = orders[0]
+      if (!order.isMoreInfoRequestable) {
+        return new HttpResponse(400, `Request in status ${order.status} not eligible for more info request`)
+      }
+
+      const requester = (event.queryStringParameters && event.queryStringParameters.requester) as string
+      const infoNeeded = (event.body && JSON.parse(event.body).infoNeeded) as string
+      await dynamoDbClient.update({
+        TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME,
+        Key: {
+          orderId,
+          recordNumber: 0
+        },
+        UpdateExpression: 'SET #status = :status, #remark = :remark, #infoNeeded = :infoNeeded',
+        ExpressionAttributeNames: {
+          '#status': 'status',
+          '#remark': 'remark',
+          '#infoNeeded': 'infoNeeded'
+        },
+        ExpressionAttributeValues: {
+          ':status': 'more-info-requested',
+          ':remark': `[${new Date().toUTCString()}] More info requested by ${requester}`,
+          ':infoNeeded': infoNeeded
+        }
+      })
+      await sqsClient.send(process.env.CEREBRUM_IMAGE_ORDER_QUEUE_URL as string, {
+        orderId: order.orderId
+      })
+    } else {
+      return new HttpResponse(404, `Request ${orderId} not found`)
+    }
+  }
+
+  async approve(event: APIGatewayProxyEventV2) {
+    const orderId = (event.pathParameters && event.pathParameters.orderId) as string
+    const res = await orderSearch.retrieve(orderId)
+    const orders = res.orders as DocumentClient.ItemList
+    if (orders && orders.length > 0) {
+      const order = orders[0]
+      if (!order.isApprovable) {
+        return new HttpResponse(400, `Request in status ${order.status} cannot be approved`)
+      }
+
+      const requester = (event.queryStringParameters && event.queryStringParameters.requester) as string
+      await dynamoDbClient.update({
+        TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME,
+        Key: {
+          orderId,
+          recordNumber: 0
+        },
+        UpdateExpression: 'SET #status = :status, #remark = :remark',
+        ExpressionAttributeNames: {
+          '#status': 'status',
+          '#remark': 'remark'
+        },
+        ExpressionAttributeValues: {
+          ':status': 'approved',
+          ':remark': `[${new Date().toUTCString()}] Approved by ${requester}`
+        }
+      })
+      await sqsClient.send(process.env.CEREBRUM_IMAGE_ORDER_QUEUE_URL as string, {
+        orderId: order.orderId
+      })
+    } else {
+      return new HttpResponse(404, `Request ${orderId} not found`)
+    }
+  }
+
   async cancel(event: APIGatewayProxyEventV2) {
     const orderId = (event.pathParameters && event.pathParameters.orderId) as string
     const res = await orderSearch.retrieve(orderId)
@@ -69,12 +140,16 @@ class OrderManagement {
     if (orders && orders.length > 0) {
       const order = orders[0]
       if (!order.isCancellable) {
-        return new HttpResponse(401, `Request in status ${order.status} cannot be canceled`)
+        return new HttpResponse(400, `Request in status ${order.status} cannot be canceled`)
       }
+
       const requester = (event.queryStringParameters && event.queryStringParameters.requester) as string
       await dynamoDbClient.update({
         TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME,
-        Key: { orderId },
+        Key: {
+          orderId,
+          recordNumber: 0
+        },
         UpdateExpression: 'SET #status = :status, #remark = :remark',
         ExpressionAttributeNames: {
           '#status': 'status',
@@ -82,7 +157,7 @@ class OrderManagement {
         },
         ExpressionAttributeValues: {
           ':status': 'cancel-requested',
-          ':remark': `Cancel requested by ${requester} on ${new Date().toUTCString()}`
+          ':remark': `[${new Date().toUTCString()}] Cancel requested by ${requester}`
         }
       })
     } else {

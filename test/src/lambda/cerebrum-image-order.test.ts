@@ -13,6 +13,7 @@ import {
 } from '../../fixture/cerebrum-image-order.fixture'
 import { userFactory } from '../../fixture/cerebrum-image-user.fixture'
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client'
+import { CerebrumImageOrderNonApprovableStatus } from '../../../src/types/charcot.types'
 
 const mockCreateOrderEventBody: Readonly<Record<string, string | string[]>> = {
   fileNames: ['XE13-009_2_HE_1.mrxs', 'XE13-009_2_Sil_1.mrxs', 'XE12-025_1_HE_1.mrxs'],
@@ -20,6 +21,7 @@ const mockCreateOrderEventBody: Readonly<Record<string, string | string[]>> = {
 }
 
 const jestGlobal = global as unknown as Record<string, string>
+const currentTime = new Date('2021-12-27 00:00:00 UTC')
 let event: APIGatewayProxyEventV2
 describe('cerebrum-image-order', () => {
   beforeEach(() => {
@@ -34,9 +36,29 @@ describe('cerebrum-image-order', () => {
     expect(JSON.parse(res.body as string)).toEqual(orderOutputFactory())
   })
 
+  it('does not attempt to approve an order that does not exist', async () => {
+    event.pathParameters = {
+      orderId: jestGlobal.dummyOrderId,
+      requester: 'joquijada2010@gmail.com'
+    }
+
+    // @ts-ignore
+    dynamoDbClient.get.mockResolvedValueOnce({
+      Item: undefined
+    })
+
+    const res = await lambda.approve(event, {} as Context, jest.fn()) as APIGatewayProxyStructuredResultV2
+    expect(res).toEqual({
+      statusCode: 404,
+      body: JSON.stringify({
+        message: `Request ${jestGlobal.dummyOrderId} not found`
+      }, null, ' ')
+    })
+  })
+
   it('does not attempt to cancel an order that does not exist', async () => {
     event.pathParameters = {
-      orderId: 'mno123',
+      orderId: jestGlobal.dummyOrderId,
       requester: 'joquijada2010@gmail.com'
     }
 
@@ -49,14 +71,46 @@ describe('cerebrum-image-order', () => {
     expect(res).toEqual({
       statusCode: 404,
       body: JSON.stringify({
-        message: 'Request mno123 not found'
+        message: `Request ${jestGlobal.dummyOrderId} not found`
       }, null, ' ')
     })
   })
 
+  it('rejects approval request for an order that is not approvable', async () => {
+    event.pathParameters = {
+      orderId: jestGlobal.dummyOrderId,
+      requester: 'joquijada2010@gmail.com'
+    }
+
+    const scanOutput = orderScanResultFactory([5], true) as DocumentClient.GetItemOutput
+    scanOutput.Item!.status = 'approved'
+
+    const statuses: CerebrumImageOrderNonApprovableStatus[] = ['received', 'pre-processing', 'processing', 'processed', 'canceled', 'cancel-requested', 'approved']
+    for (const status of statuses) {
+      scanOutput.Item!.status = status
+      // @ts-ignore
+      dynamoDbClient.get.mockResolvedValueOnce(scanOutput)
+
+      // @ts-ignore
+      cognitoIdentityServiceProviderClient.adminGetUser.mockImplementationOnce((params: cognitoIdentityServiceProviderClient.AdminGetUserRequest) => {
+        const user = userFactory()
+        user.Username = params.Username
+        return { promise: () => Promise.resolve(user) }
+      })
+
+      const res = await lambda.approve(event, {} as Context, jest.fn()) as APIGatewayProxyStructuredResultV2
+      expect(res).toEqual({
+        statusCode: 401,
+        body: JSON.stringify({
+          message: `Request in status ${status} cannot be approved`
+        }, null, ' ')
+      })
+    }
+  })
+
   it('rejects cancel request for an order that is not cancellable', async () => {
     event.pathParameters = {
-      orderId: 'mno123',
+      orderId: jestGlobal.dummyOrderId,
       requester: 'joquijada2010@gmail.com'
     }
 
@@ -82,10 +136,120 @@ describe('cerebrum-image-order', () => {
     })
   })
 
-  it('cancels an order', async () => {
+  it('approves an order', async () => {
+    // @ts-ignore
+    const dateSpy = jest.spyOn(global, 'Date').mockImplementation(() => currentTime)
+
     event.pathParameters = {
-      orderId: 'mno123',
-      requester: 'joquijada2010@gmail.com'
+      orderId: jestGlobal.dummyOrderIdTwo
+    }
+    event.queryStringParameters = {
+      requester: 'test@test.com'
+    }
+    const scanOutput = orderScanResultFactory([5], true) as DocumentClient.GetItemOutput
+    scanOutput.Item!.status = 'pre-processed'
+
+    // @ts-ignore
+    dynamoDbClient.get.mockResolvedValueOnce(scanOutput)
+
+    // @ts-ignore
+    cognitoIdentityServiceProviderClient.adminGetUser.mockImplementationOnce((params: cognitoIdentityServiceProviderClient.AdminGetUserRequest) => {
+      const user = userFactory()
+      user.Username = params.Username
+      return { promise: () => Promise.resolve(user) }
+    })
+
+    const res = await lambda.approve(event, {} as Context, jest.fn()) as APIGatewayProxyStructuredResultV2
+
+    expect(res).toEqual({
+      statusCode: 200,
+      body: JSON.stringify({
+        message: 'Operation successful'
+      }, null, ' ')
+    })
+
+    // This is better than expect(dynamoDbClient.update).toHaveBeenCalledWith({...}) because the equality check of the below
+    // is exact
+    // @ts-ignore
+    expect(dynamoDbClient.update.mock.calls[0][0]).toEqual({
+      TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME,
+      Key: { orderId: jestGlobal.dummyOrderIdTwo, recordNumber: 0 },
+      UpdateExpression: 'SET #status = :status, #remark = :remark',
+      ExpressionAttributeNames: {
+        '#status': 'status',
+        '#remark': 'remark'
+      },
+      ExpressionAttributeValues: {
+        ':status': 'approved',
+        ':remark': `[${new Date().toUTCString()}] Approved by test@test.com`
+      }
+    })
+    expect(sqsClient.send).toHaveBeenCalledWith(process.env.CEREBRUM_IMAGE_ORDER_QUEUE_URL, {
+      orderId: jestGlobal.dummyOrderIdTwo
+    })
+    dateSpy.mockRestore()
+  })
+
+  it('request more info on an order', async () => {
+    // @ts-ignore
+    const dateSpy = jest.spyOn(global, 'Date').mockImplementation(() => currentTime)
+
+    event.pathParameters = {
+      orderId: jestGlobal.dummyOrderIdTwo
+    }
+    event.queryStringParameters = {
+      requester: 'test@test.com'
+    }
+    const scanOutput = orderScanResultFactory([5], true) as DocumentClient.GetItemOutput
+    scanOutput.Item!.status = 'pre-processed'
+
+    // @ts-ignore
+    dynamoDbClient.get.mockResolvedValueOnce(scanOutput)
+
+    // @ts-ignore
+    cognitoIdentityServiceProviderClient.adminGetUser.mockImplementationOnce((params: cognitoIdentityServiceProviderClient.AdminGetUserRequest) => {
+      const user = userFactory()
+      user.Username = params.Username
+      return { promise: () => Promise.resolve(user) }
+    })
+
+    const res = await lambda.approve(event, {} as Context, jest.fn()) as APIGatewayProxyStructuredResultV2
+
+    expect(res).toEqual({
+      statusCode: 200,
+      body: JSON.stringify({
+        message: 'Operation successful'
+      }, null, ' ')
+    })
+
+    // This is better than expect(dynamoDbClient.update).toHaveBeenCalledWith({...}) because the equality check of the below
+    // is exact
+    // @ts-ignore
+    expect(dynamoDbClient.update.mock.calls[0][0]).toEqual({
+      TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME,
+      Key: { orderId: jestGlobal.dummyOrderIdTwo, recordNumber: 0 },
+      UpdateExpression: 'SET #status = :status, #remark = :remark',
+      ExpressionAttributeNames: {
+        '#status': 'status',
+        '#remark': 'remark'
+      },
+      ExpressionAttributeValues: {
+        ':status': 'approved',
+        ':remark': `[${new Date().toUTCString()}] Approved by test@test.com`
+      }
+    })
+    expect(sqsClient.send).toHaveBeenCalledWith(process.env.CEREBRUM_IMAGE_ORDER_QUEUE_URL, {
+      orderId: jestGlobal.dummyOrderIdTwo
+    })
+    dateSpy.mockRestore()
+  })
+
+  it('cancels an order', async () => {
+    // @ts-ignore
+    const dateSpy = jest.spyOn(global, 'Date').mockImplementation(() => currentTime)
+
+    event.pathParameters = {
+      orderId: jestGlobal.dummyOrderId
     }
     event.queryStringParameters = {
       requester: 'test@test.com'
@@ -108,9 +272,12 @@ describe('cerebrum-image-order', () => {
       }, null, ' ')
     })
 
-    expect(dynamoDbClient.update).toHaveBeenCalledWith({
+    // This is better than expect(dynamoDbClient.update).toHaveBeenCalledWith({...}) because the equality check of the below
+    // is exact
+    // @ts-ignore
+    expect(dynamoDbClient.update.mock.calls[0][0]).toEqual({
       TableName: process.env.CEREBRUM_IMAGE_ORDER_TABLE_NAME,
-      Key: { orderId: 'mno123' },
+      Key: { orderId: jestGlobal.dummyOrderId, recordNumber: 0 },
       UpdateExpression: 'SET #status = :status, #remark = :remark',
       ExpressionAttributeNames: {
         '#status': 'status',
@@ -118,9 +285,10 @@ describe('cerebrum-image-order', () => {
       },
       ExpressionAttributeValues: {
         ':status': 'cancel-requested',
-        ':remark': `Cancel requested by test@test.com on ${new Date().toUTCString()}`
+        ':remark': `[${new Date().toUTCString()}] Cancel requested by test@test.com`
       }
     })
+    dateSpy.mockRestore()
   })
 
   it('defaults to sorting by created timestamp if request asks to sort by non-numeric and non-string field', async () => {
@@ -219,7 +387,6 @@ describe('cerebrum-image-order', () => {
   })
 
   it('submits image order for fulfillment', async () => {
-    const currentTime = new Date('2021-12-27 00:00:00 UTC')
     // @ts-ignore
     const dateSpy = jest.spyOn(global, 'Date').mockImplementation(() => currentTime)
     event.body = JSON.stringify(mockCreateOrderEventBody)
@@ -253,7 +420,6 @@ describe('cerebrum-image-order', () => {
   })
 
   it('handles order with filter specified', async () => {
-    const currentTime = new Date('2021-12-27 00:00:00 UTC')
     // @ts-ignore
     const dateSpy = jest.spyOn(global, 'Date').mockImplementation(() => currentTime)
     const order: Record<string, string | undefined> = {}

@@ -112,11 +112,19 @@ class OrderService {
     updateOrderStatus(orderId, 'failed', e.toString())
   }
 
-  private void finishOrder(String orderId) {
+  void finishOrderPreProcessing(String orderId) {
+    updateOrderStatus(orderId, 'pre-processed', "Request pre-processed successfully on ${FulfillmentUtil.currentTime()}")
+  }
+
+  void startOrderPreProcessing(String orderId) {
+    updateOrderStatus(orderId, 'pre-processing', "Request $orderId began being processed by Mount Sinai Charcot on ${FulfillmentUtil.currentTime()}")
+  }
+
+  private void finishOrderProcessing(String orderId) {
     updateOrderStatus(orderId, 'processed', "Request processed successfully on ${FulfillmentUtil.currentTime()}")
   }
 
-  void startOrder(String orderId) {
+  void startOrderProcessing(String orderId) {
     updateOrderStatus(orderId, 'processing', "Request $orderId began being processed by Mount Sinai Charcot on ${FulfillmentUtil.currentTime()}")
   }
 
@@ -185,7 +193,16 @@ class OrderService {
     // and other workers refreshed the receipt on behalf for this worker while it was busy working on the longer-than-12 hours request
     OrderInfoDto refreshedOrderInfo = retrieveOrderInfo(orderId)
     sqs.deleteMessage(sqsOrderQueueUrl, refreshedOrderInfo.sqsReceiptHandle)
-    updateStatus && finishOrder(refreshedOrderInfo.orderId)
+    updateStatus && finishOrderProcessing(refreshedOrderInfo.orderId)
+  }
+
+  void performOrderPreProcessedActions(String orderId, boolean updateStatus = true) {
+    AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient()
+    // Refresh the SQS ReceiptHandle from DB for this order, in case the request took more than 12 hours to process
+    // and other workers refreshed the receipt on behalf for this worker while it was busy working on the longer-than-12 hours request
+    OrderInfoDto refreshedOrderInfo = retrieveOrderInfo(orderId)
+    sqs.deleteMessage(sqsOrderQueueUrl, refreshedOrderInfo.sqsReceiptHandle)
+    updateStatus && finishOrderPreProcessing(refreshedOrderInfo.orderId)
   }
 
   /**

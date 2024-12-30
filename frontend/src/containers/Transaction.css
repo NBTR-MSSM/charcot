@@ -7,6 +7,10 @@
     font-weight: bold;
 }
 
+.userAttribute > a {
+    padding-right: 50px;
+}
+
 .reload {
     margin-left: 1100px;
 }
